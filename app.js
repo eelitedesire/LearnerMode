@@ -8,7 +8,7 @@ const cors = require('cors');
 const moment = require('moment-timezone');
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 2000;
 
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'], allowedHeaders: '*' }));
 app.use(bodyParser.urlencoded({ extended: true }));
