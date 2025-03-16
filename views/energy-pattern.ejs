@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Energy Pattern Monitoring</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Base styles and reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f7fa;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 2px solid #eaedf0;
+  padding-bottom: 15px;
+}
+
+h2 {
+  color: #3498db;
+  margin: 25px 0 15px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* Status panel styles */
+.status-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.status-panel p {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+#status {
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  display: inline-block;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+#status.active {
+  background-color: #2ecc71;
+  color: white;
+}
+
+#status.inactive {
+  background-color: #e74c3c;
+  color: white;
+}
+
+#changesCount {
+  font-weight: 700;
+  color: #3498db;
+  font-size: 18px;
+}
+
+/* Energy pattern changes list styles */
+.energy-changes-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+.energy-changes-container h2 {
+  padding: 15px 20px;
+  margin: 0;
+  background-color: #3498db; /* Blue color for energy pattern */
+  color: white;
+}
+
+.changes-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.change-item {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eaedf0;
+  transition: background-color 0.2s;
+}
+
+.change-item:hover {
+  background-color: #f8fafc;
+}
+
+.change-item:last-child {
+  border-bottom: none;
+}
+
+.change-time {
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.change-details {
+  padding: 0 15px;
+}
+
+.change-topic {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.change-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+
+.old-value {
+  text-decoration: line-through;
+  color: #e74c3c;
+}
+
+.arrow {
+  color: #7f8c8d;
+}
+
+.new-value {
+  color: #2ecc71;
+  font-weight: 500;
+}
+
+.system-state {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.no-data {
+  padding: 30px;
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .status-panel {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .change-item {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
+  }
+  
+  .system-state {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .system-state {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Hide chart container since it's not needed */
+.chart-container {
+  display: none;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Energy Pattern Setting Changes</h1>
+    
+    <div class="status-panel">
+      <p>Monitoring Status: <span id="status" class="<%= active ? 'active' : 'inactive' %>"><%= active ? 'ACTIVE' : 'INACTIVE' %></span></p>
+      <p>Total Energy Pattern Changes: <span id="changesCount"><%= changes_count %></span></p>
+    </div>
+    
+    <div class="energy-changes-container">
+      <h2>Recent Energy Pattern Changes</h2>
+      <div id="energyChanges" class="changes-list"></div>
+    </div>
+    
+    <div class="chart-container">
+      <h2>Energy Pattern Activity</h2>
+      <canvas id="energyPatternChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Fetch energy pattern changes
+    async function fetchEnergyPatternChanges() {
+      try {
+        const response = await fetch('/api/energy-pattern-changes');
+        const data = await response.json();
+        
+        displayEnergyPatternChanges(data);
+        createEnergyPatternChart(data);
+      } catch (error) {
+        console.error('Error fetching energy pattern changes:', error);
+      }
+    }
+    
+    // Display energy pattern changes in the UI
+    function displayEnergyPatternChanges(changes) {
+      const container = document.getElementById('energyChanges');
+      container.innerHTML = '';
+      
+      if (changes.length === 0) {
+        container.innerHTML = '<p class="no-data">No energy pattern changes detected yet.</p>';
+        return;
+      }
+      
+      // Sort by most recent first
+      changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      
+      // Take only the 10 most recent changes
+      const recentChanges = changes.slice(0, 10);
+      
+      recentChanges.forEach(change => {
+        const changeElement = document.createElement('div');
+        changeElement.className = 'change-item';
+        
+        changeElement.innerHTML = `
+          <div class="change-time">${change.timestamp}</div>
+          <div class="change-details">
+            <div class="change-topic">${change.topic}</div>
+            <div class="change-value">
+              <span class="old-value">${change.old_value}</span>
+              <span class="arrow">→</span>
+              <span class="new-value">${change.new_value}</span>
+            </div>
+          </div>
+          <div class="system-state">
+            <div>SOC: ${change.system_state.battery_soc || 'N/A'}%</div>
+            <div>PV: ${change.system_state.pv_power || 'N/A'}W</div>
+            <div>Load: ${change.system_state.load || 'N/A'}W</div>
+          </div>
+        `;
+        
+        container.appendChild(changeElement);
+      });
+    }
+    
+    // Create a chart showing energy pattern changes over time
+    function createEnergyPatternChart(changes) {
+      if (changes.length === 0) return;
+      
+      const ctx = document.getElementById('energyPatternChart').getContext('2d');
+      
+      // Prepare data for chart - this would need customization based on your energy pattern values
+      const timestamps = changes.map(change => change.timestamp);
+      const socValues = changes.map(change => change.system_state.battery_soc);
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: timestamps,
+          datasets: [
+            {
+              label: 'Battery SOC%',
+              data: socValues,
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Battery SOC%'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Initial fetch
+    fetchEnergyPatternChanges();
+    
+    // Refresh data every 30 seconds
+    setInterval(fetchEnergyPatternChanges, 30000);
+  </script>
+</body>
+</html>
