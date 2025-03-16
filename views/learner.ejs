@@ -3,939 +3,510 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solar Assistant - Learner Mode</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <title>Energy System Learner</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-   :root {
-      --primary-color: #1877f2;
-      --secondary-color: #f0f2f5;
-      --text-color: #050505;
-      --text-secondary: #65676b;
-      --accent-color: #e7f3ff;
-      --border-color: #dddfe2;
-      --success-color: #42b72a;
-      --danger-color: #e41e3f;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--secondary-color);
-      color: var(--text-color);
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
-    
-    .container {
-      max-width: 1200px;
-      padding-left: 15px;
-      padding-right: 15px;
-    }
-    
-    .card {
-      border-radius: 8px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-      border: none;
-      width: 100%;
-    }
-    
-    .card-header {
-      background-color: white;
-      border-bottom: 1px solid var(--border-color);
-      font-weight: 600;
-      padding: 15px 20px;
-      border-radius: 8px 8px 0 0 !important;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .card-body {
-      padding: 15px 20px;
-      background-color: white;
-    }
-    
-    h1, h5 {
-      font-weight: 700;
-      color: var(--text-color);
-    }
-    
-    h1 {
-      font-size: calc(1.5rem + 1vw);
-      margin-bottom: 1rem;
-    }
-    
-    .btn-primary {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      font-weight: 600;
-    }
-    
-    .btn-success {
-      background-color: var(--success-color);
-      border-color: var(--success-color);
-      font-weight: 600;
-    }
-    
-    .btn-danger {
-      background-color: var(--danger-color);
-      border-color: var(--danger-color);
-      font-weight: 600;
-    }
-    
-    .btn-outline-primary {
-      color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
-    
-    .btn-outline-primary:hover {
-      background-color: var(--accent-color);
-      color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
-    
-    .status-active {
-      color: var(--success-color);
-      font-weight: bold;
-    }
-    
-    .status-inactive {
-      color: var(--danger-color);
-      font-weight: bold;
-    }
-    
-    .metric-box {
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      background-color: white;
-      transition: all 0.2s ease;
-    }
-    
-    .metric-box:hover {
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    
-    .metric-box h6 {
-      color: var(--text-secondary);
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    
-    .metric-box .h3 {
-      font-weight: 700;
-      margin-bottom: 0;
-      font-size: calc(1.2rem + 0.6vw);
-      word-break: break-word;
-    }
-    
-    /* Improved Toggle Switch for Learner Mode */
-    .toggle-switch-container {
-      display: flex;
-      align-items: center;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-    
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 30px;
-      margin-right: 15px;
-      flex-shrink: 0;
-    }
-    
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    
-    .toggle-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
-    }
-    
-    .toggle-slider:before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    
-    input:checked + .toggle-slider {
-      background-color: var(--success-color);
-    }
-    
-    input:focus + .toggle-slider {
-      box-shadow: 0 0 1px var(--success-color);
-    }
-    
-    input:checked + .toggle-slider:before {
-      transform: translateX(30px);
-    }
-    
-    .toggle-label {
-      font-weight: 600;
-      flex-grow: 1;
-    }
-
-    .header-controls {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    
-    .notification-container {
-      position: relative;
-      margin-right: 10px;
-    }
-    
-    .notification-badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background-color: var(--danger-color);
-      color: white;
-      border-radius: 10px;
-      min-width: 20px;
-      height: 20px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    
-    .refresh-button {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background-color: white;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 8px 12px;
-      font-weight: 600;
-      color: var(--text-color);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .refresh-button:hover {
-      background-color: var(--secondary-color);
-    }
-    
-    .refresh-button i {
-      margin-right: 8px;
-    }
-    
-    .change-feed {
-      margin: 0;
-      padding: 0;
-    }
-    
-    .change-entry {
-      position: relative;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      background-color: white;
-      border: 1px solid var(--border-color);
-      transition: all 0.2s ease;
-    }
-    
-    .change-entry:hover {
-      background-color: var(--secondary-color);
-    }
-    
-    .change-entry.new {
-      border-left: 4px solid var(--primary-color);
-      background-color: var(--accent-color);
-    }
-    
-    .change-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-      gap: 5px;
-    }
-    
-    .change-time {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-    
-    .change-setting {
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin-bottom: 5px;
-      word-break: break-word;
-    }
-    
-    .change-value {
-      margin-bottom: 10px;
-      word-break: break-word;
-    }
-    
-    .change-value-old {
-      text-decoration: line-through;
-      color: var(--text-secondary);
-      margin-right: 10px;
-    }
-    
-    .change-value-new {
-      font-weight: 600;
-      color: var(--primary-color);
-    }
-    
-    .change-system-state {
-      background-color: var(--secondary-color);
-      border-radius: 6px;
-      padding: 10px;
-      margin-top: 10px;
-    }
-    
-    .change-system-state h6 {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    
-    .system-state-grid {
+    .card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
     }
-    
-    .system-state-item {
-      display: flex;
-      flex-direction: column;
+    .pattern-bg {
+      background-color: #f8fafc;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a5f3fc' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
-    
-    .system-state-label {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-bottom: 2px;
+    .change-card {
+      transition: all 0.3s ease;
     }
-    
-    .system-state-value {
-      font-weight: 600;
-      word-break: break-word;
+    .change-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
-    
-    .change-actions {
-      margin-top: 10px;
-      display: flex;
-      justify-content: flex-end;
+    .badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
     }
-    
-    .btn-delete-change {
-      color: var(--text-secondary);
-      background: none;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .btn-delete-change:hover {
-      background-color: #f5f5f5;
-      color: var(--danger-color);
-    }
-    
-    .no-changes {
-      padding: 20px;
-      text-align: center;
-      color: var(--text-secondary);
-    }
-    
-    @keyframes highlight {
-      from {background-color: var(--accent-color);}
-      to {background-color: white;}
-    }
-    
-    .highlight {
-      animation: highlight 2s;
-    }
-    
-    /* Media queries for better responsiveness */
-    @media (max-width: 767px) {
-      .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .card-header div {
-        margin-top: 10px;
-        width: 100%;
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      .toggle-switch-container {
-        flex-direction: row;
-        justify-content: space-between;
-      }
-      
-      .system-state-grid {
-        grid-template-columns: repeat(1, 1fr);
-      }
-    }
-    
-    @media (max-width: 576px) {
-      .card-body {
-        padding: 10px;
-      }
-      
-      .metric-box {
-        padding: 10px;
-      }
-      
-      .change-entry {
-        padding: 12px;
-      }
-      
-      .btn-outline-primary {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
-      }
-    }
-
-    /* Pagination Controls */
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  padding: 10px;
-}
-
-.page-indicator {
-  margin: 0 15px;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-/* Improve existing change entry styles for better pagination display */
-.change-feed {
-  position: relative;
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.change-entry {
-  margin-bottom: 15px;
-  padding: 15px;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.change-entry.new {
-  background-color: #f0f8ff;
-  border-left: 3px solid var(--primary-color);
-}
-
-/* Empty state improvement */
-.no-changes {
-  text-align: center;
-  padding: 30px 0;
-  color: #888;
-  font-style: italic;
-}
-
-/* Loading state improvement */
-.loading-changes {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 30px 0;
-}
-
-.loading-spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  animation: spin 1s linear infinite;
-  margin-right: 10px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1 class="mb-4">Solar Assistant Learner Mode</h1>
-    
-    <div class="row mb-4">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header">
-            <h5>Learner Mode Status</h5>
+<body class="pattern-bg min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <header class="mb-10">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">Energy System Learner</h1>
+        <div class="flex items-center space-x-4">
+          <div class="relative inline-block">
+            <span class="<%= active ? 'bg-green-500' : 'bg-gray-400' %> inline-block w-3 h-3 rounded-full"></span>
+            <span class="ml-2 text-gray-700"><%= active ? 'Active' : 'Inactive' %></span>
           </div>
-          <div class="card-body">
-            <p>Status: <span id="status-indicator" class="<%= active ? 'status-active' : 'status-inactive' %>">
-              <%= active ? 'ACTIVE' : 'INACTIVE' %>
-            </span></p>
-            <p style="word-break: break-word;">Monitored Settings: <%= monitored_settings.join(', ') %></p>
-            <p>Changes Detected: <span id="changes-count"><%= changes_count %></span></p>
-            
-            <!-- Toggle switch -->
-            <div class="toggle-switch-container">
-              <span class="toggle-label">Learner Mode</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-learner" <%= active ? 'checked' : '' %>>
-                <span class="toggle-slider"></span>
-              </label>
+          <button id="toggleLearner" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition">
+            <%= active ? 'Disable' : 'Enable' %> Learner
+          </button>
+        </div>
+      </div>
+      <p class="text-gray-600 mt-2">Monitoring <%= monitored_settings.length %> settings | <%= changes_count %> total changes recorded</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+      <!-- Energy Pattern Card -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-500">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-white">Energy Pattern Changes</h2>
+            <div class="bg-white text-blue-600 rounded-full h-8 w-8 flex items-center justify-center">
+              <i class="fas fa-bolt"></i>
             </div>
           </div>
         </div>
-      </div>
-      
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header">
-            <h5>Current System State</h5>
+        <div class="p-6" id="energyPatternContainer">
+          <div class="animate-pulse flex space-x-4">
+            <div class="flex-1 space-y-4 py-1">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="space-y-2">
+                <div class="h-4 bg-gray-200 rounded"></div>
+                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
+            </div>
           </div>
-          <div class="card-body">
-            <div id="system-state-container">
-              <p>Loading system state...</p>
+        </div>
+        <div class="px-6 py-3 bg-gray-100 text-center">
+          <a href="/energy-pattern" class="text-blue-600 hover:text-blue-800 font-medium">
+            View All Energy Pattern Changes <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Grid Charge Card -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-white">Grid Charge Changes</h2>
+            <div class="bg-white text-purple-600 rounded-full h-8 w-8 flex items-center justify-center">
+              <i class="fas fa-plug"></i>
+            </div>
+          </div>
+        </div>
+        <div class="p-6" id="gridChargeContainer">
+          <div class="animate-pulse flex space-x-4">
+            <div class="flex-1 space-y-4 py-1">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="space-y-2">
+                <div class="h-4 bg-gray-200 rounded"></div>
+                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-3 bg-gray-100 text-center">
+          <a href="/grid-charge" class="text-purple-600 hover:text-purple-800 font-medium">
+            View All Grid Charge Changes <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- System State Card -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
+      <div class="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-white">Current System State</h2>
+          <div class="bg-white text-green-600 rounded-full h-8 w-8 flex items-center justify-center">
+            <i class="fas fa-tachometer-alt"></i>
+          </div>
+        </div>
+      </div>
+      <div class="p-6" id="systemStateContainer">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- System state metrics will be populated here -->
+          <div class="animate-pulse flex space-x-4">
+            <div class="flex-1 space-y-4 py-1">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </div>
+          <div class="animate-pulse flex space-x-4">
+            <div class="flex-1 space-y-4 py-1">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </div>
+          <div class="animate-pulse flex space-x-4">
+            <div class="flex-1 space-y-4 py-1">
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5>Detected Setting Changes</h5>
-        <div>
-          <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
-          <button id="mark-all-read" class="btn btn-outline-primary btn-sm me-2" style="display: none;">
-            <i class="fas fa-check-double"></i> Mark All As Read
-          </button>
-          <button id="refresh-changes" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-sync-alt"></i> Refresh
-          </button>
+
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-white">Recent Setting Changes</h2>
+          <div class="bg-white text-amber-600 rounded-full h-8 w-8 flex items-center justify-center">
+            <i class="fas fa-history"></i>
+          </div>
         </div>
       </div>
-      <div class="card-body">
-        <div id="changes-container" class="change-feed">
-          <p class="text-center">Loading changes...</p>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card mb-4">
-      <div class="card-header">
-        <h5>Analytics & Insights</h5>
-      </div>
-      <div class="card-body">
-        <div id="analytics-container">
-          <p>Insights will be available once enough data is collected.</p>
+      <div class="p-6" id="recentChangesContainer">
+        <div class="animate-pulse flex space-x-4">
+          <div class="flex-1 space-y-6 py-1">
+            <div class="h-2 bg-gray-200 rounded"></div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-3 gap-4">
+                <div class="h-2 bg-gray-200 rounded col-span-2"></div>
+                <div class="h-2 bg-gray-200 rounded col-span-1"></div>
+              </div>
+              <div class="h-2 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
+<script>
   document.addEventListener('DOMContentLoaded', function() {
-  const toggleLearner = document.getElementById('toggle-learner');
-  const statusIndicator = document.getElementById('status-indicator');
-  const changesCount = document.getElementById('changes-count');
-  const systemStateContainer = document.getElementById('system-state-container');
-  const changesContainer = document.getElementById('changes-container');
-  const refreshChangesButton = document.getElementById('refresh-changes');
-  const notificationBadge = document.getElementById('notification-badge');
-  const markAllReadButton = document.getElementById('mark-all-read');
-  
-  // Pagination settings
-  const PAGE_SIZE = 10; // Number of changes per page
-  let currentPage = 1;
-  let totalPages = 1;
-  
-  // Track viewed changes
-  let viewedChanges = JSON.parse(localStorage.getItem('viewedChanges') || '[]');
-  let lastChangesData = [];
-  
-  // Toggle learner mode using checkbox
-  toggleLearner.addEventListener('change', function() {
-    const isActive = this.checked;
-    
+  // Store the current system state globally once we fetch it
+  let currentSystemState = null;
+
+  // Toggle learner mode
+  document.getElementById('toggleLearner').addEventListener('click', function() {
     fetch('/api/learner/toggle', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ active: isActive })
+      }
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // Update UI
-        statusIndicator.textContent = data.active ? 'ACTIVE' : 'INACTIVE';
-        statusIndicator.className = data.active ? 'status-active' : 'status-inactive';
-        
-        // Make sure toggle matches server state
-        toggleLearner.checked = data.active;
-        
-        // Show success message
-        showToast(data.message);
+        window.location.reload();
       }
     })
     .catch(error => {
-      console.error('Error toggling learner mode:', error);
-      showToast('Error toggling learner mode', 'error');
-      
-      // Revert toggle state on error
-      toggleLearner.checked = !isActive;
+      console.error('Error:', error);
     });
   });
-  
-  // Load system state (unchanged)
-  function loadSystemState() {
-    fetch('/api/learner/status')
+
+  // First load current system state, then use it for all panels
+  fetch('/api/learner/status')
+    .then(response => response.json())
+    .then(data => {
+      // Store current system state for use in other panels
+      currentSystemState = data.current_system_state;
+      
+      // Update the system state panel
+      updateSystemStatePanel(currentSystemState);
+      
+      // Now that we have the current state, load the other panels
+      loadEnergyPatternChanges();
+      loadGridChargeChanges();
+      loadAllRecentChanges();
+    })
+    .catch(error => {
+      console.error('Error loading system state:', error);
+      // Still try to load other panels even if system state fails
+      loadEnergyPatternChanges();
+      loadGridChargeChanges();
+      loadAllRecentChanges();
+    });
+
+  // Function to update the system state panel
+  function updateSystemStatePanel(systemState) {
+    const container = document.getElementById('systemStateContainer');
+    
+    if (!systemState) {
+      container.innerHTML = '<p class="text-gray-500 text-center py-4">System state data not available.</p>';
+      return;
+    }
+    
+    let html = `
+      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
+        <span class="text-sm text-gray-500 mb-1">Battery State of Charge</span>
+        <div class="flex items-center">
+          <i class="fas fa-battery-half text-green-500 mr-2"></i>
+          <span class="text-xl font-semibold">${systemState.battery_soc || 'N/A'}%</span>
+        </div>
+      </div>
+      
+      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
+        <span class="text-sm text-gray-500 mb-1">PV Power</span>
+        <div class="flex items-center">
+          <i class="fas fa-sun text-yellow-500 mr-2"></i>
+          <span class="text-xl font-semibold">${systemState.pv_power || 'N/A'} W</span>
+        </div>
+      </div>
+      
+      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
+        <span class="text-sm text-gray-500 mb-1">Load</span>
+        <div class="flex items-center">
+          <i class="fas fa-plug text-blue-500 mr-2"></i>
+          <span class="text-xl font-semibold">${systemState.load || 'N/A'} W</span>
+        </div>
+      </div>
+      
+      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
+        <span class="text-sm text-gray-500 mb-1">Grid Voltage</span>
+        <div class="flex items-center">
+          <i class="fas fa-bolt text-orange-500 mr-2"></i>
+          <span class="text-xl font-semibold">${systemState.grid_voltage || 'N/A'} V</span>
+        </div>
+      </div>
+      
+      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
+        <span class="text-sm text-gray-500 mb-1">Grid Power</span>
+        <div class="flex items-center">
+          <i class="fas fa-tower-broadcast text-red-500 mr-2"></i>
+          <span class="text-xl font-semibold">${systemState.grid_power || 'N/A'} W</span>
+        </div>
+      </div>
+      
+      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
+        <span class="text-sm text-gray-500 mb-1">Inverter State</span>
+        <div class="flex items-center">
+          <i class="fas fa-microchip text-purple-500 mr-2"></i>
+          <span class="text-xl font-semibold">${systemState.inverter_state || 'N/A'}</span>
+        </div>
+      </div>
+    `;
+    
+    container.innerHTML = html;
+  }
+
+  // Function to load energy pattern changes
+  function loadEnergyPatternChanges() {
+    fetch('/api/energy-pattern-changes')
       .then(response => response.json())
       .then(data => {
-        if (data.current_system_state) {
-          const state = data.current_system_state;
-          let stateHtml = `
-            <div class="row">
-              <div class="col-sm-6">
-                <div class="metric-box">
-                  <h6>Battery SOC</h6>
-                  <p class="h3">${state.battery_soc !== null ? state.battery_soc + '%' : 'N/A'}</p>
+        const container = document.getElementById('energyPatternContainer');
+        if (data.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 text-center py-4">No energy pattern changes recorded yet.</p>';
+          return;
+        }
+        
+        // Show latest 3 changes
+        const latestChanges = data.slice(0, 3);
+        let html = '';
+        
+        latestChanges.forEach(change => {
+          // Use the current system state if the change record doesn't have it
+          const systemState = (change.system_state && Object.keys(change.system_state).length > 0) 
+            ? change.system_state 
+            : currentSystemState;
+          
+          html += `
+            <div class="mb-4 p-4 border border-gray-200 rounded-lg change-card relative">
+              <span class="badge px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                ${new Date(change.timestamp).toLocaleDateString()}
+              </span>
+              <h3 class="font-medium text-gray-900 mb-1">${change.topic}</h3>
+              <div class="flex items-center justify-between text-sm">
+                <div class="text-gray-500">
+                  <span class="font-medium">From:</span> ${formatValue(change.old_value)}
+                </div>
+                <i class="fas fa-arrow-right text-gray-400"></i>
+                <div class="text-blue-600">
+                  <span class="font-medium">To:</span> ${formatValue(change.new_value)}
                 </div>
               </div>
-              <div class="col-sm-6">
-                <div class="metric-box">
-                  <h6>PV Power</h6>
-                  <p class="h3">${state.pv_power !== null ? state.pv_power + ' W' : 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-sm-6">
-                <div class="metric-box">
-                  <h6>Load</h6>
-                  <p class="h3">${state.load !== null ? state.load + ' W' : 'N/A'}</p>
-                </div>
-              </div>
-              <div class="col-sm-6">
-                <div class="metric-box">
-                  <h6>Last Update</h6>
-                  <p>${formatDate(state.timestamp) || 'Never'}</p>
-                </div>
+              <div class="mt-2 text-xs text-gray-500">
+                Battery: ${systemState?.battery_soc || currentSystemState?.battery_soc || 'N/A'}% | 
+                PV: ${systemState?.pv_power || currentSystemState?.pv_power || 'N/A'}W | 
+                Load: ${systemState?.load || currentSystemState?.load || 'N/A'}W
               </div>
             </div>
           `;
-          systemStateContainer.innerHTML = stateHtml;
-        } else {
-          systemStateContainer.innerHTML = '<p class="text-center">No system state available</p>';
-        }
+        });
+        
+        container.innerHTML = html;
       })
       .catch(error => {
-        console.error('Error loading system state:', error);
-        systemStateContainer.innerHTML = '<p class="text-center text-danger">Error loading system state</p>';
+        console.error('Error loading energy pattern changes:', error);
       });
   }
-  
-  // Format date for better display
-  function formatDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleString();
+
+  // Function to load grid charge changes
+  function loadGridChargeChanges() {
+    fetch('/api/grid-charge-changes')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('gridChargeContainer');
+        if (data.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 text-center py-4">No grid charge changes recorded yet.</p>';
+          return;
+        }
+        
+        // Show latest 3 changes
+        const latestChanges = data.slice(0, 3);
+        let html = '';
+        
+        latestChanges.forEach(change => {
+          // Use the current system state if the change record doesn't have it
+          const systemState = (change.system_state && Object.keys(change.system_state).length > 0) 
+            ? change.system_state 
+            : currentSystemState;
+          
+          html += `
+            <div class="mb-4 p-4 border border-gray-200 rounded-lg change-card relative">
+              <span class="badge px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
+                ${new Date(change.timestamp).toLocaleDateString()}
+              </span>
+              <h3 class="font-medium text-gray-900 mb-1">${change.topic}</h3>
+              <div class="flex items-center justify-between text-sm">
+                <div class="text-gray-500">
+                  <span class="font-medium">From:</span> ${formatValue(change.old_value)}
+                </div>
+                <i class="fas fa-arrow-right text-gray-400"></i>
+                <div class="text-purple-600">
+                  <span class="font-medium">To:</span> ${formatValue(change.new_value)}
+                </div>
+              </div>
+              <div class="mt-2 text-xs text-gray-500">
+                Battery: ${systemState?.battery_soc || currentSystemState?.battery_soc || 'N/A'}% | 
+                Grid: ${systemState?.grid_power || currentSystemState?.grid_power || 'N/A'}W | 
+                Grid V: ${systemState?.grid_voltage || currentSystemState?.grid_voltage || 'N/A'}V
+              </div>
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Error loading grid charge changes:', error);
+      });
   }
-  
-  // Load changes with pagination
-  function loadChanges(page = 1) {
+
+  // Function to load all recent changes
+  function loadAllRecentChanges() {
     fetch('/api/learner/changes')
       .then(response => response.json())
-      .then(changes => {
-        lastChangesData = changes;
-        
-        if (changes && changes.length > 0) {
-          changesCount.textContent = changes.length;
-          
-          // Sort changes by timestamp (newest first)
-          changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-          
-          // Count new changes
-          const newChanges = changes.filter(change => !viewedChanges.includes(change.id));
-          if (newChanges.length > 0) {
-            notificationBadge.textContent = newChanges.length;
-            notificationBadge.style.display = 'flex';
-            markAllReadButton.style.display = 'inline-block';
-          } else {
-            notificationBadge.style.display = 'none';
-            markAllReadButton.style.display = 'none';
-          }
-          
-          // Calculate pagination
-          totalPages = Math.ceil(changes.length / PAGE_SIZE);
-          currentPage = page > totalPages ? totalPages : page;
-          
-          // Get current page of changes
-          const startIndex = (currentPage - 1) * PAGE_SIZE;
-          const endIndex = Math.min(startIndex + PAGE_SIZE, changes.length);
-          const currentPageChanges = changes.slice(startIndex, endIndex);
-          
-          let changesHtml = '';
-          currentPageChanges.forEach(change => {
-            const isNew = !viewedChanges.includes(change.id);
-            
-            changesHtml += `
-              <div class="change-entry ${isNew ? 'new' : ''}" id="change-${change.id}" data-id="${change.id}">
-                <div class="change-header">
-                  <span class="change-time">${formatDate(change.timestamp)}</span>
-                  ${isNew ? '<span class="badge bg-primary">New</span>' : ''}
-                </div>
-                <p class="change-setting">${change.topic}</p>
-                <div class="change-value">
-                  <span class="change-value-old">${change.old_value || 'N/A'}</span>
-                  <i class="fas fa-arrow-right"></i>
-                  <span class="change-value-new">${change.new_value}</span>
-                </div>
-                <div class="change-system-state">
-                  <h6><i class="fas fa-chart-line"></i> System State at Time of Change</h6>
-                  <div class="system-state-grid">
-                    <div class="system-state-item">
-                      <span class="system-state-label">Battery SOC</span>
-                      <span class="system-state-value">${change.system_state.battery_soc !== null ? change.system_state.battery_soc + '%' : 'N/A'}</span>
-                    </div>
-                    <div class="system-state-item">
-                      <span class="system-state-label">PV Power</span>
-                      <span class="system-state-value">${change.system_state.pv_power !== null ? change.system_state.pv_power + ' W' : 'N/A'}</span>
-                    </div>
-                    <div class="system-state-item">
-                      <span class="system-state-label">Load</span>
-                      <span class="system-state-value">${change.system_state.load !== null ? change.system_state.load + ' W' : 'N/A'}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="change-actions">
-                  <button class="btn-delete-change" data-id="${change.id}">
-                    <i class="fas fa-trash-alt"></i> Delete
-                  </button>
-                </div>
-              </div>
-            `;
-          });
-          
-          // Add pagination controls if needed
-          if (totalPages > 1) {
-            changesHtml += `
-              <div class="pagination-controls">
-                <button id="prev-page" class="btn btn-sm btn-outline-secondary" ${currentPage === 1 ? 'disabled' : ''}>
-                  <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <span class="page-indicator">Page ${currentPage} of ${totalPages}</span>
-                <button id="next-page" class="btn btn-sm btn-outline-secondary" ${currentPage === totalPages ? 'disabled' : ''}>
-                  Next <i class="fas fa-chevron-right"></i>
-                </button>
-              </div>
-            `;
-          }
-          
-          changesContainer.innerHTML = changesHtml;
-          
-          // Add event listeners to delete buttons
-          document.querySelectorAll('.btn-delete-change').forEach(button => {
-            button.addEventListener('click', function() {
-              const changeId = this.getAttribute('data-id');
-              deleteChange(changeId);
-            });
-          });
-          
-          // Mark as viewed when clicked
-          document.querySelectorAll('.change-entry').forEach(entry => {
-            entry.addEventListener('click', function(e) {
-              if (!e.target.classList.contains('btn-delete-change') && !e.target.closest('.btn-delete-change')) {
-                const changeId = this.getAttribute('data-id');
-                markAsRead(changeId);
-              }
-            });
-          });
-          
-          // Pagination event listeners
-          const prevPageButton = document.getElementById('prev-page');
-          const nextPageButton = document.getElementById('next-page');
-          
-          if (prevPageButton) {
-            prevPageButton.addEventListener('click', function() {
-              if (currentPage > 1) {
-                loadChanges(currentPage - 1);
-              }
-            });
-          }
-          
-          if (nextPageButton) {
-            nextPageButton.addEventListener('click', function() {
-              if (currentPage < totalPages) {
-                loadChanges(currentPage + 1);
-              }
-            });
-          }
-          
-        } else {
-          changesContainer.innerHTML = '<p class="no-changes">No changes detected yet</p>';
-          notificationBadge.style.display = 'none';
-          markAllReadButton.style.display = 'none';
+      .then(data => {
+        const container = document.getElementById('recentChangesContainer');
+        if (data.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 text-center py-4">No changes recorded yet.</p>';
+          return;
         }
+        
+        // Show latest 5 changes
+        const latestChanges = data.slice(0, 5);
+        let html = `<div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Topic</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">`;
+        
+        latestChanges.forEach(change => {
+          const changeType = change.change_type || 'unknown';
+          const typeColor = 
+            changeType === 'grid_charge' ? 'purple' :
+            changeType === 'energy_pattern' ? 'blue' :
+            'gray';
+          
+          html += `
+            <tr id="change-${change.id}" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                ${formatDateTime(change.timestamp)}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+               ${change.topic}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span class="text-gray-500">${formatValue(change.old_value)}</span>
+                <i class="fas fa-arrow-right mx-2 text-gray-400"></i>
+                <span class="font-medium text-${typeColor}-600">${formatValue(change.new_value)}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-${typeColor}-100 text-${typeColor}-800">
+                  ${formatChangeType(changeType)}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <button class="text-red-500 hover:text-red-700 delete-change" data-id="${change.id}">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        
+        html += `
+            </tbody>
+          </table>
+        </div>`;
+        
+        container.innerHTML = html;
+        
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-change').forEach(button => {
+          button.addEventListener('click', function() {
+            const changeId = this.getAttribute('data-id');
+            if (confirm('Are you sure you want to delete this change?')) {
+              deleteChange(changeId);
+            }
+          });
+        });
       })
       .catch(error => {
         console.error('Error loading changes:', error);
-        changesContainer.innerHTML = '<p class="text-center text-danger">Error loading changes</p>';
       });
   }
-  
-  // Delete a change
+
+  // Helper function to delete a change record
   function deleteChange(id) {
-    if (confirm('Are you sure you want to delete this change?')) {
-      fetch(`/api/learner/changes/${id}`, {
-        method: 'DELETE'
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Remove from viewed changes
-          viewedChanges = viewedChanges.filter(viewedId => viewedId !== id);
-          localStorage.setItem('viewedChanges', JSON.stringify(viewedChanges));
-          
-          // Reload current page
-          loadChanges(currentPage);
-          
-          showToast('Change deleted successfully');
+    fetch(`/api/learner/changes/${id}`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const element = document.getElementById(`change-${id}`);
+        if (element) {
+          element.remove();
         }
-      })
-      .catch(error => {
-        console.error('Error deleting change:', error);
-        showToast('Error deleting change', 'error');
-      });
-    }
-  }
-  
-  // Mark a change as read
-  function markAsRead(id) {
-    const changeElement = document.getElementById(`change-${id}`);
-    if (changeElement && changeElement.classList.contains('new')) {
-      changeElement.classList.remove('new');
-      changeElement.querySelector('.badge')?.remove();
-      
-      // Add to viewed changes
-      if (!viewedChanges.includes(id)) {
-        viewedChanges.push(id);
-        localStorage.setItem('viewedChanges', JSON.stringify(viewedChanges));
       }
-      
-      // Update notification badge
-      const newCount = parseInt(notificationBadge.textContent) - 1;
-      if (newCount > 0) {
-        notificationBadge.textContent = newCount;
-      } else {
-        notificationBadge.style.display = 'none';
-        markAllReadButton.style.display = 'none';
-      }
-    }
-  }
-  
-  // Mark all as read
-  markAllReadButton.addEventListener('click', function() {
-    document.querySelectorAll('.change-entry.new').forEach(entry => {
-      const changeId = entry.getAttribute('data-id');
-      markAsRead(changeId);
+    })
+    .catch(error => {
+      console.error('Error deleting change:', error);
     });
-  });
-  
-  // Simple toast notification
-  function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.padding = '10px 20px';
-    toast.style.borderRadius = '4px';
-    toast.style.color = 'white';
-    toast.style.backgroundColor = type === 'success' ? 'var(--success-color)' : 'var(--danger-color)';
-    toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-    toast.style.zIndex = '1000';
-    toast.style.maxWidth = '90%';
-    toast.style.wordBreak = 'break-word';
-    toast.textContent = message;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.5s ease';
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 500);
-    }, 3000);
   }
-  
-  // Check for new changes
-  function checkNewChanges() {
-    fetch('/api/learner/changes')
-      .then(response => response.json())
-      .then(changes => {
-        if (changes && changes.length > lastChangesData.length) {
-          // There are new changes
-          const newChangesCount = changes.length - lastChangesData.length;
-          showToast(`${newChangesCount} new change${newChangesCount > 1 ? 's' : ''} detected`);
-          loadChanges(currentPage); // Reload current page
-        }
-      })
-      .catch(error => {
-        console.error('Error checking for new changes:', error);
-      });
+
+  // Format functions
+  function formatTopic(topic) {
+    if (!topic) return 'Unknown';
+    
+    // Extract the relevant part after the prefix
+    const parts = topic.split('/');
+    return parts[parts.length - 1].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
-  
-  // Initial load
-  loadSystemState();
-  loadChanges(1); // Start on page 1
-  
-  // Refresh buttons
-  refreshChangesButton.addEventListener('click', function() {
-    loadChanges(currentPage); // Refresh current page
-  });
-  
-  // Auto refresh
-  setInterval(loadSystemState, 30000);
-  setInterval(checkNewChanges, 15000);
+
+  function formatValue(value) {
+    if (value === undefined || value === null) return 'N/A';
+    if (typeof value === 'object') return JSON.stringify(value);
+    return value;
+  }
+
+  function formatDateTime(timestamp) {
+    if (!timestamp) return 'Unknown';
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  }
+
+  function formatChangeType(type) {
+    if (!type) return 'Other';
+    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
 });
-  </script>
+</script>
 </body>
 </html>
