@@ -1,24 +1,38 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const mqtt = require('mqtt');
-const fs = require('fs');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const moment = require('moment-timezone');
+const express = require('express')
+const bodyParser = require('body-parser')
+const mqtt = require('mqtt')
+const fs = require('fs')
+const path = require('path')
+const Influx = require('influx')
+const ejs = require('ejs')
+const moment = require('moment-timezone')
+const WebSocket = require('ws')
+const retry = require('async-retry')
+const axios = require('axios')
+const { backOff } = require('exponential-backoff')
+const app = express()
+const port = process.env.PORT || 6789
+const socketPort = 8000
+const { http } = require('follow-redirects')
+const cors = require('cors')
+const session = require('express-session');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { startOfDay } = require('date-fns')
+const { AuthenticateUser } = require('./utils/mongoService')
 
-const app = express();
-const port = process.env.PORT || 2000;
 
-app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'], allowedHeaders: '*' }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(cookieParser());
+// Middleware setup
+app.use(cors({ origin: '*', methods: ['GET', 'POST'], allowedHeaders: '*' }))
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(express.static(path.join(__dirname, 'public')))
+app.set('view engine', 'ejs')
+app.set('views', path.join(__dirname, 'views'))
 
-// Load configuration
+
+// Read configuration from Home Assistant add-on options
 let options;
 try {
   options = JSON.parse(fs.readFileSync('/data/options.json', 'utf8'));
@@ -26,36 +40,96 @@ try {
   options = JSON.parse(fs.readFileSync('./options.json', 'utf8'));
 }
 
-// MQTT Configuration
+// Extract inverter and battery numbers from options
+const inverterNumber = options.inverter_number || 1
+const batteryNumber = options.battery_number || 1
+// MQTT topic prefix
+const mqttTopicPrefix = options.mqtt_topic_prefix || '${mqttTopicPrefix}'
+
+// Constants
+const SETTINGS_FILE = path.join(__dirname, 'data', 'settings.json');
+const CACHE_DURATION = 24 * 3600000; // 24 hours in milliseconds
+
+
+// Middleware
+app.use(helmet({
+  contentSecurityPolicy: false // Disabled for development, enable in production
+}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', limiter);
+
+
+// Ensure data directory and settings file exist
+if (!fs.existsSync(path.dirname(SETTINGS_FILE))) {
+  fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
+}
+if (!fs.existsSync(SETTINGS_FILE)) {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify({
+    apiKey: '',
+    selectedZone: '',
+    username: ''
+  }));
+}
+
+// InfluxDB configuration
+const influxConfig = {
+  host: '172.20.10.4',
+  port: 8086,
+  database: 'home_assistant',
+  username: 'admin',
+  password: 'adminpassword',
+  protocol: 'http',
+  timeout: 10000,
+}
+const influx = new Influx.InfluxDB(influxConfig)
+
+// MQTT configuration
 const mqttConfig = {
   host: options.mqtt_host,
   port: options.mqtt_port,
   username: options.mqtt_username,
   password: options.mqtt_password,
-};
+}
 
-// MQTT Client and message storage
-let mqttClient;
-let incomingMessages = [];
-const MAX_MESSAGES = 400;
+// Connect to MQTT broker
+let mqttClient
+let incomingMessages = []
+const MAX_MESSAGES = 400
 
 // Learner mode configuration
 let learnerModeActive = false;
 const settingsToMonitor = [
-  'energy_pattern',
-  'grid_charge',
-  'power',
-  'device_mode',
-  'voltage'
-];
-
-// Store system state
-let currentSystemState = {
-  battery_soc: null,
-  pv_power: null,
-  load: null,
-  timestamp: null
-};
+    'energy_pattern',
+    'grid_charge',
+    'power',
+    'device_mode',
+    'voltage',
+    'work_mode_timer'  // Added to capture timer changes
+  ];
+  
+  // Enhance the system state tracking to include more parameters
+  let currentSystemState = {
+    battery_soc: null,
+    pv_power: null,
+    load: null,
+    grid_voltage: null,  // Added grid voltage
+    grid_power: null,    // Added grid power
+    inverter_state: null, // Added inverter state
+    timestamp: null
+  };
 
 // Define log file paths with fallback options
 const primaryDataDir = '/data';
@@ -165,39 +239,10 @@ function saveSettingsChanges() {
     logToFile('Error saving settings changes: ' + error.message);
   }
 }
-
-// Connect to MQTT broker
-function connectToMqtt() {
-  mqttClient = mqtt.connect(`mqtt://${mqttConfig.host}:${mqttConfig.port}`, {
-    username: mqttConfig.username,
-    password: mqttConfig.password,
-  });
-
-  mqttClient.on('connect', () => {
-    console.log('Connected to MQTT broker');
-    logToFile('Connected to MQTT broker');
-    
-    // Subscribe to all topics under the specified prefix
-    const topicPrefix = options.mqtt_topic_prefix || '';
-    mqttClient.subscribe(`${topicPrefix}/#`);
-    
-    // Log connection success
-    console.log(`Subscribed to ${topicPrefix}/#`);
-    logToFile(`Subscribed to ${topicPrefix}/#`);
-  });
-
-  mqttClient.on('error', (error) => {
-    console.error('MQTT connection error:', error);
-    logToFile(`MQTT connection error: ${error.message}`);
-  });
-
-  mqttClient.on('message', (topic, message) => {
-    handleMqttMessage(topic, message);
-  });
-}
-
 // Track previous state of settings to detect changes
 let previousSettings = {};
+
+// Handle incoming MQTT messages
 
 // Handle incoming MQTT messages
 function handleMqttMessage(topic, message) {
@@ -230,7 +275,7 @@ function handleMqttMessage(topic, message) {
     specificTopic = topic.substring(topicPrefix.length + 1); // +1 for the slash
   }
 
-  // Update system state for key metrics
+  // Update system state for key metrics with more parameters
   if (specificTopic.includes('battery_state_of_charge')) {
     currentSystemState.battery_soc = parseFloat(messageContent);
     currentSystemState.timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
@@ -238,53 +283,128 @@ function handleMqttMessage(topic, message) {
     currentSystemState.pv_power = parseFloat(messageContent);
   } else if (specificTopic.includes('load_power')) {
     currentSystemState.load = parseFloat(messageContent);
+  } else if (specificTopic.includes('grid_voltage')) {
+    currentSystemState.grid_voltage = parseFloat(messageContent);
+  } else if (specificTopic.includes('grid_power')) {
+    currentSystemState.grid_power = parseFloat(messageContent);
+  } else if (specificTopic.includes('inverter_state') || specificTopic.includes('device_mode')) {
+    currentSystemState.inverter_state = messageContent;
   }
 
-  // Check if this is a settings topic we're monitoring
-  let isSettingsTopic = false;
-  for (const setting of settingsToMonitor) {
-    if (specificTopic.includes(setting)) {
-      isSettingsTopic = true;
-      
-      // Only proceed if we're in learner mode
-      if (learnerModeActive) {
-        // Check if the setting has changed
-        if (previousSettings[specificTopic] !== messageContent) {
-          // Log the change
-          const changeData = {
-            id: Date.now().toString(), // Add unique ID based on timestamp
-            timestamp: moment().format('YYYY-MM-DD HH:mm:ss'),
-            topic: specificTopic,
-            old_value: previousSettings[specificTopic],
-            new_value: messageContent,
-            system_state: { ...currentSystemState }
-          };
-          
-          logToFile(`Settings change detected: ${JSON.stringify(changeData)}`);
-          settingsChanges.push(changeData);
-          saveSettingsChanges();
-          
-          // Update previous settings
-          previousSettings[specificTopic] = messageContent;
-        }
-      } else {
-        // Keep track of current settings even when not in learner mode
-        previousSettings[specificTopic] = messageContent;
+  // Handle specific settings changes
+  if (specificTopic.includes('grid_charge')) {
+    handleSettingChange(specificTopic, messageContent, 'grid_charge');
+  } else if (specificTopic.includes('energy_pattern')) {
+    handleSettingChange(specificTopic, messageContent, 'energy_pattern');
+  } else {
+    // Check if this is any other settings topic we're monitoring
+    for (const setting of settingsToMonitor) {
+      if (specificTopic.includes(setting)) {
+        handleSettingChange(specificTopic, messageContent, 'other_setting');
+        break;
       }
-      break;
     }
-  }
-
-  // For debugging, log all messages to the learner log if in debug mode
-  if (learnerModeActive && specificTopic.includes('debug')) {
-    logToFile(`DEBUG - ${specificTopic}: ${JSON.stringify(messageContent)}`);
   }
 }
 
-// API Endpoints
-app.get('/api/messages', (req, res) => {
-  res.json(incomingMessages);
+// Function to handle setting changes
+function handleSettingChange(specificTopic, messageContent, changeType) {
+  // Only proceed if the setting has changed
+  if (previousSettings[specificTopic] !== messageContent) {
+    // Log the change
+    console.log(`${changeType.toUpperCase()} CHANGE DETECTED: ${specificTopic} - ${messageContent}`);
+    logToFile(`${changeType.toUpperCase()} CHANGE DETECTED: ${specificTopic} - ${messageContent}`);
+    
+    // Create a detailed change record
+    const changeData = {
+      id: Date.now().toString(),
+      timestamp: moment().format('YYYY-MM-DD HH:mm:ss'),
+      topic: specificTopic,
+      old_value: previousSettings[specificTopic],
+      new_value: messageContent,
+      system_state: { ...currentSystemState },
+      change_type: changeType
+    };
+    
+    // Add to the changes array and save
+    settingsChanges.push(changeData);
+    saveSettingsChanges();
+    
+    // Update previous settings
+    previousSettings[specificTopic] = messageContent;
+    
+    // Send appropriate notification based on change type
+    if (changeType === 'grid_charge') {
+      sendGridChargeNotification(changeData);
+    } else if (changeType === 'energy_pattern') {
+      sendEnergyPatternNotification(changeData);
+    }
+  }
+}
+
+function sendGridChargeNotification(changeData) {
+  console.log('IMPORTANT: Grid Charge Setting Changed!');
+  console.log(`From: ${changeData.old_value} → To: ${changeData.new_value}`);
+  console.log(`Battery SOC: ${changeData.system_state.battery_state_of_charge}%`);
+  console.log(`PV Power: ${changeData.system_state.pv_power}W`);
+  console.log(`Grid Voltage: ${changeData.system_state.grid_voltage}V`);
+  console.log(`Load: ${changeData.system_state.load}W`);
+  console.log(`Time: ${changeData.timestamp}`);
+}
+
+function sendEnergyPatternNotification(changeData) {
+  console.log('IMPORTANT: Energy Pattern Setting Changed!');
+  console.log(`From: ${changeData.old_value} → To: ${changeData.new_value}`);
+  console.log(`Battery SOC: ${changeData.system_state.battery_state_of_charge}%`);
+  console.log(`PV Power: ${changeData.system_state.pv_power}W`);
+  console.log(`Grid Voltage: ${changeData.system_state.grid_voltage}V`);
+  console.log(`Load: ${changeData.system_state.load}W`);
+  console.log(`Time: ${changeData.timestamp}`);
+}
+
+app.get('/api/grid-charge-changes', (req, res) => {
+  const gridChargeChanges = settingsChanges.filter(
+    change => change.topic.includes('grid_charge') || change.change_type === 'grid_charge'
+  );
+  res.json(gridChargeChanges);
 });
+
+app.get('/api/energy-pattern-changes', (req, res) => {
+  const energyPatternChanges = settingsChanges.filter(
+    change => change.topic.includes('energy_pattern') || change.change_type === 'energy_pattern'
+  );
+  res.json(energyPatternChanges);
+});
+
+app.get('/grid-charge', (req, res) => {
+  res.render('grid-charge', { 
+    active: learnerModeActive,
+    changes_count: settingsChanges.filter(
+      change => change.topic.includes('grid_charge') || change.change_type === 'grid_charge'
+    ).length
+  });
+});
+
+app.get('/energy-pattern', (req, res) => {
+  res.render('energy-pattern', { 
+    active: learnerModeActive,
+    changes_count: settingsChanges.filter(
+      change => change.topic.includes('energy_pattern') || change.change_type === 'energy_pattern'
+    ).length
+  });
+});
+
+app.get('/api/settings-changes', (req, res) => {
+  const changeType = req.query.type;
+  let filteredChanges = settingsChanges;
+  
+  if (changeType) {
+    filteredChanges = settingsChanges.filter(change => change.change_type === changeType);
+  }
+  
+  res.json(filteredChanges);
+});
+
 
 app.get('/api/learner/status', (req, res) => {
   res.json({ 
@@ -343,20 +463,6 @@ app.get('/api/system/paths', (req, res) => {
   });
 });
 
-app.get('/api/timezone', (req, res) => {
-  res.json({ timezone: moment.tz.guess() });
-});
-
-app.post('/api/timezone', (req, res) => {
-  const { timezone } = req.body;
-  if (moment.tz.zone(timezone)) {
-    res.json({ success: true, timezone });
-  } else {
-    res.status(400).json({ error: 'Invalid timezone' });
-  }
-});
-
-// Client interface for learner mode
 app.get('/learner', (req, res) => {
   res.render('learner', { 
     active: learnerModeActive,
@@ -366,23 +472,251 @@ app.get('/learner', (req, res) => {
   });
 });
 
-// Start server
-const server = app.listen(port, () => {
+
+// Function to generate category options
+function generateCategoryOptions(inverterNumber, batteryNumber) {
+  const categories = ['all', 'loadPower', 'gridPower', 'pvPower', 'total']
+
+  for (let i = 1; i <= inverterNumber; i++) {
+    categories.push(`inverter${i}`)
+  }
+
+  for (let i = 1; i <= batteryNumber; i++) {
+    categories.push(`battery${i}`)
+  }
+
+  return categories
+}
+
+const timezonePath = path.join(__dirname, 'timezone.json')
+
+function getCurrentTimezone() {
+  try {
+    const data = fs.readFileSync(timezonePath, 'utf8')
+    return JSON.parse(data).timezone
+  } catch (error) {
+    return 'Europe/Berlin' // Default timezone
+  }
+}
+
+function setCurrentTimezone(timezone) {
+  fs.writeFileSync(timezonePath, JSON.stringify({ timezone }))
+}
+
+let currentTimezone = getCurrentTimezone()
+
+function connectToMqtt() {
+  mqttClient = mqtt.connect(`mqtt://${mqttConfig.host}:${mqttConfig.port}`, {
+    username: mqttConfig.username,
+    password: mqttConfig.password,
+  })
+
+  mqttClient.on('connect', () => {
+    console.log('Connected to MQTT broker')
+    mqttClient.subscribe(`${mqttTopicPrefix}/#`)
+  })
+
+  mqttClient.on('message', (topic, message) => {
+    const formattedMessage = `${topic}: ${message.toString()}`
+    incomingMessages.push(formattedMessage)
+    if (incomingMessages.length > MAX_MESSAGES) {
+      incomingMessages.shift()
+    }
+    handleMqttMessage(topic,message)
+    saveMessageToInfluxDB(topic, message)
+  })
+
+  mqttClient.on('error', (err) => {
+    console.error('Error connecting to MQTT broker:', err.message)
+    mqttClient = null
+  })
+}
+
+// Save MQTT message to InfluxDB
+async function saveMessageToInfluxDB(topic, message) {
+  try {
+    const parsedMessage = parseFloat(message.toString())
+
+    if (isNaN(parsedMessage)) {
+      return
+    }
+
+    const timestamp = new Date().getTime()
+    const dataPoint = {
+      measurement: 'state',
+      fields: { value: parsedMessage },
+      tags: { topic: topic },
+      timestamp: timestamp * 1000000,
+    }
+
+    await retry(
+      async () => {
+        await influx.writePoints([dataPoint])
+      },
+      {
+        retries: 5,
+        minTimeout: 1000,
+      }
+    )
+  } catch (err) {
+    console.error(
+      'Error saving message to InfluxDB:',
+      err.response ? err.response.body : err.message
+    )
+  }
+}
+
+
+
+// Route handlers
+app.get('/messages', (req, res) => {
+  res.render('messages', {
+    ingress_path: process.env.INGRESS_PATH || '',
+    categoryOptions: generateCategoryOptions(inverterNumber, batteryNumber),
+  })
+})
+
+app.get('/api/messages', (req, res) => {
+  const category = req.query.category
+  const filteredMessages = filterMessagesByCategory(category)
+  res.json(filteredMessages)
+})
+
+app.get('/chart', (req, res) => {
+  res.render('chart', {
+    ingress_path: process.env.INGRESS_PATH || '',
+    mqtt_host: options.mqtt_host, // Include mqtt_host here
+  })
+})
+
+
+function getSelectedZone(req) {
+  // First, check if a zone is provided in the query
+  if (req.query.zone) {
+    return req.query.zone;
+  }
+  return null;
+}
+
+function checkInverterMessages(messages, expectedInverters) {
+  const inverterPattern = new RegExp(`${mqttTopicPrefix}/inverter_(\\d+)/`)
+  const foundInverters = new Set()
+
+  messages.forEach((message) => {
+    const match = message.match(inverterPattern)
+    if (match) {
+      foundInverters.add(parseInt(match[1]))
+    }
+  })
+
+  if (foundInverters.size !== expectedInverters) {
+    return `Warning: Expected ${expectedInverters} inverter(s), but found messages from ${foundInverters.size} inverter(s).`
+  }
+  return null
+}
+
+function checkBatteryInformation(messages) {
+  // More flexible battery pattern that matches various battery topic formats
+  const batteryPatterns = [
+    new RegExp(`${mqttTopicPrefix}/battery_\\d+/`),
+    new RegExp(`${mqttTopicPrefix}/battery/`),
+    new RegExp(`${mqttTopicPrefix}/total/battery`),
+    new RegExp(`${mqttTopicPrefix}/\\w+/battery`),
+  ]
+
+  // Check if any message matches any of the battery patterns
+  const hasBatteryInfo = messages.some((message) =>
+    batteryPatterns.some((pattern) => pattern.test(message))
+  )
+
+  // Add debug logging to help troubleshoot
+  if (!hasBatteryInfo) {
+    console.log(
+      'Debug: No battery messages found. Current messages:',
+      messages.filter((msg) => msg.toLowerCase().includes('battery'))
+    )
+    return 'Warning: No battery information found in recent messages.'
+  }
+
+  return null
+}
+
+// Helper function to see what battery messages are being received
+function debugBatteryMessages(messages) {
+  const batteryMessages = messages.filter((msg) =>
+    msg.toLowerCase().includes('battery')
+  )
+  console.log('Current battery-related messages:', batteryMessages)
+  return batteryMessages
+}
+
+
+app.get('/api/timezone', (req, res) => {
+  res.json({ timezone: currentTimezone })
+})
+
+app.post('/api/timezone', (req, res) => {
+  const { timezone } = req.body
+  if (moment.tz.zone(timezone)) {
+    currentTimezone = timezone
+    setCurrentTimezone(timezone)
+    res.json({ success: true, timezone: currentTimezone })
+  } else {
+    res.status(400).json({ error: 'Invalid timezone' })
+  }
+})
+
+// Function to filter messages by category
+function filterMessagesByCategory(category) {
+  if (category === 'all') {
+    return incomingMessages
+  }
+
+  return incomingMessages.filter((message) => {
+    const topic = message.split(':')[0]
+    const topicParts = topic.split('/')
+
+    if (category.startsWith('inverter')) {
+      const inverterNum = category.match(/\d+$/)[0]
+      return topicParts[1] === `inverter_${inverterNum}`
+    }
+
+    if (category.startsWith('battery')) {
+      const batteryNum = category.match(/\d+$/)[0]
+      return topicParts[1] === `battery_${batteryNum}`
+    }
+
+    const categoryKeywords = {
+      loadPower: ['load_power'],
+      gridPower: ['grid_power'],
+      pvPower: ['pv_power'],
+      total: ['total'],
+    }
+
+    return categoryKeywords[category]
+      ? topicParts.some((part) => categoryKeywords[category].includes(part))
+      : false
+  })
+}
+
+const server = app.listen(port, '0.0.0.0', async () => {
   console.log(`Server is running on http://0.0.0.0:${port}`);
-  console.log(`Log file path: ${learnerLogFile}`);
-  logToFile(`Server started on port ${port}`);
   connectToMqtt();
+
 });
 
-// Error handling
+
+
+
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  logToFile(`Server error: ${err.message}`);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+  console.error(err.stack)
+  res.status(500).json({ error: 'Something went wrong!' })
+})
 
-app.use((req, res) => {
-  res.status(404).send("Sorry, that route doesn't exist.");
-});
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).send("Sorry, that route doesn't exist.")
+})
 
-module.exports = { app, server };
+module.exports = { app, server }
