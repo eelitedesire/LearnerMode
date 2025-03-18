@@ -6,7 +6,6 @@ const path = require('path')
 const Influx = require('influx')
 const ejs = require('ejs')
 const moment = require('moment-timezone')
-const WebSocket = require('ws')
 const retry = require('async-retry')
 const axios = require('axios')
 const { backOff } = require('exponential-backoff')
@@ -158,7 +157,8 @@ const settingsToMonitor = [
   'power',
   'device_mode',
   'voltage',
-  'work_mode_timer'
+  'work_mode_timer',
+  'voltage_point' // Added voltage_point to the settings to monitor
 ]
 
 // System state tracking
@@ -273,6 +273,8 @@ function handleMqttMessage(topic, message) {
     handleSettingChange(specificTopic, messageContent, 'grid_charge')
   } else if (specificTopic.includes('energy_pattern')) {
     handleSettingChange(specificTopic, messageContent, 'energy_pattern')
+  } else if (specificTopic.includes('voltage_point')) {
+    handleSettingChange(specificTopic, messageContent, 'voltage_point')
   } else {
     // Check if this is any other settings topic we're monitoring
     for (const setting of settingsToMonitor) {
@@ -323,11 +325,13 @@ async function handleSettingChange(specificTopic, messageContent, changeType) {
       retryDatabaseConnection()
     }
     
-    // Send notifications
+    // Send notifications based on change type
     if (changeType === 'grid_charge') {
       sendGridChargeNotification(changeData)
     } else if (changeType === 'energy_pattern') {
       sendEnergyPatternNotification(changeData)
+    } else if (changeType === 'voltage_point') {
+      sendVoltagePointNotification(changeData)
     }
   }
 }
@@ -344,6 +348,17 @@ function sendGridChargeNotification(changeData) {
 
 function sendEnergyPatternNotification(changeData) {
   console.log('IMPORTANT: Energy Pattern Setting Changed!')
+  console.log(`From: ${changeData.old_value} → To: ${changeData.new_value}`)
+  console.log(`Battery SOC: ${changeData.system_state.battery_soc}%`)
+  console.log(`PV Power: ${changeData.system_state.pv_power}W`)
+  console.log(`Grid Voltage: ${changeData.system_state.grid_voltage}V`)
+  console.log(`Load: ${changeData.system_state.load}W`)
+  console.log(`Time: ${moment(changeData.timestamp).format('YYYY-MM-DD HH:mm:ss')}`)
+}
+
+// New function to handle voltage point notifications
+function sendVoltagePointNotification(changeData) {
+  console.log('IMPORTANT: Voltage Point Setting Changed!')
   console.log(`From: ${changeData.old_value} → To: ${changeData.new_value}`)
   console.log(`Battery SOC: ${changeData.system_state.battery_soc}%`)
   console.log(`PV Power: ${changeData.system_state.pv_power}W`)
@@ -374,24 +389,45 @@ app.get('/api/grid-charge-changes', async (req, res) => {
 })
 
 app.get('/api/energy-pattern-changes', async (req, res) => {
-    try {
-      if (!dbConnected) {
-        return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
-      }
-      
-      const energyPatternChanges = await SettingsChange.find({ 
-        $or: [
-          { topic: { $regex: 'energy_pattern' } },
-          { change_type: 'energy_pattern' }
-        ]
-      }).sort({ timestamp: -1 })
-      
-      res.json(energyPatternChanges)
-    } catch (error) {
-      console.error('Error retrieving energy pattern changes:', error)
-      res.status(500).json({ error: 'Failed to retrieve data' })
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
     }
-  })
+    
+    const energyPatternChanges = await SettingsChange.find({ 
+      $or: [
+        { topic: { $regex: 'energy_pattern' } },
+        { change_type: 'energy_pattern' }
+      ]
+    }).sort({ timestamp: -1 })
+    
+    res.json(energyPatternChanges)
+  } catch (error) {
+    console.error('Error retrieving energy pattern changes:', error)
+    res.status(500).json({ error: 'Failed to retrieve data' })
+  }
+})
+
+// New API endpoint for voltage point changes
+app.get('/api/voltage-point-changes', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+    }
+    
+    const voltagePointChanges = await SettingsChange.find({ 
+      $or: [
+        { topic: { $regex: 'voltage_point' } },
+        { change_type: 'voltage_point' }
+      ]
+    }).sort({ timestamp: -1 })
+    
+    res.json(voltagePointChanges)
+  } catch (error) {
+    console.error('Error retrieving voltage point changes:', error)
+    res.status(500).json({ error: 'Failed to retrieve data' })
+  }
+})
 
 app.get('/grid-charge', async (req, res) => {
   try {
@@ -435,6 +471,30 @@ app.get('/energy-pattern', async (req, res) => {
     })
   } catch (error) {
     console.error('Error rendering energy-pattern page:', error)
+    res.status(500).send('Error loading page data')
+  }
+})
+
+// New route for voltage point view
+app.get('/voltage-point', async (req, res) => {
+  try {
+    let changesCount = 0
+    if (dbConnected) {
+      changesCount = await SettingsChange.countDocuments({ 
+        $or: [
+          { topic: { $regex: 'voltage_point' } },
+          { change_type: 'voltage_point' }
+        ]
+      })
+    }
+    
+    res.render('voltage-point', { 
+      active: learnerModeActive,
+      changes_count: changesCount,
+      db_connected: dbConnected
+    })
+  } catch (error) {
+    console.error('Error rendering voltage-point page:', error)
     res.status(500).send('Error loading page data')
   }
 })
