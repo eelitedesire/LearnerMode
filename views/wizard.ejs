@@ -8,61 +8,1027 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
-        .card-header {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-        .condition-card, .action-card {
-            margin-bottom: 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-        }
-        .condition-card .card-body, .action-card .card-body {
-            padding: 1rem;
-        }
-        .preview-container {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            padding: 1rem;
-            margin-bottom: 15px;
-        }
-        .preview-line {
-            margin-bottom: 5px;
-        }
-        .wizard-nav {
-            margin-bottom: 20px;
-        }
-        .wizard-step {
-            display: none;
-        }
-        .wizard-step.active {
-            display: block;
-        }
-        .calendar-dates {
-            display: none;
-        }
-        .calendar-dates.show {
-            display: block;
-        }
-        .date-tag {
-            display: inline-block;
-            background-color: #e9ecef;
-            padding: 0.25rem 0.5rem;
-            margin: 0.25rem;
-            border-radius: 0.25rem;
-        }
-        .date-tag .close {
-            margin-left: 5px;
-            cursor: pointer;
-        }
-        .success-message {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-        }
+:root {
+    /* Color system */
+    --primary: #3a86ff;          /* Main accent color */
+    --primary-dark: #0a66c2;     /* Darker shade of primary */
+    --secondary: #38b000;        /* Success/active color */
+    --warning: #ffbe0b;          /* Warning color */
+    --danger: #ef476f;           /* Danger/error color */
+    --info: #4361ee;             /* Info color */
+    --dark: #212529;             /* Dark text/backgrounds */
+    --light: #f8f9fa;            /* Light backgrounds */
+    --grey-100: #f8f9fa;
+    --grey-200: #e9ecef;
+    --grey-300: #dee2e6;
+    --grey-400: #ced4da;
+    --grey-500: #adb5bd;
+    --grey-600: #6c757d;
+    --grey-700: #495057;
+    --grey-800: #343a40;
+    --grey-900: #212529;
+    
+    /* Special colors for energy monitoring */
+    --battery-color: #38b000;    /* Green for battery */
+    --solar-color: #ffbe0b;      /* Yellow for solar/PV */
+    --grid-color: #ff006e;       /* Magenta for grid */
+    --load-color: #3a86ff;       /* Blue for load */
+    
+    /* Typography */
+    --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 1rem;
+    --font-weight-normal: 400;
+    --font-weight-bold: 600;
+    --font-weight-header: 700;
+    
+    /* Spacing */
+    --spacer: 1rem;
+    
+    /* Borders & shadows */
+    --border-radius: 0.5rem;
+    --border-radius-sm: 0.25rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-pill: 50rem;
+    --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    --box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.12);
+    --box-shadow-inset: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+    
+    /* Transitions */
+    --transition-base: all 0.2s ease-in-out;
+    --transition-fast: all 0.1s ease-in-out;
+    --transition-slow: all 0.3s ease-in-out;
+    
+    /* Wizard specific */
+    --wizard-progress-height: 8px;
+    --wizard-active-color: var(--primary);
+    --wizard-inactive-color: var(--grey-300);
+    --wizard-hover-color: var(--grey-200);
+}
+
+/* Base Styles */
+body {
+    font-family: var(--font-family);
+    background-color: #f5f7fa;
+    color: var(--grey-800);
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-header);
+    margin-top: 0;
+    margin-bottom: var(--spacer);
+    color: var(--grey-900);
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition-base);
+}
+
+a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 1200px;
+    padding: 0 var(--spacer);
+    margin: 0 auto;
+}
+
+/* Header & Navigation */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: calc(var(--spacer) * 2);
+    padding-bottom: var(--spacer);
+    border-bottom: 1px solid var(--grey-300);
+}
+
+.breadcrumb {
+    padding: var(--spacer) 0;
+    margin-bottom: var(--spacer);
+    list-style: none;
+    background-color: transparent;
+}
+
+.breadcrumb-item {
+    display: inline-block;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    display: inline-block;
+    padding: 0 0.5rem;
+    color: var(--grey-600);
+}
+
+.breadcrumb-item a {
+    color: var(--grey-600);
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: var(--grey-900);
+    font-weight: var(--font-weight-bold);
+}
+
+/* Cards */
+.card {
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--box-shadow);
+    margin-bottom: calc(var(--spacer) * 1.5);
+    overflow: hidden;
+    transition: var(--transition-slow);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.card-header {
+    padding: calc(var(--spacer) * 0.75) var(--spacer);
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-weight: var(--font-weight-bold);
+    border-bottom: none;
+}
+
+.card-body {
+    padding: var(--spacer);
+}
+
+.card-footer {
+    padding: calc(var(--spacer) * 0.75) var(--spacer);
+    background-color: var(--grey-100);
+    border-top: 1px solid var(--grey-200);
+}
+
+/* Dashboard Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--spacer);
+    margin-bottom: calc(var(--spacer) * 1.5);
+}
+
+.summary-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: var(--spacer);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: var(--transition-slow);
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.summary-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: calc(var(--spacer) * 0.75);
+    color: var(--primary);
+}
+
+.summary-card-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--grey-600);
+    margin-bottom: calc(var(--spacer) * 0.5);
+    font-weight: var(--font-weight-bold);
+}
+
+.summary-card-value {
+    font-size: 2rem;
+    font-weight: var(--font-weight-header);
+    color: var(--dark);
+}
+
+/* Rule Cards */
+.rule-card {
+    transition: var(--transition-slow);
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: var(--spacer);
+    overflow: hidden;
+}
+
+.rule-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.rule-card.inactive {
+    opacity: 0.7;
+}
+
+.rule-name {
+    font-weight: var(--font-weight-bold);
+    color: var(--grey-900);
+    font-size: 1.1rem;
+}
+
+.rule-description {
+    color: var(--grey-600);
+    margin-bottom: var(--spacer);
+}
+
+.rule-date {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--grey-600);
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    margin-bottom: var(--spacer);
+    color: var(--grey-800);
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow-sm);
+}
+
+.table th,
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid var(--grey-200);
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid var(--grey-300);
+    background-color: var(--grey-100);
+    color: var(--grey-700);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.85rem;
+}
+
+.table tbody tr {
+    transition: var(--transition-base);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(58, 134, 255, 0.05);
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    font-weight: var(--font-weight-bold);
+    color: var(--grey-700);
+    text-align: center;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition-base);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-success {
+    color: #fff;
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+}
+
+.btn-warning {
+    color: #212529;
+    background-color: var(--warning);
+    border-color: var(--warning);
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-secondary {
+    color: var(--grey-600);
+    border-color: var(--grey-400);
+}
+
+.btn-outline-secondary:hover {
+    color: var(--grey-800);
+    background-color: var(--grey-200);
+    border-color: var(--grey-400);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: var(--border-radius-sm);
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: var(--border-radius-pill);
+}
+
+.bg-primary {
+    background-color: var(--primary) !important;
+    color: #fff;
+}
+
+.bg-secondary {
+    background-color: var(--secondary) !important;
+    color: #fff;
+}
+
+.bg-success {
+    background-color: var(--secondary) !important;
+    color: #fff;
+}
+
+.bg-warning {
+    background-color: var(--warning) !important;
+    color: #212529;
+}
+
+.bg-danger {
+    background-color: var(--danger) !important;
+    color: #fff;
+}
+
+.bg-info {
+    background-color: var(--info) !important;
+    color: #fff;
+}
+
+/* System Status Indicators */
+.database-status {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-pill);
+    font-weight: var(--font-weight-bold);
+    font-size: 0.85rem;
+    box-shadow: var(--box-shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.database-status.connected {
+    background-color: var(--secondary);
+    color: white;
+}
+
+.database-status.disconnected {
+    background-color: var(--danger);
+    color: white;
+}
+
+.system-state-badge {
+    padding: 0.5rem 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius-pill);
+    font-size: 0.85rem;
+    font-weight: var(--font-weight-bold);
+    display: inline-block;
+}
+
+/* Rule Type Icons */
+.rule-type-icon {
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 1rem;
+}
+
+.rule-type-icon.battery {
+    background-color: rgba(56, 176, 0, 0.15);
+    color: var(--battery-color);
+}
+
+.rule-type-icon.energy {
+    background-color: rgba(255, 190, 11, 0.15);
+    color: var(--solar-color);
+}
+
+.rule-type-icon.grid {
+    background-color: rgba(255, 0, 110, 0.15);
+    color: var(--grid-color);
+}
+
+.rule-type-icon.time {
+    background-color: rgba(58, 134, 255, 0.15);
+    color: var(--primary);
+}
+
+.trigger-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    font-weight: var(--font-weight-bold);
+    margin-right: 0.5rem;
+}
+
+/* Filtering Controls */
+.filtering-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: calc(var(--spacer) * 1.5);
+    flex-wrap: wrap;
+    gap: var(--spacer);
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
+}
+
+.input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--grey-700);
+    text-align: center;
+    white-space: nowrap;
+    background-color: var(--grey-200);
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--grey-700);
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid var(--grey-300);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition-base);
+}
+
+.form-control:focus {
+    color: var(--grey-900);
+    background-color: #fff;
+    border-color: var(--primary);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(58, 134, 255, 0.25);
+}
+
+/* Toggle Switch */
+.form-check-input {
+    width: 2.5em;
+    height: 1.25em;
+    margin-top: 0.125em;
+    margin-right: 0.5em;
+    background-color: var(--grey-400);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: none;
+    transition: background-position 0.15s ease-in-out;
+    appearance: none;
+    border-radius: 2em;
+}
+
+.form-check-input:checked {
+    background-color: var(--secondary);
+    background-position: right center;
+}
+
+.form-check-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(58, 134, 255, 0.25);
+}
+
+.form-switch .form-check-input {
+    margin-left: 0;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.form-check-label {
+    margin-bottom: 0;
+}
+
+/* Action Buttons Group */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: calc(var(--spacer) * 3) var(--spacer);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--grey-400);
+    margin-bottom: var(--spacer);
+}
+
+.empty-state-text {
+    color: var(--grey-600);
+    font-size: 1.2rem;
+    margin-bottom: var(--spacer);
+}
+
+/* Wizard Styles */
+.wizard-nav {
+    margin-bottom: calc(var(--spacer) * 2);
+}
+
+/* New Step Indicators with Numbers */
+.wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.wizard-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--grey-300);
+    transform: translateY(-50%);
+    z-index: -1;
+}
+
+.wizard-step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.wizard-step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--grey-200);
+    color: var(--grey-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    border: 2px solid var(--grey-300);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.wizard-step-indicator.active .wizard-step-number {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(58, 134, 255, 0.25);
+}
+
+.wizard-step-indicator.completed .wizard-step-number {
+    background-color: var(--secondary);
+    color: white;
+    border-color: var(--secondary);
+}
+
+.wizard-step-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--grey-600);
+    text-align: center;
+    max-width: 100px;
+}
+
+.wizard-step-indicator.active .wizard-step-text {
+    color: var(--primary);
+}
+
+.wizard-step-indicator.completed .wizard-step-text {
+    color: var(--secondary);
+}
+
+/* Old Progress Bar (can be removed if using the step indicators above) */
+.progress {
+    height: var(--wizard-progress-height);
+    background-color: var(--wizard-inactive-color);
+    border-radius: var(--border-radius-pill);
+    overflow: hidden;
+    box-shadow: var(--box-shadow-inset);
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--spacer);
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    height: 100%;
+}
+
+.wizard-step {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.wizard-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.condition-card, 
+.action-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    margin-bottom: calc(var(--spacer) * 1.2);
+    transition: var(--transition-base);
+    border: 1px solid var(--grey-300);
+    box-shadow: var(--box-shadow-sm);
+    overflow: hidden;
+}
+
+.condition-card:hover,
+.action-card:hover {
+    box-shadow: var(--box-shadow);
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    border-left: 3px solid var(--primary);
+}
+
+.condition-card .card-body,
+.action-card .card-body {
+    padding: calc(var(--spacer) * 1.2);
+}
+
+.preview-container {
+    background-color: var(--grey-100);
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    padding: var(--spacer);
+    margin-bottom: calc(var(--spacer) * 1.2);
+}
+
+.preview-line {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.preview-line strong {
+    color: var(--grey-800);
+}
+
+.preview-line.ms-3 {
+    padding-left: 1rem;
+    border-left: 2px solid var(--grey-300);
+}
+
+.date-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    margin: 0.25rem;
+    border-radius: var(--border-radius-pill);
+    font-size: 0.85rem;
+    font-weight: var(--font-weight-bold);
+    transition: var(--transition-base);
+}
+
+.date-tag:hover {
+    background-color: var(--primary-dark);
+}
+
+.date-tag .close {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    opacity: 0.8;
+    transition: var(--transition-fast);
+}
+
+.date-tag .close:hover {
+    opacity: 1;
+}
+
+.calendar-dates {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.calendar-dates.show {
+    display: block;
+}
+
+.success-message {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Flatpickr customization */
+.flatpickr-calendar {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-lg);
+    border: none;
+}
+
+.flatpickr-day.selected, 
+.flatpickr-day.startRange, 
+.flatpickr-day.endRange, 
+.flatpickr-day.selected.inRange, 
+.flatpickr-day.startRange.inRange, 
+.flatpickr-day.endRange.inRange, 
+.flatpickr-day.selected:focus, 
+.flatpickr-day.startRange:focus, 
+.flatpickr-day.endRange:focus, 
+.flatpickr-day.selected:hover, 
+.flatpickr-day.startRange:hover, 
+.flatpickr-day.endRange:hover, 
+.flatpickr-day.selected.prevMonthDay, 
+.flatpickr-day.startRange.prevMonthDay, 
+.flatpickr-day.endRange.prevMonthDay, 
+.flatpickr-day.selected.nextMonthDay, 
+.flatpickr-day.startRange.nextMonthDay, 
+.flatpickr-day.endRange.nextMonthDay {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n+1)), 
+.flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n+1)), 
+.flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n+1)) {
+    box-shadow: -10px 0 0 var(--primary);
+}
+
+.flatpickr-time input:hover, 
+.flatpickr-time .flatpickr-am-pm:hover, 
+.flatpickr-time input:focus, 
+.flatpickr-time .flatpickr-am-pm:focus {
+    background: var(--grey-100);
+}
+
+/* Form improvements for the wizard */
+.form-label {
+    font-weight: var(--font-weight-bold);
+    color: var(--grey-700);
+    margin-bottom: 0.5rem;
+}
+
+.form-control, 
+.form-select {
+    border-radius: var(--border-radius-sm);
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--grey-300);
+    transition: var(--transition-base);
+}
+
+.form-control:focus, 
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.25rem rgba(58, 134, 255, 0.25);
+}
+
+.form-text {
+    color: var(--grey-600);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.form-switch .form-check-input {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+}
+
+.form-check-label {
+    color: var(--grey-700);
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--box-shadow-lg);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+.modal-title {
+    font-weight: var(--font-weight-bold);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--grey-200);
+    padding: 1rem 1.5rem;
+}
+
+/* Condition & Action Lists */
+.condition-text, 
+.action-text {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: var(--grey-100);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .page-header,
+    .filtering-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .page-header > div,
+    .filtering-controls > div {
+        margin-top: var(--spacer);
+        width: 100%;
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .card-header > div + div {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+}
+
+/* Utility Classes */
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+.ml-1 { margin-left: 0.25rem !important; }
+.ml-2 { margin-left: 0.5rem !important; }
+.ml-3 { margin-left: 1rem !important; }
+.ml-4 { margin-left: 1.5rem !important; }
+.ml-5 { margin-left: 3rem !important; }
+
+.mr-1 { margin-right: 0.25rem !important; }
+.mr-2 { margin-right: 0.5rem !important; }
+.mr-3 { margin-right: 1rem !important; }
+.mr-4 { margin-right: 1.5rem !important; }
+.mr-5 { margin-right: 3rem !important; }
+
+.p-1 { padding: 0.25rem !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 1rem !important; }
+.p-4 { padding: 1.5rem !important; }
+.p-5 { padding: 3rem !important; }
+
+.text-center { text-align: center !important; }
+.text-start { text-align: left !important; }
+.text-end { text-align: right !important; }
+
+.text-muted { color: var(--grey-600) !important; }
+.text-primary { color: var(--primary) !important; }
+.text-success { color: var(--secondary) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-danger { color: var(--danger) !important; }
     </style>
 </head>
 <body>
@@ -275,569 +1241,633 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    // Global variables to track conditions and actions
-    let conditions = [];
-    let actions = [];
-    let selectedDates = [];
-    let currentStep = 1;
+let conditions = [];
+let actions = [];
+let selectedDates = [];
+let currentStep = 1;
+
+// Initialize when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Insert step indicators before the progress bar
+    insertStepIndicators();
     
-    // Initialize when the document is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize time pickers
-        document.querySelectorAll('.time-picker').forEach(el => {
-            flatpickr(el, {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "H:i",
-                time_24hr: true
-            });
+    // Initialize time pickers
+    document.querySelectorAll('.time-picker').forEach(el => {
+        flatpickr(el, {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true
         });
-        
-        // Initialize date picker
-        flatpickr('.date-picker', {
-            dateFormat: "Y-m-d",
-        });
-        
-        // Setup event listeners
-        document.getElementById('enableTimeRestrictions').addEventListener('change', function() {
-            document.getElementById('timeRestrictionsContainer').style.display = this.checked ? 'block' : 'none';
-        });
-        
-        document.getElementById('enableSpecificDates').addEventListener('change', function() {
-            document.getElementById('specificDatesContainer').classList.toggle('show', this.checked);
-        });
-        
-        document.getElementById('addDateBtn').addEventListener('click', function() {
-            const dateInput = document.getElementById('specificDate');
-            const date = dateInput.value;
-            
-            if (date && !selectedDates.includes(date)) {
-                selectedDates.push(date);
-                updateSelectedDates();
-                dateInput.value = '';
-            }
-        });
-        
-        // Add initial condition and action
-        addCondition();
-        addAction();
-        
-        // Update the rule preview
-        updateRulePreview();
     });
     
-    // Navigation functions
-    function nextStep(step) {
-        // Validate current step
-        if (step === 1) {
-            if (!document.getElementById('ruleName').value) {
-                alert('Please enter a rule name');
-                return;
-            }
-        } else if (step === 2) {
-            updateConditionsFromUI();
-            if (conditions.length === 0) {
-                if (!confirm('Are you sure you want to continue without any conditions? The rule will always execute.')) {
-                    return;
-                }
-            }
-        } else if (step === 3) {
-            const timeRestrictionsEnabled = document.getElementById('enableTimeRestrictions').checked;
-            if (timeRestrictionsEnabled) {
-                const startTime = document.getElementById('startTime').value;
-                const endTime = document.getElementById('endTime').value;
-                
-                if (!startTime || !endTime) {
-                    alert('Please set both start and end times');
-                    return;
-                }
-                
-                const daysSelected = Array.from(document.querySelectorAll('input[name="days"]:checked')).length > 0;
-                if (!daysSelected) {
-                    alert('Please select at least one day of the week');
-                    return;
-                }
-            }
+    // Initialize date picker
+    flatpickr('.date-picker', {
+        dateFormat: "Y-m-d",
+    });
+    
+    // Setup event listeners
+    document.getElementById('enableTimeRestrictions').addEventListener('change', function() {
+        document.getElementById('timeRestrictionsContainer').style.display = this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('enableSpecificDates').addEventListener('change', function() {
+        document.getElementById('specificDatesContainer').classList.toggle('show', this.checked);
+    });
+    
+    document.getElementById('addDateBtn').addEventListener('click', function() {
+        const dateInput = document.getElementById('specificDate');
+        const date = dateInput.value;
+        
+        if (date && !selectedDates.includes(date)) {
+            selectedDates.push(date);
+            updateSelectedDates();
+            dateInput.value = '';
         }
-        
-        // Hide current step, show next step
-        document.getElementById(`step${step}`).classList.remove('active');
-        document.getElementById(`step${step+1}`).classList.add('active');
-        currentStep = step + 1;
-        
-        // Update progress bar
-        const progressBar = document.querySelector('.progress-bar');
-        progressBar.style.width = `${25 * currentStep}%`;
-        progressBar.setAttribute('aria-valuenow', 25 * currentStep);
-        progressBar.textContent = `Step ${currentStep} of 4`;
-        
-        // Update rule preview in the last step
-        if (currentStep === 4) {
-            updateRulePreview();
-        }
-    }
+    });
     
-    function prevStep(step) {
-        document.getElementById(`step${step}`).classList.remove('active');
-        document.getElementById(`step${step-1}`).classList.add('active');
-        currentStep = step - 1;
-        
-        // Update progress bar
-        const progressBar = document.querySelector('.progress-bar');
-        progressBar.style.width = `${25 * currentStep}%`;
-        progressBar.setAttribute('aria-valuenow', 25 * currentStep);
-        progressBar.textContent = `Step ${currentStep} of 4`;
-    }
-    
-    // Add a new condition
-    function addCondition() {
-        const conditionId = `condition-${Date.now()}`;
-        const conditionsContainer = document.getElementById('conditionsContainer');
-        
-        const conditionHTML = `
-            <div class="condition-card" id="${conditionId}">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">Parameter</label>
-                            <select class="form-select condition-parameter" onchange="updateConditionOperatorOptions(this)">
-                                <option value="battery_soc">Battery SOC (%)</option>
-                                <option value="pv_power">PV Power (W)</option>
-                                <option value="load">Load Power (W)</option>
-                                <option value="grid_voltage">Grid Voltage (V)</option>
-                                <option value="grid_power">Grid Power (W)</option>
-                                <option value="battery_voltage">Battery Voltage (V)</option>
-                                <option value="battery_current">Battery Current (A)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Operator</label>
-                            <select class="form-select condition-operator">
-                                <option value="gt">Greater than (>)</option>
-                                <option value="lt">Less than (<)</option>
-                                <option value="eq">Equal to (=)</option>
-                                <option value="gte">Greater than or equal to (≥)</option>
-                                <option value="lte">Less than or equal to (≤)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Value</label>
-                            <input type="number" class="form-control condition-value" step="0.1">
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeCondition('${conditionId}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        conditionsContainer.insertAdjacentHTML('beforeend', conditionHTML);
-    }
-    
-    // Remove a condition
-    function removeCondition(conditionId) {
-        document.getElementById(conditionId).remove();
-    }
-    
-    // Update operator options based on parameter
-    function updateConditionOperatorOptions(parameterSelect) {
-        const operatorSelect = parameterSelect.closest('.row').querySelector('.condition-operator');
-        
-        // Reset options
-        operatorSelect.innerHTML = `
-            <option value="gt">Greater than (>)</option>
-            <option value="lt">Less than (<)</option>
-            <option value="eq">Equal to (=)</option>
-            <option value="gte">Greater than or equal to (≥)</option>
-            <option value="lte">Less than or equal to (≤)</option>
-        `;
-    }
-    
-    // Add a new action
-    function addAction() {
-        const actionId = `action-${Date.now()}`;
-        const actionsContainer = document.getElementById('actionsContainer');
-        
-        const actionHTML = `
-            <div class="action-card" id="${actionId}">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">Setting</label>
-                            <select class="form-select action-setting" onchange="updateActionValueOptions(this)">
-                                <option value="grid_charge">Grid Charge</option>
-                                <option value="energy_pattern">Energy Pattern</option>
-                                <option value="work_mode">Work Mode</option>
-                                <option value="max_discharge_current">Max Discharge Current</option>
-                                <option value="max_charge_current">Max Charge Current</option>
-                                <option value="max_grid_charge_current">Max Grid Charge Current</option>
-                                <option value="solar_export_when_battery_full">Solar Export When Battery Full</option>
-                                <option value="max_sell_power">Max Sell Power</option>
-                                <option value="remote_switch">Remote Switch</option>
-                                <option value="generator_charge">Generator Charge</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Value</label>
-                            <select class="form-select action-value">
-                                <option value="Enabled">Enabled</option>
-                                <option value="Disabled">Disabled</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Inverter</label>
-                            <select class="form-select action-inverter">
-                                <option value="all">All Inverters</option>
-                                <option value="inverter_1">Inverter 1</option>
-                                <option value="inverter_2">Inverter 2</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeAction('${actionId}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        actionsContainer.insertAdjacentHTML('beforeend', actionHTML);
-    }
-    
-    // Remove an action
-    function removeAction(actionId) {
-        document.getElementById(actionId).remove();
-    }
-    
-    // Update value options based on setting
-    function updateActionValueOptions(settingSelect) {
-        const valueSelect = settingSelect.closest('.row').querySelector('.action-value');
-        const setting = settingSelect.value;
-        
-        // Clear existing options
-        valueSelect.innerHTML = '';
-        
-        // Add appropriate options based on setting
-        if (setting === 'grid_charge' || setting === 'generator_charge' || 
-            setting === 'remote_switch' || setting === 'solar_export_when_battery_full') {
-            valueSelect.innerHTML = `
-                <option value="Enabled">Enabled</option>
-                <option value="Disabled">Disabled</option>
-            `;
-        } else if (setting === 'energy_pattern' || setting === 'work_mode') {
-            valueSelect.innerHTML = `
-                <option value="Battery first">Battery First</option>
-                <option value="Grid first">Grid First</option>
-                <option value="Solar first">Solar First</option>
-                <option value="Solar + Battery">Solar + Battery</option>
-                <option value="Solar + Grid">Solar + Grid</option>
-            `;
-        } else if (setting === 'max_discharge_current' || setting === 'max_charge_current' || 
-                  setting === 'max_grid_charge_current') {
-            // Convert to input field for numeric values
-            const rowElement = valueSelect.closest('.row');
-            const colDiv = valueSelect.closest('.col-md-4');
-            
-            colDiv.innerHTML = `
-                <label class="form-label">Value (A)</label>
-                <input type="number" class="form-control action-value" min="0" max="100" step="0.1">
-            `;
-        } else if (setting === 'max_sell_power') {
-            const rowElement = valueSelect.closest('.row');
-            const colDiv = valueSelect.closest('.col-md-4');
-            
-            colDiv.innerHTML = `
-                <label class="form-label">Value (W)</label>
-                <input type="number" class="form-control action-value" min="0" max="10000" step="100">
-            `;
-        }
-    }
-    
-    // Update the conditions array from UI
-    function updateConditionsFromUI() {
-        conditions = [];
-        
-        document.querySelectorAll('.condition-card').forEach(card => {
-            const parameter = card.querySelector('.condition-parameter').value;
-            const operator = card.querySelector('.condition-operator').value;
-            const value = parseFloat(card.querySelector('.condition-value').value);
-            
-            if (parameter && operator && !isNaN(value)) {
-                conditions.push({ parameter, operator, value });
-            }
-        });
-    }
-    
-    // Update the actions array from UI
-    function updateActionsFromUI() {
-        actions = [];
-        
-        document.querySelectorAll('.action-card').forEach(card => {
-            const setting = card.querySelector('.action-setting').value;
-            const valueElement = card.querySelector('.action-value');
-            let value;
-            
-            // Check if the value is a select or input
-            if (valueElement.tagName === 'SELECT') {
-                value = valueElement.value;
-            } else {
-                value = valueElement.value;
-            }
-            
-            const inverter = card.querySelector('.action-inverter').value;
-            
-            if (setting && value && inverter) {
-                actions.push({ setting, value, inverter });
-            }
-        });
-    }
+    // Add initial condition and action
+    addCondition();
+    addAction();
     
     // Update the rule preview
-    function updateRulePreview() {
-        const name = document.getElementById('ruleName').value || 'Unnamed Rule';
-        const description = document.getElementById('ruleDescription').value || 'No description';
-        const active = document.getElementById('ruleActive').checked;
+    updateRulePreview();
+    
+    // Update step indicators for initial state
+    updateStepIndicators(currentStep);
+});
+
+/**
+ * Create and insert step indicators
+ */
+function insertStepIndicators() {
+    const wizardNav = document.querySelector('.wizard-nav');
+    const stepsContainer = document.createElement('div');
+    stepsContainer.className = 'wizard-steps';
+    
+    // Step titles
+    const stepTitles = [
+        'Basic Information',
+        'Conditions',
+        'Time Restrictions',
+        'Actions'
+    ];
+    
+    // Create individual step indicators
+    stepTitles.forEach((title, index) => {
+        const stepNumber = index + 1;
+        const stepIndicator = document.createElement('div');
+        stepIndicator.className = 'wizard-step-indicator';
+        stepIndicator.id = `step-indicator-${stepNumber}`;
         
-        updateConditionsFromUI();
-        updateActionsFromUI();
-        
-        // Build the preview HTML
-        let previewHTML = `
-            <div class="preview-line"><strong>Name:</strong> ${name}</div>
-            <div class="preview-line"><strong>Description:</strong> ${description}</div>
-            <div class="preview-line"><strong>Active:</strong> ${active ? 'Yes' : 'No'}</div>
-            <div class="preview-line"><strong>Conditions:</strong></div>
+        stepIndicator.innerHTML = `
+            <div class="wizard-step-number">${stepNumber}</div>
+            <div class="wizard-step-text">${title}</div>
         `;
         
-        if (conditions.length === 0) {
-            previewHTML += `<div class="preview-line ms-3">No conditions (rule will always execute)</div>`;
-        } else {
-            conditions.forEach((condition, index) => {
-                let parameterName = condition.parameter;
-                let operatorSymbol = '';
-                
-                // Map parameters to human-readable names
-                switch (condition.parameter) {
-                    case 'battery_soc': parameterName = 'Battery SOC'; break;
-                    case 'pv_power': parameterName = 'PV Power'; break;
-                    case 'load': parameterName = 'Load Power'; break;
-                    case 'grid_voltage': parameterName = 'Grid Voltage'; break;
-                    case 'grid_power': parameterName = 'Grid Power'; break;
-                    case 'battery_voltage': parameterName = 'Battery Voltage'; break;
-                    case 'battery_current': parameterName = 'Battery Current'; break;
-                }
-                
-                // Map operators to symbols
-                switch (condition.operator) {
-                    case 'gt': operatorSymbol = '>'; break;
-                    case 'lt': operatorSymbol = '<'; break;
-                    case 'eq': operatorSymbol = '='; break;
-                    case 'gte': operatorSymbol = '≥'; break;
-                    case 'lte': operatorSymbol = '≤'; break;
-                }
-                
-                const logicalOperator = index === 0 ? 'If' : 'AND';
-                
-                // Add units based on parameter
-                let unit = '';
-                if (condition.parameter === 'battery_soc') unit = '%';
-                else if (condition.parameter === 'pv_power' || condition.parameter === 'load' || condition.parameter === 'grid_power') unit = 'W';
-                else if (condition.parameter === 'grid_voltage' || condition.parameter === 'battery_voltage') unit = 'V';
-                else if (condition.parameter === 'battery_current') unit = 'A';
-                
-                previewHTML += `<div class="preview-line ms-3">${logicalOperator} ${parameterName} ${operatorSymbol} ${condition.value}${unit}</div>`;
-            });
-        }
-        
-        // Add time restrictions
-        const timeRestrictionsEnabled = document.getElementById('enableTimeRestrictions').checked;
-        if (timeRestrictionsEnabled) {
-            previewHTML += `<div class="preview-line"><strong>Time Restrictions:</strong></div>`;
-            
-            // Add days
-            const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked'))
-                .map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1));
-            
-            previewHTML += `<div class="preview-line ms-3">Days: ${selectedDays.join(', ') || 'None'}</div>`;
-            
-            // Add time range
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
-            
-            if (startTime && endTime) {
-                previewHTML += `<div class="preview-line ms-3">Time: ${startTime} to ${endTime}</div>`;
-            }
-            
-            // Add specific dates if enabled
-            const specificDatesEnabled = document.getElementById('enableSpecificDates').checked;
-            if (specificDatesEnabled && selectedDates.length > 0) {
-                previewHTML += `<div class="preview-line ms-3">Specific Dates: ${selectedDates.join(', ')}</div>`;
-            }
-        }
-        
-        // Add actions
-        previewHTML += `<div class="preview-line"><strong>Actions:</strong></div>`;
-        
-        if (actions.length === 0) {
-            previewHTML += `<div class="preview-line ms-3">No actions defined</div>`;
-        } else {
-            actions.forEach((action, index) => {
-                let settingName = action.setting;
-                let valueDisplay = action.value;
-                
-                // Map settings to human-readable names
-                switch (action.setting) {
-                    case 'grid_charge': settingName = 'Grid Charge'; break;
-                    case 'energy_pattern': settingName = 'Energy Pattern'; break;
-                    case 'work_mode': settingName = 'Work Mode'; break;
-                    case 'max_discharge_current': settingName = 'Max Discharge Current'; break;
-                    case 'max_charge_current': settingName = 'Max Charge Current'; break;
-                    case 'max_grid_charge_current': settingName = 'Max Grid Charge Current'; break;
-                    case 'solar_export_when_battery_full': settingName = 'Solar Export When Battery Full'; break;
-                    case 'max_sell_power': settingName = 'Max Sell Power'; break;
-                    case 'remote_switch': settingName = 'Remote Switch'; break;
-                    case 'generator_charge': settingName = 'Generator Charge'; break;
-                }
-                
-                // Add units based on setting
-                if (action.setting === 'max_discharge_current' || action.setting === 'max_charge_current' ||
-                    action.setting === 'max_grid_charge_current') {
-                    valueDisplay = `${action.value} A`;
-                } else if (action.setting === 'max_sell_power') {
-                    valueDisplay = `${action.value} W`;
-                }
-                
-                previewHTML += `<div class="preview-line ms-3">Set ${settingName} to ${valueDisplay} on ${action.inverter === 'all' ? 'All Inverters' : action.inverter.replace('_', ' ')}</div>`;
-            });
-        }
-        
-        document.getElementById('rulePreview').innerHTML = previewHTML;
-    }
+        stepsContainer.appendChild(stepIndicator);
+    });
     
-    // Update the selected dates UI
-    function updateSelectedDates() {
-        const selectedDatesContainer = document.getElementById('selectedDates');
-        const noDatesMessage = document.getElementById('noDatesMessage');
+    // Insert before the progress bar
+    wizardNav.insertBefore(stepsContainer, wizardNav.firstChild);
+}
+
+/**
+ * Update step indicators to reflect the current step
+ * @param {number} currentStep - The current step (1-based index)
+ */
+function updateStepIndicators(step) {
+    // Clear all indicators
+    document.querySelectorAll('.wizard-step-indicator').forEach((indicator, index) => {
+        const stepNumber = index + 1;
         
-        if (selectedDates.length > 0) {
-            noDatesMessage.style.display = 'none';
-            
-            // Clear and rebuild the dates display
-            const existingTags = selectedDatesContainer.querySelectorAll('.date-tag');
-            existingTags.forEach(tag => tag.remove());
-            
-            selectedDates.forEach(date => {
-                const dateTag = document.createElement('span');
-                dateTag.className = 'date-tag';
-                dateTag.innerHTML = `${date} <span class="close" onclick="removeDate('${date}')">&times;</span>`;
-                selectedDatesContainer.appendChild(dateTag);
-            });
-            
-            // Update hidden input
-            document.getElementById('calendarDates').value = JSON.stringify(selectedDates);
+        if (stepNumber < step) {
+            // Completed steps
+            indicator.className = 'wizard-step-indicator completed';
+        } else if (stepNumber === step) {
+            // Active step
+            indicator.className = 'wizard-step-indicator active';
         } else {
-            noDatesMessage.style.display = 'block';
-            document.getElementById('calendarDates').value = '';
+            // Future steps
+            indicator.className = 'wizard-step-indicator';
         }
-    }
+    });
     
-    // Remove a date from the selected dates
-    function removeDate(date) {
-        selectedDates = selectedDates.filter(d => d !== date);
-        updateSelectedDates();
+    // Also update the progress bar for compatibility
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        progressBar.style.width = `${25 * step}%`;
+        progressBar.setAttribute('aria-valuenow', 25 * step);
+        progressBar.textContent = `Step ${step} of 4`;
     }
-    
-    // Save the rule to the server
-    function saveRule() {
-        // Update from UI
-        updateConditionsFromUI();
-        updateActionsFromUI();
-        
-        // Build the rule object
-        const ruleName = document.getElementById('ruleName').value;
-        const ruleDescription = document.getElementById('ruleDescription').value;
-        const ruleActive = document.getElementById('ruleActive').checked;
-        
-        if (!ruleName) {
+}
+
+// Navigation functions
+function nextStep(step) {
+    // Validate current step
+    if (step === 1) {
+        if (!document.getElementById('ruleName').value) {
             alert('Please enter a rule name');
             return;
         }
-        
-        if (actions.length === 0) {
-            alert('Please add at least one action');
-            return;
+    } else if (step === 2) {
+        updateConditionsFromUI();
+        if (conditions.length === 0) {
+            if (!confirm('Are you sure you want to continue without any conditions? The rule will always execute.')) {
+                return;
+            }
         }
-        
-        // Build time restrictions
+    } else if (step === 3) {
         const timeRestrictionsEnabled = document.getElementById('enableTimeRestrictions').checked;
-        let timeRestrictions = {
-            enabled: timeRestrictionsEnabled
-        };
-        
         if (timeRestrictionsEnabled) {
-            // Get selected days
-            const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked'))
-                .map(input => input.value);
-            
             const startTime = document.getElementById('startTime').value;
             const endTime = document.getElementById('endTime').value;
             
-            timeRestrictions.days = selectedDays;
-            timeRestrictions.startTime = startTime;
-            timeRestrictions.endTime = endTime;
+            if (!startTime || !endTime) {
+                alert('Please set both start and end times');
+                return;
+            }
             
-            // Add specific dates if enabled
-            const specificDatesEnabled = document.getElementById('enableSpecificDates').checked;
-            if (specificDatesEnabled) {
-                timeRestrictions.specificDates = selectedDates;
+            const daysSelected = Array.from(document.querySelectorAll('input[name="days"]:checked')).length > 0;
+            if (!daysSelected) {
+                alert('Please select at least one day of the week');
+                return;
             }
         }
+    }
+    
+    // Hide current step, show next step
+    document.getElementById(`step${step}`).classList.remove('active');
+    document.getElementById(`step${step+1}`).classList.add('active');
+    currentStep = step + 1;
+    
+    // Update step indicators
+    updateStepIndicators(currentStep);
+    
+    // Update rule preview in the last step
+    if (currentStep === 4) {
+        updateRulePreview();
+    }
+}
+
+function prevStep(step) {
+    document.getElementById(`step${step}`).classList.remove('active');
+    document.getElementById(`step${step-1}`).classList.add('active');
+    currentStep = step - 1;
+    
+    // Update step indicators
+    updateStepIndicators(currentStep);
+}
+
+// Add a new condition
+function addCondition() {
+    const conditionId = `condition-${Date.now()}`;
+    const conditionsContainer = document.getElementById('conditionsContainer');
+    
+    const conditionHTML = `
+        <div class="condition-card" id="${conditionId}">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Parameter</label>
+                        <select class="form-select condition-parameter" onchange="updateConditionOperatorOptions(this)">
+                            <option value="battery_soc">Battery SOC (%)</option>
+                            <option value="pv_power">PV Power (W)</option>
+                            <option value="load">Load Power (W)</option>
+                            <option value="grid_voltage">Grid Voltage (V)</option>
+                            <option value="grid_power">Grid Power (W)</option>
+                            <option value="battery_voltage">Battery Voltage (V)</option>
+                            <option value="battery_current">Battery Current (A)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Operator</label>
+                        <select class="form-select condition-operator">
+                            <option value="gt">Greater than (>)</option>
+                            <option value="lt">Less than (<)</option>
+                            <option value="eq">Equal to (=)</option>
+                            <option value="gte">Greater than or equal to (≥)</option>
+                            <option value="lte">Less than or equal to (≤)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Value</label>
+                        <input type="number" class="form-control condition-value" step="0.1">
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeCondition('${conditionId}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    conditionsContainer.insertAdjacentHTML('beforeend', conditionHTML);
+}
+
+// Remove a condition
+function removeCondition(conditionId) {
+    document.getElementById(conditionId).remove();
+}
+
+// Update operator options based on parameter
+function updateConditionOperatorOptions(parameterSelect) {
+    const operatorSelect = parameterSelect.closest('.row').querySelector('.condition-operator');
+    
+    // Reset options
+    operatorSelect.innerHTML = `
+        <option value="gt">Greater than (>)</option>
+        <option value="lt">Less than (<)</option>
+        <option value="eq">Equal to (=)</option>
+        <option value="gte">Greater than or equal to (≥)</option>
+        <option value="lte">Less than or equal to (≤)</option>
+    `;
+}
+
+// Add a new action
+function addAction() {
+    const actionId = `action-${Date.now()}`;
+    const actionsContainer = document.getElementById('actionsContainer');
+    
+    const actionHTML = `
+        <div class="action-card" id="${actionId}">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Setting</label>
+                        <select class="form-select action-setting" onchange="updateActionValueOptions(this)">
+                            <option value="grid_charge">Grid Charge</option>
+                            <option value="energy_pattern">Energy Pattern</option>
+                            <option value="work_mode">Work Mode</option>
+                            <option value="max_discharge_current">Max Discharge Current</option>
+                            <option value="max_charge_current">Max Charge Current</option>
+                            <option value="max_grid_charge_current">Max Grid Charge Current</option>
+                            <option value="solar_export_when_battery_full">Solar Export When Battery Full</option>
+                            <option value="max_sell_power">Max Sell Power</option>
+                            <option value="remote_switch">Remote Switch</option>
+                            <option value="generator_charge">Generator Charge</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Value</label>
+                        <select class="form-select action-value">
+                            <option value="Enabled">Enabled</option>
+                            <option value="Disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Inverter</label>
+                        <select class="form-select action-inverter">
+                            <option value="all">All Inverters</option>
+                            <option value="inverter_1">Inverter 1</option>
+                            <option value="inverter_2">Inverter 2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeAction('${actionId}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    actionsContainer.insertAdjacentHTML('beforeend', actionHTML);
+}
+
+// Remove an action
+function removeAction(actionId) {
+    document.getElementById(actionId).remove();
+}
+
+// Update value options based on setting
+function updateActionValueOptions(settingSelect) {
+    const valueSelect = settingSelect.closest('.row').querySelector('.action-value');
+    const setting = settingSelect.value;
+    
+    // Clear existing options
+    valueSelect.innerHTML = '';
+    
+    // Add appropriate options based on setting
+    if (setting === 'grid_charge' || setting === 'generator_charge' || 
+        setting === 'remote_switch' || setting === 'solar_export_when_battery_full') {
+        valueSelect.innerHTML = `
+            <option value="Enabled">Enabled</option>
+            <option value="Disabled">Disabled</option>
+        `;
+    } else if (setting === 'energy_pattern' || setting === 'work_mode') {
+        valueSelect.innerHTML = `
+            <option value="Battery first">Battery First</option>
+            <option value="Grid first">Grid First</option>
+            <option value="Solar first">Solar First</option>
+            <option value="Solar + Battery">Solar + Battery</option>
+            <option value="Solar + Grid">Solar + Grid</option>
+        `;
+    } else if (setting === 'max_discharge_current' || setting === 'max_charge_current' || 
+              setting === 'max_grid_charge_current') {
+        // Convert to input field for numeric values
+        const rowElement = valueSelect.closest('.row');
+        const colDiv = valueSelect.closest('.col-md-4');
         
-        // Create the rule object
-        const rule = {
-            name: ruleName,
-            description: ruleDescription,
-            active: ruleActive,
-            conditions: conditions,
-            timeRestrictions: timeRestrictions,
-            actions: actions
-        };
+        colDiv.innerHTML = `
+            <label class="form-label">Value (A)</label>
+            <input type="number" class="form-control action-value" min="0" max="100" step="0.1">
+        `;
+    } else if (setting === 'max_sell_power') {
+        const rowElement = valueSelect.closest('.row');
+        const colDiv = valueSelect.closest('.col-md-4');
         
-        // Send to server
-        fetch('/api/rules', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(rule)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+        colDiv.innerHTML = `
+            <label class="form-label">Value (W)</label>
+            <input type="number" class="form-control action-value" min="0" max="10000" step="100">
+        `;
+    }
+}
+
+// Update the conditions array from UI
+function updateConditionsFromUI() {
+    conditions = [];
+    
+    document.querySelectorAll('.condition-card').forEach(card => {
+        const parameter = card.querySelector('.condition-parameter').value;
+        const operator = card.querySelector('.condition-operator').value;
+        const value = parseFloat(card.querySelector('.condition-value').value);
+        
+        if (parameter && operator && !isNaN(value)) {
+            conditions.push({ parameter, operator, value });
+        }
+    });
+}
+
+// Update the actions array from UI
+function updateActionsFromUI() {
+    actions = [];
+    
+    document.querySelectorAll('.action-card').forEach(card => {
+        const setting = card.querySelector('.action-setting').value;
+        const valueElement = card.querySelector('.action-value');
+        let value;
+        
+        // Check if the value is a select or input
+        if (valueElement.tagName === 'SELECT') {
+            value = valueElement.value;
+        } else {
+            value = valueElement.value;
+        }
+        
+        const inverter = card.querySelector('.action-inverter').value;
+        
+        if (setting && value && inverter) {
+            actions.push({ setting, value, inverter });
+        }
+    });
+}
+
+// Update the rule preview
+function updateRulePreview() {
+    const name = document.getElementById('ruleName').value || 'Unnamed Rule';
+    const description = document.getElementById('ruleDescription').value || 'No description';
+    const active = document.getElementById('ruleActive').checked;
+    
+    updateConditionsFromUI();
+    updateActionsFromUI();
+    
+    // Build the preview HTML
+    let previewHTML = `
+        <div class="preview-line"><strong>Name:</strong> ${name}</div>
+        <div class="preview-line"><strong>Description:</strong> ${description}</div>
+        <div class="preview-line"><strong>Active:</strong> ${active ? 'Yes' : 'No'}</div>
+        <div class="preview-line"><strong>Conditions:</strong></div>
+    `;
+    
+    if (conditions.length === 0) {
+        previewHTML += `<div class="preview-line ms-3">No conditions (rule will always execute)</div>`;
+    } else {
+        conditions.forEach((condition, index) => {
+            let parameterName = condition.parameter;
+            let operatorSymbol = '';
+            
+            // Map parameters to human-readable names
+            switch (condition.parameter) {
+                case 'battery_soc': parameterName = 'Battery SOC'; break;
+                case 'pv_power': parameterName = 'PV Power'; break;
+                case 'load': parameterName = 'Load Power'; break;
+                case 'grid_voltage': parameterName = 'Grid Voltage'; break;
+                case 'grid_power': parameterName = 'Grid Power'; break;
+                case 'battery_voltage': parameterName = 'Battery Voltage'; break;
+                case 'battery_current': parameterName = 'Battery Current'; break;
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Rule created successfully:', data);
             
-            // Show success message
-            const successMessage = document.querySelector('.success-message');
-            successMessage.style.display = 'block';
+            // Map operators to symbols
+            switch (condition.operator) {
+                case 'gt': operatorSymbol = '>'; break;
+                case 'lt': operatorSymbol = '<'; break;
+                case 'eq': operatorSymbol = '='; break;
+                case 'gte': operatorSymbol = '≥'; break;
+                case 'lte': operatorSymbol = '≤'; break;
+            }
             
-            // Redirect after a short delay
-            setTimeout(() => {
-                window.location.href = '/rules';
-            }, 2000);
-        })
-        .catch(error => {
-            console.error('Error creating rule:', error);
-            alert('Error creating rule: ' + error.message);
+            const logicalOperator = index === 0 ? 'If' : 'AND';
+            
+            // Add units based on parameter
+            let unit = '';
+            if (condition.parameter === 'battery_soc') unit = '%';
+            else if (condition.parameter === 'pv_power' || condition.parameter === 'load' || condition.parameter === 'grid_power') unit = 'W';
+            else if (condition.parameter === 'grid_voltage' || condition.parameter === 'battery_voltage') unit = 'V';
+            else if (condition.parameter === 'battery_current') unit = 'A';
+            
+            previewHTML += `<div class="preview-line ms-3">${logicalOperator} ${parameterName} ${operatorSymbol} ${condition.value}${unit}</div>`;
         });
     }
+    
+    // Add time restrictions
+    const timeRestrictionsEnabled = document.getElementById('enableTimeRestrictions').checked;
+    if (timeRestrictionsEnabled) {
+        previewHTML += `<div class="preview-line"><strong>Time Restrictions:</strong></div>`;
+        
+        // Add days
+        const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked'))
+            .map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1));
+        
+        previewHTML += `<div class="preview-line ms-3">Days: ${selectedDays.join(', ') || 'None'}</div>`;
+        
+        // Add time range
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        
+        if (startTime && endTime) {
+            previewHTML += `<div class="preview-line ms-3">Time: ${startTime} to ${endTime}</div>`;
+        }
+        
+        // Add specific dates if enabled
+        const specificDatesEnabled = document.getElementById('enableSpecificDates').checked;
+        if (specificDatesEnabled && selectedDates.length > 0) {
+            previewHTML += `<div class="preview-line ms-3">Specific Dates: ${selectedDates.join(', ')}</div>`;
+        }
+    }
+    
+    // Add actions
+    previewHTML += `<div class="preview-line"><strong>Actions:</strong></div>`;
+    
+    if (actions.length === 0) {
+        previewHTML += `<div class="preview-line ms-3">No actions defined</div>`;
+    } else {
+        actions.forEach((action, index) => {
+            let settingName = action.setting;
+            let valueDisplay = action.value;
+            
+            // Map settings to human-readable names
+            switch (action.setting) {
+                case 'grid_charge': settingName = 'Grid Charge'; break;
+                case 'energy_pattern': settingName = 'Energy Pattern'; break;
+                case 'work_mode': settingName = 'Work Mode'; break;
+                case 'max_discharge_current': settingName = 'Max Discharge Current'; break;
+                case 'max_charge_current': settingName = 'Max Charge Current'; break;
+                case 'max_grid_charge_current': settingName = 'Max Grid Charge Current'; break;
+                case 'solar_export_when_battery_full': settingName = 'Solar Export When Battery Full'; break;
+                case 'max_sell_power': settingName = 'Max Sell Power'; break;
+                case 'remote_switch': settingName = 'Remote Switch'; break;
+                case 'generator_charge': settingName = 'Generator Charge'; break;
+            }
+            
+            // Add units based on setting
+            if (action.setting === 'max_discharge_current' || action.setting === 'max_charge_current' ||
+                action.setting === 'max_grid_charge_current') {
+                valueDisplay = `${action.value} A`;
+            } else if (action.setting === 'max_sell_power') {
+                valueDisplay = `${action.value} W`;
+            }
+            
+            previewHTML += `<div class="preview-line ms-3">Set ${settingName} to ${valueDisplay} on ${action.inverter === 'all' ? 'All Inverters' : action.inverter.replace('_', ' ')}</div>`;
+        });
+    }
+    
+    document.getElementById('rulePreview').innerHTML = previewHTML;
+}
+
+// Update the selected dates UI
+function updateSelectedDates() {
+    const selectedDatesContainer = document.getElementById('selectedDates');
+    const noDatesMessage = document.getElementById('noDatesMessage');
+    
+    if (selectedDates.length > 0) {
+        noDatesMessage.style.display = 'none';
+        
+        // Clear and rebuild the dates display
+        const existingTags = selectedDatesContainer.querySelectorAll('.date-tag');
+        existingTags.forEach(tag => tag.remove());
+        
+        selectedDates.forEach(date => {
+            const dateTag = document.createElement('span');
+            dateTag.className = 'date-tag';
+            dateTag.innerHTML = `${date} <span class="close" onclick="removeDate('${date}')">&times;</span>`;
+            selectedDatesContainer.appendChild(dateTag);
+        });
+        
+        // Update hidden input
+        document.getElementById('calendarDates').value = JSON.stringify(selectedDates);
+    } else {
+        noDatesMessage.style.display = 'block';
+        document.getElementById('calendarDates').value = '';
+    }
+}
+
+// Remove a date from the selected dates
+function removeDate(date) {
+    selectedDates = selectedDates.filter(d => d !== date);
+    updateSelectedDates();
+}
+
+// Save the rule to the server
+function saveRule() {
+    // Update from UI
+    updateConditionsFromUI();
+    updateActionsFromUI();
+    
+    // Build the rule object
+    const ruleName = document.getElementById('ruleName').value;
+    const ruleDescription = document.getElementById('ruleDescription').value;
+    const ruleActive = document.getElementById('ruleActive').checked;
+    
+    if (!ruleName) {
+        alert('Please enter a rule name');
+        return;
+    }
+    
+    if (actions.length === 0) {
+        alert('Please add at least one action');
+        return;
+    }
+    
+    // Build time restrictions
+    const timeRestrictionsEnabled = document.getElementById('enableTimeRestrictions').checked;
+    let timeRestrictions = {
+        enabled: timeRestrictionsEnabled
+    };
+    
+    if (timeRestrictionsEnabled) {
+        // Get selected days
+        const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked'))
+            .map(input => input.value);
+        
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        
+        timeRestrictions.days = selectedDays;
+        timeRestrictions.startTime = startTime;
+        timeRestrictions.endTime = endTime;
+        
+        // Add specific dates if enabled
+        const specificDatesEnabled = document.getElementById('enableSpecificDates').checked;
+        if (specificDatesEnabled) {
+            timeRestrictions.specificDates = selectedDates;
+        }
+    }
+    
+    // Create the rule object
+    const rule = {
+        name: ruleName,
+        description: ruleDescription,
+        active: ruleActive,
+        conditions: conditions,
+        timeRestrictions: timeRestrictions,
+        actions: actions
+    };
+    
+    // Send to server
+    fetch('/api/rules', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(rule)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Rule created successfully:', data);
+        
+        // Show success message
+        const successMessage = document.querySelector('.success-message');
+        successMessage.style.display = 'block';
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+            window.location.href = '/rules';
+        }, 2000);
+    })
+    .catch(error => {
+        console.error('Error creating rule:', error);
+        alert('Error creating rule: ' + error.message);
+    });
+}
 </script>
 </body>
 </html>
