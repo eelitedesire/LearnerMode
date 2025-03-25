@@ -673,43 +673,64 @@ function applyAction(action) {
 
 // Function to process all rules
 async function processRules() {
-  if (!dbConnected) return
+  if (!dbConnected) return;
   
   try {
     // Get all active rules
-    const rules = await Rule.find({ active: true })
+    const rules = await Rule.find({ active: true });
     
     for (const rule of rules) {
       // Check time restrictions
       if (rule.timeRestrictions && rule.timeRestrictions.enabled) {
-        const { days, startTime, endTime } = rule.timeRestrictions
+        const { days, startTime, endTime, specificDates } = rule.timeRestrictions;
         
-        if (!isAllowedDay(days) || !isWithinTimeRange(startTime, endTime)) {
-          continue // Skip this rule if outside allowed time
+        // Check day of week restrictions
+        if (days && days.length > 0) {
+          const currentDay = moment().format('dddd').toLowerCase();
+          if (!days.includes(currentDay)) {
+            continue; // Skip this rule if not an allowed day
+          }
+        }
+        
+        // Check time range restrictions
+        if (startTime && endTime) {
+          if (!isWithinTimeRange(startTime, endTime)) {
+            continue; // Skip this rule if outside time range
+          }
+        }
+        
+        // Check specific dates (if configured)
+        if (specificDates && specificDates.length > 0) {
+          const today = moment().format('YYYY-MM-DD');
+          const isSpecialDate = specificDates.includes(today);
+          
+          // If specific dates are defined but today is not in the list, skip
+          if (!isSpecialDate) {
+            continue;
+          }
         }
       }
       
       // Check if all conditions are met
-      const allConditionsMet = rule.conditions.every(condition => 
-        evaluateCondition(condition)
-      )
+      const allConditionsMet = rule.conditions.length === 0 || 
+        rule.conditions.every(condition => evaluateCondition(condition));
       
       if (allConditionsMet) {
-        console.log(`Rule "${rule.name}" triggered: ${rule.description}`)
+        console.log(`Rule "${rule.name}" triggered: ${rule.description}`);
         
         // Apply all actions
         rule.actions.forEach(action => {
-          applyAction(action)
-        })
+          applyAction(action);
+        });
         
         // Update rule statistics
-        rule.lastTriggered = new Date()
-        rule.triggerCount += 1
-        await rule.save()
+        rule.lastTriggered = new Date();
+        rule.triggerCount += 1;
+        await rule.save();
       }
     }
   } catch (error) {
-    console.error('Error processing rules:', error.message)
+    console.error('Error processing rules:', error);
   }
 }
 
@@ -1588,171 +1609,467 @@ app.get('/voltage-point', async (req, res) => {
   }
 })
 
+app.get('/wizard', async (req, res) => {
+  try {
+    // Check if editing an existing rule (optional)
+    const ruleId = req.query.edit;
+    let rule = null;
+    
+    if (ruleId && dbConnected) {
+      rule = await Rule.findById(ruleId);
+    }
+    
+    // Get current system state for reference
+    const systemState = { ...currentSystemState };
+    
+    // Get the number of inverters from config
+    const numInverters = inverterNumber || 1;
+    
+    res.render('wizard', { 
+      rule,
+      systemState,
+      numInverters,
+      editMode: !!ruleId,
+      db_connected: dbConnected
+    });
+  } catch (error) {
+    console.error('Error rendering wizard page:', error);
+    res.status(500).send('Error loading wizard page');
+  }
+});
+
 // ================ RULES MANAGEMENT API ================
 
 // Get all rules
-app.get('/api/rules', async (req, res) => {
-  try {
-    if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
-    }
-    
-    const rules = await Rule.find().sort({ name: 1 })
-    res.json(rules)
-  } catch (error) {
-    console.error('Error retrieving rules:', error)
-    res.status(500).json({ error: 'Failed to retrieve rules' })
-  }
-})
-
-// Get a specific rule
-app.get('/api/rules/:id', async (req, res) => {
-  try {
-    if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
-    }
-    
-    const rule = await Rule.findById(req.params.id)
-    if (!rule) {
-      return res.status(404).json({ error: 'Rule not found' })
-    }
-    
-    res.json(rule)
-  } catch (error) {
-    console.error('Error retrieving rule:', error)
-    res.status(500).json({ error: 'Failed to retrieve rule' })
-  }
-})
-
-// Create a new rule
 app.post('/api/rules', async (req, res) => {
   try {
     if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
     }
     
-    const rule = new Rule(req.body)
-    await rule.save()
+    // Validate the request body
+    const { name, description, active, conditions, timeRestrictions, actions } = req.body;
     
-    res.status(201).json(rule)
+    if (!name) {
+      return res.status(400).json({ error: 'Rule name is required' });
+    }
+    
+    if (!actions || actions.length === 0) {
+      return res.status(400).json({ error: 'At least one action is required' });
+    }
+    
+    // Handle specific dates if present
+    let processedTimeRestrictions = { ...timeRestrictions };
+    
+    // Create the rule
+    const rule = new Rule({
+      name,
+      description,
+      active: active !== undefined ? active : true,
+      conditions: conditions || [],
+      timeRestrictions: processedTimeRestrictions,
+      actions
+    });
+    
+    await rule.save();
+    
+    // Log the creation
+    console.log(`Rule "${name}" created successfully`);
+    
+    res.status(201).json(rule);
   } catch (error) {
-    console.error('Error creating rule:', error)
-    res.status(400).json({ error: error.message })
+    console.error('Error creating rule:', error);
+    res.status(400).json({ error: error.message });
   }
-})
+});
 
-// Update a rule
+// Get a specific rule
 app.put('/api/rules/:id', async (req, res) => {
   try {
     if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
     }
     
-    const rule = await Rule.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    const { name, description, active, conditions, timeRestrictions, actions } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Rule name is required' });
+    }
+    
+    if (!actions || actions.length === 0) {
+      return res.status(400).json({ error: 'At least one action is required' });
+    }
+    
+    // Find the rule
+    const rule = await Rule.findById(req.params.id);
     if (!rule) {
-      return res.status(404).json({ error: 'Rule not found' })
+      return res.status(404).json({ error: 'Rule not found' });
     }
     
-    res.json(rule)
+    // Update the rule
+    rule.name = name;
+    rule.description = description;
+    rule.active = active !== undefined ? active : true;
+    rule.conditions = conditions || [];
+    rule.timeRestrictions = timeRestrictions;
+    rule.actions = actions;
+    
+    await rule.save();
+    
+    console.log(`Rule "${name}" updated successfully`);
+    
+    res.json(rule);
   } catch (error) {
-    console.error('Error updating rule:', error)
-    res.status(400).json({ error: error.message })
+    console.error('Error updating rule:', error);
+    res.status(400).json({ error: error.message });
   }
-})
+});
 
-// Delete a rule
-app.delete('/api/rules/:id', async (req, res) => {
+app.post('/api/rules/:id/duplicate', async (req, res) => {
   try {
     if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
     }
     
-    const rule = await Rule.findByIdAndDelete(req.params.id)
-    if (!rule) {
-      return res.status(404).json({ error: 'Rule not found' })
+    // Find the original rule
+    const originalRule = await Rule.findById(req.params.id);
+    if (!originalRule) {
+      return res.status(404).json({ error: 'Rule not found' });
     }
     
-    res.json({ message: 'Rule deleted successfully' })
+    // Create a new rule based on the original
+    const newRule = new Rule({
+      name: `Copy of ${originalRule.name}`,
+      description: originalRule.description,
+      active: originalRule.active,
+      conditions: originalRule.conditions,
+      timeRestrictions: originalRule.timeRestrictions,
+      actions: originalRule.actions
+    });
+    
+    await newRule.save();
+    
+    console.log(`Rule "${originalRule.name}" duplicated as "${newRule.name}"`);
+    
+    res.status(201).json(newRule);
   } catch (error) {
-    console.error('Error deleting rule:', error)
-    res.status(500).json({ error: error.message })
+    console.error('Error duplicating rule:', error);
+    res.status(400).json({ error: error.message });
   }
-})
+});
 
-// Toggle a rule's active status
-app.patch('/api/rules/:id/toggle', async (req, res) => {
+// Add this route to display rule history
+app.get('/rule-history', async (req, res) => {
+  try {
+    let ruleHistory = [];
+    let systemState = { ...currentSystemState };
+    
+    if (dbConnected) {
+      // Get all rules with their trigger history
+      ruleHistory = await Rule.find({
+        lastTriggered: { $exists: true, $ne: null }
+      }).sort({ lastTriggered: -1 });
+    }
+    
+    res.render('rule-history', {
+      ruleHistory,
+      db_connected: dbConnected,
+      system_state: systemState
+    });
+  } catch (error) {
+    console.error('Error rendering rule history page:', error);
+    res.status(500).send('Error loading rule history page');
+  }
+});
+
+// API route to get rule execution history
+app.get('/api/rules/history', async (req, res) => {
   try {
     if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
     }
     
-    const rule = await Rule.findById(req.params.id)
-    if (!rule) {
-      return res.status(404).json({ error: 'Rule not found' })
-    }
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = parseInt(req.query.skip) || 0;
+    const sortBy = req.query.sortBy || 'lastTriggered';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
     
-    rule.active = !rule.active
-    await rule.save()
+    // Build sort options
+    const sort = {};
+    sort[sortBy] = sortOrder;
     
-    res.json({ id: rule._id, active: rule.active })
+    // Get rules that have been triggered
+    const ruleHistory = await Rule.find({
+      lastTriggered: { $exists: true, $ne: null }
+    })
+    .sort(sort)
+    .skip(skip)
+    .limit(limit)
+    .select('name description lastTriggered triggerCount conditions actions timeRestrictions');
+    
+    // Get total count for pagination
+    const totalCount = await Rule.countDocuments({
+      lastTriggered: { $exists: true, $ne: null }
+    });
+    
+    res.json({
+      rules: ruleHistory,
+      pagination: {
+        total: totalCount,
+        limit,
+        skip,
+        hasMore: skip + limit < totalCount
+      }
+    });
   } catch (error) {
-    console.error('Error toggling rule:', error)
-    res.status(500).json({ error: error.message })
+    console.error('Error fetching rule history:', error);
+    res.status(500).json({ error: 'Failed to retrieve rule history' });
   }
-})
 
-// Force execution of a specific rule
+});
+
+
+app.get('/api/rules/statistics', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ 
+        totalRules: 0,
+        totalExecutions: 0,
+        last24Hours: 0,
+        mostActiveRule: 'None'
+      });
+    }
+    
+    // Get total rules count
+    const totalRules = await Rule.countDocuments();
+    
+    // Get rules with execution data
+    const rulesWithHistory = await Rule.find({
+      lastTriggered: { $exists: true, $ne: null }
+    }).select('name lastTriggered triggerCount');
+    
+    // Calculate total executions
+    const totalExecutions = rulesWithHistory.reduce((sum, rule) => sum + (rule.triggerCount || 0), 0);
+    
+    // Find most active rule
+    let mostActiveRule = null;
+    let highestTriggerCount = 0;
+    
+    for (const rule of rulesWithHistory) {
+      if ((rule.triggerCount || 0) > highestTriggerCount) {
+        mostActiveRule = rule;
+        highestTriggerCount = rule.triggerCount || 0;
+      }
+    }
+    
+    // Calculate executions in the last 24 hours
+    const now = new Date();
+    const oneDayAgo = new Date(now);
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    
+    const last24Hours = rulesWithHistory.filter(rule => 
+      new Date(rule.lastTriggered) >= oneDayAgo
+    ).length;
+    
+    // Send simplified response with just the data needed for the dashboard
+    res.json({
+      totalRules: totalRules,
+      totalExecutions: totalExecutions,
+      last24Hours: last24Hours,
+      mostActiveRule: mostActiveRule ? mostActiveRule.name : 'None'
+    });
+  } catch (error) {
+    console.error('Error fetching rule statistics:', error);
+    // Return default values if error occurs
+    res.json({
+      totalRules: 0,
+      totalExecutions: 0,
+      last24Hours: 0,
+      mostActiveRule: 'None'
+    });
+  }
+});
+
+// Add a route to get full details for a specific rule's execution history
+app.get('/api/rules/:id/execution-history', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
+    }
+    
+    const rule = await Rule.findById(req.params.id);
+    if (!rule) {
+      return res.status(404).json({ error: 'Rule not found' });
+    }
+    
+    // If the rule has never been triggered, return an empty history
+    if (!rule.lastTriggered) {
+      return res.json({
+        rule: {
+          id: rule._id,
+          name: rule.name,
+          description: rule.description,
+          active: rule.active
+        },
+        executionHistory: []
+      });
+    }
+    
+    // Get rule details and execution history
+    const ruleDetails = {
+      id: rule._id,
+      name: rule.name,
+      description: rule.description,
+      active: rule.active,
+      conditions: rule.conditions,
+      actions: rule.actions,
+      timeRestrictions: rule.timeRestrictions,
+      lastTriggered: rule.lastTriggered,
+      triggerCount: rule.triggerCount || 0
+    };
+    
+    res.json({
+      rule: ruleDetails
+    });
+  } catch (error) {
+    console.error('Error fetching rule execution history:', error);
+    res.status(500).json({ error: 'Failed to retrieve rule execution history' });
+  }
+});
+
+
 app.post('/api/rules/:id/execute', async (req, res) => {
   try {
     if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
     }
     
-    const rule = await Rule.findById(req.params.id)
+    const rule = await Rule.findById(req.params.id);
     if (!rule) {
-      return res.status(404).json({ error: 'Rule not found' })
+      return res.status(404).json({ error: 'Rule not found' });
     }
     
     // Force execution regardless of conditions
-    rule.actions.forEach(action => {
-      applyAction(action)
-    })
+    if (rule.actions && rule.actions.length > 0) {
+      rule.actions.forEach(action => {
+        applyAction(action);
+      });
+    } else {
+      return res.status(400).json({ error: 'Rule has no actions to execute' });
+    }
     
     // Update rule statistics
-    rule.lastTriggered = new Date()
-    rule.triggerCount += 1
-    await rule.save()
+    rule.lastTriggered = new Date();
+    rule.triggerCount = (rule.triggerCount || 0) + 1;
+    await rule.save();
+    
+    // Log the execution
+    console.log(`Rule "${rule.name}" manually executed at ${rule.lastTriggered}`);
     
     res.json({ 
-      message: `Rule "${rule.name}" executed`, 
-      actions: rule.actions,
-      lastTriggered: rule.lastTriggered,
-      triggerCount: rule.triggerCount
-    })
+      message: `Rule "${rule.name}" executed successfully`, 
+      execution: {
+        ruleId: rule._id,
+        ruleName: rule.name,
+        timestamp: rule.lastTriggered,
+        triggerCount: rule.triggerCount,
+        actions: rule.actions.map(action => ({
+          setting: action.setting,
+          value: action.value,
+          inverter: action.inverter
+        }))
+      }
+    });
   } catch (error) {
-    console.error('Error executing rule:', error)
-    res.status(500).json({ error: error.message })
+    console.error('Error executing rule:', error);
+    res.status(500).json({ error: error.message });
   }
-})
+});
 
-// Get rules page
+
+// Enhance the rules page with additional data
 app.get('/rules', async (req, res) => {
   try {
-    let rulesCount = 0
+    let rulesCount = 0;
+    let activeRulesCount = 0;
+    let systemState = { ...currentSystemState };
+    let recentlyTriggered = [];
+    
     if (dbConnected) {
-      rulesCount = await Rule.countDocuments()
+      rulesCount = await Rule.countDocuments();
+      activeRulesCount = await Rule.countDocuments({ active: true });
+      
+      // Get recently triggered rules
+      recentlyTriggered = await Rule.find({
+        lastTriggered: { $exists: true, $ne: null }
+      })
+      .sort({ lastTriggered: -1 })
+      .limit(5)
+      .select('name lastTriggered');
     }
     
     res.render('rules', { 
       db_connected: dbConnected,
       rules_count: rulesCount,
-      system_state: currentSystemState
-    })
+      active_rules_count: activeRulesCount,
+      system_state: systemState,
+      recently_triggered: recentlyTriggered
+    });
   } catch (error) {
-    console.error('Error rendering rules page:', error)
-    res.status(500).send('Error loading page data')
+    console.error('Error rendering rules page:', error);
+    res.status(500).send('Error loading page data');
   }
-})
+});
+
+app.get('/api/rules', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
+    }
+    
+    const rules = await Rule.find().sort({ name: 1 });
+    res.json(rules);
+  } catch (error) {
+    console.error('Error retrieving rules:', error);
+    res.status(500).json({ error: 'Failed to retrieve rules' });
+  }
+});
+
+app.delete('/api/rules/:id', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
+    }
+    
+    const rule = await Rule.findByIdAndDelete(req.params.id);
+    if (!rule) {
+      return res.status(404).json({ error: 'Rule not found' });
+    }
+    
+    res.json({ message: 'Rule deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting rule:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/rules/:id', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
+    }
+    
+    const rule = await Rule.findById(req.params.id);
+    if (!rule) {
+      return res.status(404).json({ error: 'Rule not found' });
+    }
+    
+    res.json(rule);
+  } catch (error) {
+    console.error('Error retrieving rule:', error);
+    res.status(500).json({ error: 'Failed to retrieve rule' });
+  }
+});
 
 // API endpoint for current system state
 app.get('/api/system-state', (req, res) => {
