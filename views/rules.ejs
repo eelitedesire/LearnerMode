@@ -1,0 +1,654 @@
+<!-- views/rules.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Management Rules</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .card-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .rule-card {
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .rule-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .rule-card.inactive {
+            opacity: 0.6;
+        }
+        .database-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+        .system-state-badge {
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+        .rule-actions {
+            text-align: right;
+        }
+        .condition-text {
+            margin-bottom: 0.25rem;
+        }
+        .action-text {
+            margin-bottom: 0.25rem;
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .dashboard-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .rule-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <div class="database-status">
+        <% if (db_connected) { %>
+            <span class="badge bg-success">Database Connected</span>
+        <% } else { %>
+            <span class="badge bg-danger">Database Disconnected</span>
+        <% } %>
+    </div>
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Rules</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Energy Management Rules</h1>
+        <div>
+            <a href="/rule-history" class="btn btn-outline-secondary me-2">View History</a>
+            <a href="/wizard" class="btn btn-primary">Create New Rule</a>
+        </div>
+    </div>
+    
+    <!-- Dashboard Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Rules</h5>
+                    <p class="dashboard-number"><%= rules_count || 0 %></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Active Rules</h5>
+                    <p class="dashboard-number"><%= active_rules_count || 0 %></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Current System State</h5>
+                    <div>
+                        <span class="badge bg-primary system-state-badge">Battery: <%= system_state.battery_soc || '?' %>%</span>
+                        <span class="badge bg-success system-state-badge">PV: <%= system_state.pv_power || '?' %>W</span>
+                        <span class="badge bg-danger system-state-badge">Load: <%= system_state.load || '?' %>W</span>
+                        <span class="badge bg-info system-state-badge">Grid: <%= system_state.grid_power || '?' %>W</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <% if (recently_triggered && recently_triggered.length > 0) { %>
+    <div class="card mb-4">
+        <div class="card-header">
+            Recently Triggered Rules
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <% recently_triggered.forEach(rule => { %>
+                <div class="col-md-4 mb-2">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <strong><%= rule.name %></strong>
+                            <div class="rule-date">
+                                <%= new Date(rule.lastTriggered).toLocaleString() %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+    <% } %>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>All Rules</span>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="showActiveOnly" checked>
+                <label class="form-check-label" for="showActiveOnly">Show active only</label>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="rulesContainer">
+                <!-- Rules will be loaded here -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading rules...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rule Template (hidden, used for rendering) -->
+    <template id="ruleTemplate">
+        <div class="card rule-card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="rule-name fw-bold"></span>
+                    <span class="badge bg-secondary rule-active-badge ms-2"></span>
+                </div>
+                <div class="rule-actions">
+                    <button class="btn btn-sm btn-outline-success run-rule-btn" title="Run Rule Now">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary duplicate-rule-btn" title="Duplicate Rule">
+                        <i class="bi bi-files"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary edit-rule-btn" title="Edit Rule">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger delete-rule-btn" title="Delete Rule">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="rule-description mb-3"></div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Conditions:</h6>
+                        <div class="rule-conditions"></div>
+                        
+                        <div class="rule-time-restrictions mt-3"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Actions:</h6>
+                        <div class="rule-actions-list"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-3 text-end">
+                    <small class="text-muted rule-last-triggered"></small>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="form-check form-switch">
+                    <input class="form-check-input rule-active-toggle" type="checkbox">
+                    <label class="form-check-label">Active</label>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the rule "<span id="deleteRuleName"></span>"?
+                <p class="text-danger mt-2">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let allRules = [];
+    let deleteRuleId = null;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load all rules
+        loadRules();
+        
+        // Setup event listeners
+        document.getElementById('showActiveOnly').addEventListener('change', filterRules);
+        
+        // Setup delete modal events
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (deleteRuleId) {
+                deleteRule(deleteRuleId);
+            }
+        });
+    });
+    
+    // Load all rules from the server
+    function loadRules() {
+        fetch('/api/rules')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                allRules = data;
+                renderRules();
+            })
+            .catch(error => {
+                console.error('Error loading rules:', error);
+                document.getElementById('rulesContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error loading rules: ${error.message}
+                    </div>
+                `;
+            });
+    }
+    
+    // Render all rules to the page
+    function renderRules() {
+        const rulesContainer = document.getElementById('rulesContainer');
+        const showActiveOnly = document.getElementById('showActiveOnly').checked;
+        const template = document.getElementById('ruleTemplate');
+        
+        // Clear container
+        rulesContainer.innerHTML = '';
+        
+        // Filter rules if needed
+        const rulesToShow = showActiveOnly ? allRules.filter(rule => rule.active) : allRules;
+        
+        if (rulesToShow.length === 0) {
+            rulesContainer.innerHTML = `
+                <div class="alert alert-info">
+                    No ${showActiveOnly ? 'active ' : ''}rules found. 
+                    <a href="/wizard" class="alert-link">Create a new rule</a>
+                </div>
+            `;
+            return;
+        }
+        
+        // Sort rules by name
+        rulesToShow.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Render each rule
+        rulesToShow.forEach(rule => {
+            const ruleElement = template.content.cloneNode(true);
+            
+            // Set rule properties
+            const ruleCard = ruleElement.querySelector('.rule-card');
+            ruleCard.id = `rule-${rule._id}`;
+            ruleCard.dataset.ruleId = rule._id;
+            
+            if (!rule.active) {
+                ruleCard.classList.add('inactive');
+            }
+            
+            // Set rule name and status
+            ruleElement.querySelector('.rule-name').textContent = rule.name;
+            ruleElement.querySelector('.rule-active-badge').textContent = rule.active ? 'Active' : 'Inactive';
+            ruleElement.querySelector('.rule-active-badge').classList.remove('bg-secondary');
+            ruleElement.querySelector('.rule-active-badge').classList.add(rule.active ? 'bg-success' : 'bg-warning');
+            
+            // Set rule description
+            ruleElement.querySelector('.rule-description').textContent = rule.description || 'No description';
+            
+            // Set conditions
+            const conditionsContainer = ruleElement.querySelector('.rule-conditions');
+            if (rule.conditions && rule.conditions.length > 0) {
+                rule.conditions.forEach((condition, index) => {
+                    const condElement = document.createElement('div');
+                    condElement.className = 'condition-text';
+                    
+                    // Format condition
+                    let paramName = getParameterName(condition.parameter);
+                    let operatorSymbol = getOperatorSymbol(condition.operator);
+                    let unit = getParameterUnit(condition.parameter);
+                    
+                    condElement.textContent = `${index === 0 ? 'If' : 'AND'} ${paramName} ${operatorSymbol} ${condition.value}${unit}`;
+                    conditionsContainer.appendChild(condElement);
+                });
+            } else {
+                const condElement = document.createElement('div');
+                condElement.className = 'condition-text text-muted';
+                condElement.textContent = 'No conditions (always executes)';
+                conditionsContainer.appendChild(condElement);
+            }
+            
+            // Set time restrictions
+            const timeRestrictionsContainer = ruleElement.querySelector('.rule-time-restrictions');
+            if (rule.timeRestrictions && rule.timeRestrictions.enabled) {
+                const timeElement = document.createElement('div');
+                timeElement.className = 'time-restrictions mt-2';
+                
+                let timeText = '<h6>Time Restrictions:</h6>';
+                
+                // Days
+                if (rule.timeRestrictions.days && rule.timeRestrictions.days.length > 0) {
+                    const days = rule.timeRestrictions.days.map(day => 
+                        day.charAt(0).toUpperCase() + day.slice(1)
+                    ).join(', ');
+                    
+                    timeText += `<div>Days: ${days}</div>`;
+                }
+                
+                // Time range
+                if (rule.timeRestrictions.startTime && rule.timeRestrictions.endTime) {
+                    timeText += `<div>Time: ${rule.timeRestrictions.startTime} to ${rule.timeRestrictions.endTime}</div>`;
+                }
+                
+                // Specific dates
+                if (rule.timeRestrictions.specificDates && rule.timeRestrictions.specificDates.length > 0) {
+                    timeText += `<div>Specific dates: ${rule.timeRestrictions.specificDates.join(', ')}</div>`;
+                }
+                
+                timeElement.innerHTML = timeText;
+                timeRestrictionsContainer.appendChild(timeElement);
+            }
+            
+            // Set actions
+            const actionsContainer = ruleElement.querySelector('.rule-actions-list');
+            if (rule.actions && rule.actions.length > 0) {
+                rule.actions.forEach(action => {
+                    const actionElement = document.createElement('div');
+                    actionElement.className = 'action-text';
+                    
+                    // Format action
+                    let settingName = getSettingName(action.setting);
+                    let value = action.value;
+                    let inverter = action.inverter === 'all' ? 'All Inverters' : action.inverter.replace('_', ' ');
+                    
+                    // Add units if needed
+                    if (['max_discharge_current', 'max_charge_current', 'max_grid_charge_current'].includes(action.setting)) {
+                        value += ' A';
+                    } else if (action.setting === 'max_sell_power') {
+                        value += ' W';
+                    }
+                    
+                    actionElement.textContent = `Set ${settingName} to ${value} on ${inverter}`;
+                    actionsContainer.appendChild(actionElement);
+                });
+            } else {
+                const actionElement = document.createElement('div');
+                actionElement.className = 'action-text text-muted';
+                actionElement.textContent = 'No actions defined';
+                actionsContainer.appendChild(actionElement);
+            }
+            
+            // Set last triggered
+            const lastTriggeredElement = ruleElement.querySelector('.rule-last-triggered');
+            if (rule.lastTriggered) {
+                lastTriggeredElement.textContent = `Last triggered: ${new Date(rule.lastTriggered).toLocaleString()} (${rule.triggerCount || 0} times)`;
+            } else {
+                lastTriggeredElement.textContent = 'Never triggered';
+            }
+            
+            // Set active toggle
+            const activeToggle = ruleElement.querySelector('.rule-active-toggle');
+            activeToggle.checked = rule.active;
+            activeToggle.addEventListener('change', function() {
+                toggleRuleActive(rule._id, this.checked);
+            });
+            
+            // Set button actions
+            ruleElement.querySelector('.run-rule-btn').addEventListener('click', function() {
+                executeRule(rule._id);
+            });
+            
+            ruleElement.querySelector('.duplicate-rule-btn').addEventListener('click', function() {
+                duplicateRule(rule._id);
+            });
+            
+            ruleElement.querySelector('.edit-rule-btn').addEventListener('click', function() {
+                window.location.href = `/wizard?edit=${rule._id}`;
+            });
+            
+            ruleElement.querySelector('.delete-rule-btn').addEventListener('click', function() {
+                showDeleteModal(rule._id, rule.name);
+            });
+            
+            rulesContainer.appendChild(ruleElement);
+        });
+    }
+    
+    // Filter rules based on active state
+    function filterRules() {
+        renderRules();
+    }
+    
+    // Toggle rule active state
+    function toggleRuleActive(ruleId, isActive) {
+        fetch(`/api/rules/${ruleId}/toggle`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update the rule in our local array
+            const rule = allRules.find(r => r._id === ruleId);
+            if (rule) {
+                rule.active = data.active;
+                
+                // Update the card
+                const card = document.getElementById(`rule-${ruleId}`);
+                if (card) {
+                    if (data.active) {
+                        card.classList.remove('inactive');
+                    } else {
+                        card.classList.add('inactive');
+                    }
+                    
+                    // Update the badge
+                    const badge = card.querySelector('.rule-active-badge');
+                    badge.textContent = data.active ? 'Active' : 'Inactive';
+                    badge.className = 'badge ms-2';
+                    badge.classList.add(data.active ? 'bg-success' : 'bg-warning');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling rule:', error);
+            alert('Error toggling rule: ' + error.message);
+            
+            // Revert the toggle
+            const toggle = document.querySelector(`#rule-${ruleId} .rule-active-toggle`);
+            if (toggle) {
+                toggle.checked = !isActive;
+            }
+        });
+    }
+    
+    // Execute a rule manually
+    function executeRule(ruleId) {
+        if (!confirm('Are you sure you want to execute this rule now?')) {
+            return;
+        }
+        
+        fetch(`/api/rules/${ruleId}/execute`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`Rule executed successfully!`);
+            
+            // Reload rules to get updated trigger count
+            loadRules();
+        })
+        .catch(error => {
+            console.error('Error executing rule:', error);
+            alert('Error executing rule: ' + error.message);
+        });
+    }
+    
+    // Duplicate a rule
+    function duplicateRule(ruleId) {
+        fetch(`/api/rules/${ruleId}/duplicate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert(`Rule duplicated successfully!`);
+            
+            // Reload rules
+            loadRules();
+        })
+        .catch(error => {
+            console.error('Error duplicating rule:', error);
+            alert('Error duplicating rule: ' + error.message);
+        });
+    }
+    
+    // Show delete confirmation modal
+    function showDeleteModal(ruleId, ruleName) {
+        deleteRuleId = ruleId;
+        document.getElementById('deleteRuleName').textContent = ruleName;
+        deleteModal.show();
+    }
+    
+    // Delete a rule
+    function deleteRule(ruleId) {
+        fetch(`/api/rules/${ruleId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide the modal
+            deleteModal.hide();
+            
+            // Remove the rule from our local array
+            allRules = allRules.filter(rule => rule._id !== ruleId);
+            
+            // Re-render the rules
+            renderRules();
+            
+            // Show a success message
+            alert('Rule deleted successfully!');
+        })
+        .catch(error => {
+            console.error('Error deleting rule:', error);
+            alert('Error deleting rule: ' + error.message);
+            deleteModal.hide();
+        });
+    }
+    
+    // Helper functions to format display values
+    function getParameterName(parameter) {
+        const names = {
+            'battery_soc': 'Battery SOC',
+            'pv_power': 'PV Power',
+            'load': 'Load Power',
+            'grid_voltage': 'Grid Voltage',
+            'grid_power': 'Grid Power',
+            'battery_voltage': 'Battery Voltage',
+            'battery_current': 'Battery Current'
+        };
+        return names[parameter] || parameter;
+    }
+    
+    function getOperatorSymbol(operator) {
+        const symbols = {
+            'gt': '>',
+            'lt': '<',
+            'eq': '=',
+            'gte': '≥',
+            'lte': '≤'
+        };
+        return symbols[operator] || operator;
+    }
+    
+    function getParameterUnit(parameter) {
+        const units = {
+            'battery_soc': '%',
+            'pv_power': 'W',
+            'load': 'W',
+            'grid_voltage': 'V',
+            'grid_power': 'W',
+            'battery_voltage': 'V',
+            'battery_current': 'A'
+        };
+        return units[parameter] || '';
+    }
+    
+    function getSettingName(setting) {
+        const names = {
+            'grid_charge': 'Grid Charge',
+            'energy_pattern': 'Energy Pattern',
+            'work_mode': 'Work Mode',
+            'max_discharge_current': 'Max Discharge Current',
+            'max_charge_current': 'Max Charge Current',
+            'max_grid_charge_current': 'Max Grid Charge Current',
+            'solar_export_when_battery_full': 'Solar Export When Battery Full',
+            'max_sell_power': 'Max Sell Power',
+            'remote_switch': 'Remote Switch',
+            'generator_charge': 'Generator Charge'
+        };
+        return names[setting] || setting;
+    }
+</script>
+</body>
+</html>
