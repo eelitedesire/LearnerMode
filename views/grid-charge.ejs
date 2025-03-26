@@ -8,189 +8,78 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #f5f7fa;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .navbar-brand {
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            background-color: #f8f9fa;
         }
         .card {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 24px;
-            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border-radius: 8px;
             border: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transform: translateY(-3px);
         }
         .card-header {
-            background: linear-gradient(to right, #4a86e8, #5e9cea);
-            color: white;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0 !important;
-            padding: 15px 20px;
+            background-color: #f1f8ff;
+            border-bottom: 1px solid #e3f2fd;
+            border-radius: 8px 8px 0 0 !important;
         }
         .change-item {
             cursor: pointer;
-            padding: 16px 20px;
-            border-bottom: 1px solid #eaedf2;
-            transition: all 0.25s ease;
-            border-left: 3px solid transparent;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
         }
         .change-item:hover {
-            background-color: #f8f9fc;
-            border-left: 3px solid #4a86e8;
+            background-color: #f8f9fa;
         }
         .change-item:last-child {
             border-bottom: none;
         }
         .change-value {
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .change-value.enabled {
-            color: #10b981;
-            background-color: rgba(16, 185, 129, 0.1);
-        }
-        .change-value.disabled {
-            color: #f43f5e;
-            background-color: rgba(244, 63, 94, 0.1);
+            font-weight: 500;
         }
         .inverter-heading {
-            background: linear-gradient(to right, #64748b, #94a3b8);
-            padding: 12px 16px;
+            background-color: #e9ecef;
+            padding: 10px 15px;
             font-weight: 600;
-            margin-top: 20px;
-            border-radius: 7px;
-            color: white;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-top: 15px;
+            border-radius: 5px;
         }
         .modal-header {
-            background: linear-gradient(to right, #4a86e8, #5e9cea);
-            color: white;
-            border-bottom: none;
-        }
-        .modal-title {
-            font-weight: 600;
-        }
-        .btn-close {
-            filter: brightness(0) invert(1);
+            background-color: #f1f8ff;
         }
         .timestamp {
             font-size: 0.85rem;
-            color: #64748b;
+            color: #6c757d;
         }
         .setting-title {
             font-weight: 600;
             font-size: 1.1rem;
-            color: #334155;
         }
         .edit-icon {
-            color: #4a86e8;
-            transition: all 0.2s ease;
-            height: 32px;
-            width: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
+            color: #007bff;
+            opacity: 0.7;
         }
         .change-item:hover .edit-icon {
-            background-color: rgba(74, 134, 232, 0.1);
-            transform: scale(1.1);
+            opacity: 1;
         }
         .nav-link.active {
-            font-weight: 600;
-            color: #4a86e8 !important;
-            border-bottom: 2px solid #4a86e8;
+            font-weight: bold;
+            color: #007bff !important;
         }
-        .form-select, .form-control {
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            padding: 10px 14px;
-            transition: all 0.2s ease;
+        .grid-list {
+            max-height: 500px;
+            overflow-y: auto;
         }
-        .form-select:focus, .form-control:focus {
-            border-color: #4a86e8;
-            box-shadow: 0 0 0 3px rgba(74, 134, 232, 0.25);
+        .grid-charge-table th,
+        .grid-charge-table td {
+            vertical-align: middle;
         }
-        .btn-primary {
-            background-color: #4a86e8;
-            border-color: #4a86e8;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+        .no-points-message {
+            padding: 30px;
+            text-align: center;
+            color: #6c757d;
         }
-        .btn-primary:hover {
-            background-color: #3b78e7;
-            border-color: #3b78e7;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(59, 120, 231, 0.2);
-        }
-        .btn-secondary {
-            background-color: #94a3b8;
-            border-color: #94a3b8;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 6px;
-        }
-        .alert {
-            border-radius: 8px;
-            border: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-        }
-        table th {
-            background-color: #f8fafc;
-            font-weight: 600;
-            color: #334155;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-        }
-        table td, table th {
-            padding: 12px 16px;
-            border-bottom: 1px solid #eaedf2;
-        }
-        table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        table tbody tr:hover {
-            background-color: rgba(74, 134, 232, 0.03);
-        }
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .status-badge.enabled {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-        }
-        .status-badge.disabled {
-            background-color: rgba(244, 63, 94, 0.1);
-            color: #f43f5e;
+        .status-icon {
+            font-size: 1.5em;
         }
     </style>
 </head>
@@ -238,29 +127,139 @@
         <div id="alerts-container"></div>
 
         <div class="row mb-4">
-            <div class="col-12">
+            <div class="col-lg-8">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-plug me-2"></i>Grid Charge Settings</h5>
                         <div>
-                            <button class="btn btn-primary" id="refresh-settings">
+                            <button class="btn btn-outline-primary me-2" id="view-history-btn">
+                                <i class="fas fa-history me-1"></i> View History
+                            </button>
+                            <button class="btn btn-primary" id="refresh-grid-charge">
                                 <i class="fas fa-sync-alt me-1"></i> Refresh
                             </button>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info shadow-sm">
+                        <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            Click on any inverter's grid charge setting to toggle between Enabled and Disabled. Historical changes are displayed below.
+                            Grid charge settings control how your system interacts with the grid. You can enable/disable grid charging, set maximum grid charge current, and configure grid charge points.
                         </div>
                         
-                        <!-- Recent changes will be loaded here -->
-                        <div id="recent-changes-container">
-                            <p class="text-center py-5">
-                                <span class="spinner-border text-primary" role="status"></span>
-                                <br>
-                                <span class="mt-2 d-inline-block">Loading recent changes...</span>
-                            </p>
+                        <ul class="nav nav-tabs mb-3" id="gridChargeTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="main-settings-tab" data-bs-toggle="tab" data-bs-target="#main-settings" type="button" role="tab" aria-controls="main-settings" aria-selected="true">
+                                    <i class="fas fa-cog me-1"></i> Main Settings
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="charge-points-tab" data-bs-toggle="tab" data-bs-target="#charge-points" type="button" role="tab" aria-controls="charge-points" aria-selected="false">
+                                    <i class="fas fa-list-ol me-1"></i> Charge Points
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="gridChargeTabContent">
+                            <!-- Main Settings Tab -->
+                            <div class="tab-pane fade show active" id="main-settings" role="tabpanel" aria-labelledby="main-settings-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-hover grid-charge-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Inverter</th>
+                                                <th>Grid Charge Status</th>
+                                                <th>Max Current</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="grid-charge-list">
+                                            <tr>
+                                                <td colspan="4" class="text-center py-4">
+                                                    <div class="spinner-border text-primary" role="status"></div>
+                                                    <div class="mt-2">Loading grid charge settings...</div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Charge Points Tab -->
+                            <div class="tab-pane fade" id="charge-points" role="tabpanel" aria-labelledby="charge-points-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-hover grid-charge-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Charge Point & Topic</th>
+                                                <th>Value</th>
+                                                <th>Last Updated</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="charge-points-list">
+                                            <tr>
+                                                <td colspan="4" class="text-center py-4">
+                                                    <div class="spinner-border text-primary" role="status"></div>
+                                                    <div class="mt-2">Loading grid charge points...</div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Add Button for Adding New Charge Point -->
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-primary" id="add-charge-point-btn">
+                                        <i class="fas fa-plus-circle me-1"></i> Add New Charge Point
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Grid Charge Info</h5>
+                    </div>
+                    <div class="card-body" id="grid-charge-info">
+                        <p>Grid charging allows your system to use power from the grid to charge your batteries. These settings help optimize when and how much grid power is used for charging.</p>
+                        
+                        <h6 class="mt-4">Grid Charge Summary</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Inverters with Grid Charge Enabled
+                                <span class="badge bg-success rounded-pill" id="enabled-grid-charge">--</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Total Inverters
+                                <span class="badge bg-primary rounded-pill" id="inverter-count">--</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Active Grid Charge Points
+                                <span class="badge bg-info rounded-pill" id="active-charge-points">--</span>
+                            </li>
+                        </ul>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Changes to grid charge settings take effect immediately. Use caution when modifying these values.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Changes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-list" id="recent-changes">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="mt-2">Loading recent changes...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -268,41 +267,54 @@
         </div>
     </div>
 
-    <!-- Edit Setting Modal -->
-    <div class="modal fade" id="editSettingModal" tabindex="-1" aria-labelledby="editSettingModalLabel" aria-hidden="true">
+    <!-- Edit Grid Charge Status Modal -->
+    <div class="modal fade" id="editGridChargeModal" tabindex="-1" aria-labelledby="editGridChargeModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editSettingModalLabel">Edit Grid Charge Setting</h5>
+                    <h5 class="modal-title" id="editGridChargeModalLabel">Edit Grid Charge Status</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editSettingForm">
+                    <form id="editGridChargeForm">
                         <input type="hidden" id="edit-inverter">
+                        <input type="hidden" id="edit-setting-type">
                         
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Grid Charge</label>
+                            <label class="form-label fw-bold" id="setting-name-display">Setting</label>
                             <p class="text-muted small" id="setting-inverter-display">Inverter</p>
+                            <p class="text-muted small" id="setting-topic-display" style="word-break: break-all;">Topic</p>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="edit-value" class="form-label">Select Setting</label>
-                            <select class="form-select" id="edit-value">
-                                <option value="Enabled">Enabled</option>
-                                <option value="Disabled">Disabled</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Current Setting</label>
-                            <p class="form-control-plaintext" id="current-value-display">-</p>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i> 
-                                When Grid Charge is enabled, the battery can be charged from the grid. When disabled, the battery will only charge from solar.
+                        <div class="mb-3" id="toggle-container">
+                            <label class="form-label">Grid Charge Status</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="grid-charge-toggle">
+                                <label class="form-check-label" for="grid-charge-toggle" id="toggle-label">Enable Grid Charge</label>
                             </div>
+                        </div>
+                        
+                        <div class="mb-3" id="current-container">
+                            <label for="edit-current" class="form-label">Max Grid Charge Current (A)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="edit-current" min="0" max="100" step="0.1">
+                                <span class="input-group-text">A</span>
+                            </div>
+                            <div class="form-text">Recommended range: 0A - 100A</div>
+                        </div>
+                        
+                        <div class="mb-3" id="point-container">
+                            <label for="edit-point-value" class="form-label">Charge Point Value</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="edit-point-value" min="0" max="100" step="0.1">
+                                <span class="input-group-text" id="point-unit">V</span>
+                            </div>
+                            <div class="form-text" id="point-range-text">Recommended range: 0-100</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Current Value</label>
+                            <p class="form-control-plaintext" id="current-value-display">-</p>
                         </div>
                     </form>
                 </div>
@@ -314,35 +326,484 @@
         </div>
     </div>
 
+    <!-- Grid Charge History Modal -->
+    <div class="modal fade" id="gridChargeHistoryModal" tabindex="-1" aria-labelledby="gridChargeHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gridChargeHistoryModalLabel">Grid Charge Change History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Setting</th>
+                                    <th>Old Value</th>
+                                    <th>New Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grid-history-list">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <div class="mt-2">Loading history...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Charge Point Modal -->
+    <div class="modal fade" id="addChargePointModal" tabindex="-1" aria-labelledby="addChargePointModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addChargePointModalLabel">Add New Charge Point</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addChargePointForm">
+                        <div class="mb-3">
+                            <label for="new-inverter" class="form-label">Inverter</label>
+                            <select class="form-select" id="new-inverter" required>
+                                <!-- Will be populated dynamically -->
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new-point-number" class="form-label">Point Number</label>
+                            <input type="number" class="form-control" id="new-point-number" min="1" max="10" value="1" required>
+                            <div class="form-text">Enter a number from 1-10 for the charge point</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new-point-value" class="form-label">Point Value</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="new-point-value" step="0.1" required>
+                                <span class="input-group-text">V</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-new-point-btn">Add Charge Point</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- JavaScript Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     
     <script>
+        // Global variables
+        let gridChargeSettings = {};
+        let chargePoints = {};
+        let mqttTopicPrefix = 'energy'; // Default prefix, can be updated from server
+        
         // Initialize the page
         $(document).ready(function() {
+            // Load grid charge settings
+            loadGridChargeSettings();
+            
+            // Load grid charge points
+            loadGridChargePoints();
+            
             // Load recent changes
             loadRecentChanges();
             
             // Set up event listeners
             setupEventListeners();
-            
-            // Initialize the edit modal
-            initializeEditModal();
         });
         
         // Setup event listeners
         function setupEventListeners() {
             // Refresh button
-            $('#refresh-settings').click(function() {
-                loadRecentChanges();
-                showAlert('info', 'Data refreshed');
+            $('#refresh-grid-charge').click(function() {
+                loadGridChargeSettings();
+                loadGridChargePoints();
+                showAlert('info', 'Grid charge settings refreshed');
             });
             
             // Save setting button
             $('#save-setting-btn').click(function() {
                 saveGridChargeSetting();
+            });
+            
+            // View history button
+            $('#view-history-btn').click(function() {
+                loadGridChargeHistory();
+                const historyModal = new bootstrap.Modal(document.getElementById('gridChargeHistoryModal'));
+                historyModal.show();
+            });
+            
+            // Add charge point button
+            $('#add-charge-point-btn').click(function() {
+                openAddChargePointModal();
+            });
+            
+            // Save new charge point button
+            $('#save-new-point-btn').click(function() {
+                saveNewChargePoint();
+            });
+        }
+        
+        // Load grid charge settings from the API
+        function loadGridChargeSettings() {
+            $.ajax({
+                url: '/api/grid-charge-changes',
+                method: 'GET',
+                success: function(response) {
+                    if (!Array.isArray(response) || response.length === 0) {
+                        $('#grid-charge-list').html('<tr><td colspan="4" class="text-center">No grid charge settings detected</td></tr>');
+                        $('#enabled-grid-charge').text('0');
+                        $('#inverter-count').text('0');
+                        return;
+                    }
+                    
+                    // Process the settings
+                    gridChargeSettings = {};
+                    
+                    response.forEach(change => {
+                        if (!change.topic) return;
+                        
+                        // Extract inverter information
+                        const topicParts = change.topic.split('/');
+                        const inverterPart = topicParts.find(part => part.startsWith('inverter_')) || 'unknown_inverter';
+                        
+                        // Check if this is a grid_charge setting or max_grid_charge_current
+                        if (change.topic.includes('grid_charge') && !change.topic.includes('grid_charge_point')) {
+                            // This is the main grid charge setting (enabled/disabled)
+                            if (!gridChargeSettings[inverterPart]) {
+                                gridChargeSettings[inverterPart] = {};
+                            }
+                            
+                            gridChargeSettings[inverterPart].gridCharge = {
+                                value: change.new_value,
+                                topic: change.topic,
+                                timestamp: change.timestamp || new Date().toISOString()
+                            };
+                        } else if (change.topic.includes('max_grid_charge_current')) {
+                            // This is the max grid charge current setting
+                            if (!gridChargeSettings[inverterPart]) {
+                                gridChargeSettings[inverterPart] = {};
+                            }
+                            
+                            gridChargeSettings[inverterPart].maxCurrent = {
+                                value: change.new_value,
+                                topic: change.topic,
+                                timestamp: change.timestamp || new Date().toISOString()
+                            };
+                        }
+                    });
+                    
+                    // Prepare to render the settings
+                    const inverterCount = Object.keys(gridChargeSettings).length;
+                    let enabledCount = 0;
+                    
+                    // Count how many inverters have grid charge enabled
+                    Object.values(gridChargeSettings).forEach(inverter => {
+                        if (inverter.gridCharge && 
+                            (inverter.gridCharge.value === 'Enabled' || 
+                             inverter.gridCharge.value === 'enabled' ||
+                             inverter.gridCharge.value === '1' ||
+                             inverter.gridCharge.value === 'true')) {
+                            enabledCount++;
+                        }
+                    });
+                    
+                    // Update summary
+                    $('#enabled-grid-charge').text(enabledCount);
+                    $('#inverter-count').text(inverterCount);
+                    
+                    // Render the list
+                    renderGridChargeList();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading grid charge settings:', status, error);
+                    $('#grid-charge-list').html(`<tr><td colspan="4" class="text-center">Error loading grid charge settings</td></tr>`);
+                    $('#enabled-grid-charge').text('0');
+                    $('#inverter-count').text('0');
+                }
+            });
+        }
+        
+        // Load grid charge points from the API
+        function loadGridChargePoints() {
+            $.ajax({
+                url: '/api/grid-charge-changes',
+                method: 'GET',
+                success: function(response) {
+                    if (!Array.isArray(response) || response.length === 0) {
+                        $('#charge-points-list').html('<tr><td colspan="4" class="text-center">No grid charge points detected</td></tr>');
+                        $('#active-charge-points').text('0');
+                        return;
+                    }
+                    
+                    // Process the charge points
+                    chargePoints = {};
+                    const processedTopics = new Set();
+                    
+                    response.forEach(change => {
+                        if (!change.topic) return;
+                        
+                        // Check if this is a grid_charge_point setting
+                        if (change.topic.includes('grid_charge_point_')) {
+                            // Extract inverter and point information
+                            const topicParts = change.topic.split('/');
+                            const inverterPart = topicParts.find(part => part.startsWith('inverter_')) || 'unknown_inverter';
+                            
+                            // Extract point number
+                            const pointMatch = change.topic.match(/grid_charge_point_(\d+)/);
+                            if (!pointMatch) return;
+                            const pointNumber = pointMatch[1];
+                            
+                            // Skip if we've already processed this exact topic
+                            if (processedTopics.has(change.topic)) return;
+                            processedTopics.add(change.topic);
+                            
+                            // Determine the value
+                            const value = change.new_value || change.value || change.current_value;
+                            if (!value) return;
+                            
+                            // Create nested structure
+                            if (!chargePoints[inverterPart]) {
+                                chargePoints[inverterPart] = {};
+                            }
+                            
+                            // Store the point details
+                            chargePoints[inverterPart][pointNumber] = {
+                                value: parseFloat(value),
+                                topic: change.topic,
+                                timestamp: change.timestamp || new Date().toISOString()
+                            };
+                        }
+                    });
+                    
+                    // Count active charge points
+                    const pointCount = Object.values(chargePoints)
+                        .reduce((total, inverter) => total + Object.keys(inverter).length, 0);
+                    
+                    // Update summary
+                    $('#active-charge-points').text(pointCount);
+                    
+                    // Render the list
+                    renderChargePointsList();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading grid charge points:', status, error);
+                    $('#charge-points-list').html(`<tr><td colspan="4" class="text-center">Error loading grid charge points</td></tr>`);
+                    $('#active-charge-points').text('0');
+                }
+            });
+        }
+        
+        // Render the grid charge settings list
+        function renderGridChargeList() {
+            let html = '';
+            
+            // Check if we have any settings
+            if (Object.keys(gridChargeSettings).length === 0) {
+                html = `
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No grid charge settings detected. Settings will appear here as they are discovered from MQTT.
+                        </td>
+                    </tr>
+                `;
+                $('#grid-charge-list').html(html);
+                return;
+            }
+            
+            // Sort inverters by ID
+            const sortedInverters = Object.keys(gridChargeSettings)
+                .sort((a, b) => {
+                    const aMatch = a.match(/inverter_(\d+)/);
+                    const bMatch = b.match(/inverter_(\d+)/);
+                    
+                    if (aMatch && bMatch) {
+                        return parseInt(aMatch[1]) - parseInt(bMatch[1]);
+                    }
+                    
+                    return a.localeCompare(b);
+                });
+            
+            // Loop through all inverters
+            sortedInverters.forEach(inverter => {
+                const settings = gridChargeSettings[inverter];
+                const inverterId = inverter;
+                const displayName = inverterId !== 'unknown_inverter' ? 
+                    inverterId.replace('_', ' ').charAt(0).toUpperCase() + inverterId.slice(1) : 
+                    'Unknown Inverter';
+                
+                // Determine grid charge status
+                let gridChargeStatus = 'Unknown';
+                let statusClass = 'bg-secondary';
+                let statusIcon = 'fa-question-circle';
+                
+                if (settings.gridCharge) {
+                    const value = settings.gridCharge.value;
+                    if (value === 'Enabled' || value === 'enabled' || value === '1' || value === 'true') {
+                        gridChargeStatus = 'Enabled';
+                        statusClass = 'bg-success';
+                        statusIcon = 'fa-check-circle';
+                    } else {
+                        gridChargeStatus = 'Disabled';
+                        statusClass = 'bg-danger';
+                        statusIcon = 'fa-times-circle';
+                    }
+                }
+                
+                // Determine max current
+                let maxCurrent = 'Not set';
+                if (settings.maxCurrent) {
+                    maxCurrent = `${settings.maxCurrent.value} A`;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${displayName}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas ${statusIcon} status-icon me-2 text-${statusClass.replace('bg-', '')}"></i>
+                                <span class="badge ${statusClass}">${gridChargeStatus}</span>
+                            </div>
+                        </td>
+                        <td>${maxCurrent}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary edit-grid-charge" 
+                                        data-inverter="${inverterId}" 
+                                        data-type="gridCharge" 
+                                        data-topic="${settings.gridCharge?.topic || ''}">
+                                    <i class="fas fa-power-off me-1"></i>Toggle
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary edit-max-current" 
+                                        data-inverter="${inverterId}" 
+                                        data-type="maxCurrent" 
+                                        data-topic="${settings.maxCurrent?.topic || ''}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Set Current
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            $('#grid-charge-list').html(html);
+            
+            // Add event listeners to buttons
+            $('.edit-grid-charge').click(function() {
+                const inverter = $(this).data('inverter');
+                const type = $(this).data('type');
+                const topic = $(this).data('topic');
+                const current = gridChargeSettings[inverter]?.gridCharge?.value || 'Disabled';
+                
+                openEditModal(inverter, type, current, topic);
+            });
+            
+            $('.edit-max-current').click(function() {
+                const inverter = $(this).data('inverter');
+                const type = $(this).data('type');
+                const topic = $(this).data('topic');
+                const current = gridChargeSettings[inverter]?.maxCurrent?.value || '0';
+                
+                openEditModal(inverter, type, current, topic);
+            });
+        }
+        
+        // Render the charge points list
+        function renderChargePointsList() {
+            let html = '';
+            let foundPoints = false;
+            
+            // Loop through all inverters
+            for (const inverter in chargePoints) {
+                const inverterId = inverter;
+                const displayName = inverterId !== 'unknown_inverter' ? 
+                    inverterId.replace('_', ' ').charAt(0).toUpperCase() + inverterId.slice(1) : 
+                    'Unknown Inverter';
+                
+                // Check if this inverter has any charge points
+                const pointCount = Object.keys(chargePoints[inverter]).length;
+                if (pointCount === 0) continue;
+                
+                foundPoints = true;
+                
+                // Add inverter header
+                html += `<tr class="table-secondary"><th colspan="4">${displayName}</th></tr>`;
+                
+                // Sort charge points by number
+                const sortedPoints = Object.keys(chargePoints[inverter])
+                    .sort((a, b) => parseInt(a) - parseInt(b));
+                
+                // Add each charge point
+                sortedPoints.forEach((pointNumber) => {
+                    const point = chargePoints[inverter][pointNumber];
+                    const pointName = `Grid Charge Point ${pointNumber}`;
+                    const topicDisplay = point.topic || `${inverter}/grid_charge_point_${pointNumber}/set`;
+                    
+                    html += `
+                        <tr data-inverter="${inverter}" data-point="${pointNumber}" data-value="${point.value}" data-topic="${topicDisplay}">
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <strong>${pointName}</strong>
+                                    <small class="text-muted topic-display">${topicDisplay}</small>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-primary">${point.value}</span></td>
+                            <td>
+                                <span class="timestamp">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${moment(point.timestamp).format('MM/DD HH:mm')}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary edit-charge-point">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            if (!foundPoints) {
+                html = `
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No grid charge points detected. Points will appear here as they are discovered from MQTT.
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            $('#charge-points-list').html(html);
+            
+            // Add click handler to edit buttons
+            $('.edit-charge-point').click(function() {
+                const row = $(this).closest('tr');
+                const inverter = row.data('inverter');
+                const point = row.data('point');
+                const value = row.data('value');
+                const topic = row.data('topic');
+                
+                openEditModal(inverter, 'chargePoint', value, topic, point);
             });
         }
         
@@ -355,194 +816,362 @@
                     displayRecentChanges(response);
                 },
                 error: function() {
-                    $('#recent-changes-container').html('<div class="alert alert-warning">Unable to load recent changes</div>');
+                    $('#recent-changes').html('<div class="alert alert-warning">Failed to load recent changes</div>');
                 }
             });
         }
         
-        // Display recent changes grouped by inverter
+        // Display recent changes
         function displayRecentChanges(changes) {
-            const container = $('#recent-changes-container');
-            
             if (!changes || changes.length === 0) {
-                container.html('<div class="alert alert-warning">No recent grid charge changes recorded</div>');
+                $('#recent-changes').html('<div class="text-center p-3">No recent changes found</div>');
                 return;
             }
             
-            // Group changes by inverter
-            const inverterChanges = {};
+            // Sort changes by timestamp (newest first)
+            changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            changes.forEach(change => {
-                // Extract inverter from topic (e.g., "inverter_1/grid_charge/state")
-                const topicParts = change.topic ? change.topic.split('/') : [];
-                let inverter = "unknown";
+            // Take only the 10 most recent changes
+            const recentChanges = changes.slice(0, 10);
+            
+            let html = '';
+            
+            recentChanges.forEach(change => {
+                const timestamp = moment(change.timestamp).format('MM/DD HH:mm');
+                const topicParts = change.topic.split('/');
+                let settingName = 'Unknown Setting';
                 
-                // Find the inverter_X part in the topic
+                // Try to identify the type of setting
+                if (change.topic.includes('grid_charge_point_')) {
+                    // This is a grid charge point
+                    const pointMatch = change.topic.match(/grid_charge_point_(\d+)/);
+                    if (pointMatch) {
+                        settingName = `Grid Charge Point ${pointMatch[1]}`;
+                    }
+                } else if (change.topic.includes('max_grid_charge_current')) {
+                    settingName = 'Max Grid Charge Current';
+                } else if (change.topic.includes('grid_charge')) {
+                    settingName = 'Grid Charge Status';
+                }
+                
+                // Extract inverter from topic
+                let inverter = 'unknown';
                 for (const part of topicParts) {
-                    if (part.startsWith('inverter_')) {
+                    if (part.includes('inverter_')) {
                         inverter = part;
                         break;
                     }
                 }
                 
-                // If no inverter found in topic but it's in the change_type, use that instead
-                if (inverter === "unknown" && change.change_type && change.change_type.includes('inverter_')) {
-                    inverter = change.change_type.split('/')[0];
+                const inverterDisplay = inverter !== 'unknown' ? 
+                    inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' ') : 
+                    'Unknown';
+                
+                // Format the value based on the setting type
+                let valueDisplay = change.new_value;
+                let valueClass = 'bg-primary';
+                
+                if (settingName === 'Grid Charge Status') {
+                    if (valueDisplay === 'Enabled' || valueDisplay === 'enabled' || valueDisplay === '1' || valueDisplay === 'true') {
+                        valueDisplay = 'Enabled';
+                        valueClass = 'bg-success';
+                    } else {
+                        valueDisplay = 'Disabled';
+                        valueClass = 'bg-danger';
+                    }
+                } else if (settingName === 'Max Grid Charge Current') {
+                    valueDisplay = `${valueDisplay} A`;
                 }
                 
-                // Initialize array for this inverter if it doesn't exist
-                if (!inverterChanges[inverter]) {
-                    inverterChanges[inverter] = [];
-                }
-                
-                // Add change to appropriate inverter array
-                inverterChanges[inverter].push(change);
-            });
-            
-            // Display changes grouped by inverter
-            let html = '';
-            
-            // Get all inverter keys and sort them naturally
-            const inverters = Object.keys(inverterChanges).sort((a, b) => {
-                const aNum = parseInt(a.replace('inverter_', ''));
-                const bNum = parseInt(b.replace('inverter_', ''));
-                return aNum - bNum;
-            });
-            
-            for (const inverter of inverters) {
-                // Get changes for this inverter and sort by timestamp (newest first)
-                const inverterData = inverterChanges[inverter]
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                // Format inverter name for display
-                const displayName = inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' ');
-                
-                html += `<div class="inverter-heading">${displayName}</div>`;
-                
-                // Get most recent state for this inverter
-                const latestChange = inverterData[0];
-                const isEnabled = latestChange.new_value === 'Enabled';
-                
-                // Create a clickable card with current state
                 html += `
-                    <div class="change-item" data-inverter="${inverter}" data-value="${latestChange.new_value}">
+                    <div class="p-2 border-bottom">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="setting-title">Grid Charge Status</div>
-                                <div class="mt-2">
-                                    <span class="change-value ${isEnabled ? 'enabled' : 'disabled'}">${latestChange.new_value}</span>
-                                </div>
-                                <div class="mt-2">
-                                    <small class="text-muted">Topic: ${latestChange.topic || 'N/A'}</small>
-                                </div>
+                                <div class="fw-bold">${settingName}</div>
+                                <div class="text-muted small">${inverterDisplay}</div>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <div class="d-flex flex-column align-items-end me-3">
-                                    <span class="timestamp">Last changed:</span>
-                                    <span class="fw-medium">${moment(latestChange.timestamp).format('MM/DD HH:mm')}</span>
-                                </div>
-                                <div class="edit-icon">
-                                    <i class="fas fa-edit"></i>
-                                </div>
+                            <div class="text-end">
+                                <div>${timestamp}</div>
+                                <div class="badge ${valueClass}">${valueDisplay}</div>
                             </div>
                         </div>
                     </div>
                 `;
-                
-                // Show recent history for this inverter
-                html += `<div class="mt-3 mb-4"><h6 class="text-muted">Recent History</h6>`;
-                
-                // Skip the first one (already shown above) and show at most 5
-                const historyToShow = inverterData.slice(1, 6);
-                
-                if (historyToShow.length === 0) {
-                    html += `<p class="text-muted small">No additional changes recorded</p>`;
-                } else {
-                    html += `<table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>From</th>
-                                <th>To</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-                        
-                    historyToShow.forEach(change => {
-                        html += `<tr>
-                            <td>${moment(change.timestamp).format('MM/DD HH:mm')}</td>
-                            <td>${change.old_value || '-'}</td>
-                            <td>${change.new_value}</td>
-                        </tr>`;
-                        html += `<tr class="text-muted">
-                            <td colspan="3"><small>Topic: ${change.topic || 'N/A'}</small></td>
-                        </tr>`;
-                    });
-                    
-                    html += `</tbody></table>`;
+            });
+            
+            $('#recent-changes').html(html);
+        }
+        
+        // Load grid charge history
+        function loadGridChargeHistory() {
+            $.ajax({
+                url: '/api/grid-charge-changes',
+                method: 'GET',
+                success: function(response) {
+                    displayGridChargeHistory(response);
+                },
+                error: function() {
+                    $('#grid-history-list').html('<tr><td colspan="4" class="text-center">Failed to load history</td></tr>');
                 }
-                
-                html += `</div>`;
-            }
-            
-            container.html(html);
-            
-            // Add click event to change items
-            $('.change-item').click(function() {
-                const inverter = $(this).data('inverter');
-                const value = $(this).data('value');
-                openEditModal(inverter, value);
             });
         }
         
-        // Open the edit modal for a specific setting
-        function openEditModal(inverter, currentValue) {
+        // Display grid charge history
+        function displayGridChargeHistory(changes) {
+            if (!changes || changes.length === 0) {
+                $('#grid-history-list').html('<tr><td colspan="4" class="text-center">No history found</td></tr>');
+                return;
+            }
+            
+            // Sort changes by timestamp (newest first)
+            changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            let html = '';
+            
+            changes.forEach(change => {
+                const timestamp = moment(change.timestamp).format('MM/DD/YYYY HH:mm:ss');
+                
+                // Identify the setting type
+                let settingDisplay = change.topic;
+                if (change.topic.includes('grid_charge_point_')) {
+                    const pointMatch = change.topic.match(/grid_charge_point_(\d+)/);
+                    if (pointMatch) {
+                        settingDisplay = `Grid Charge Point ${pointMatch[1]}`;
+                    }
+                } else if (change.topic.includes('max_grid_charge_current')) {
+                    settingDisplay = 'Max Grid Charge Current';
+                } else if (change.topic.includes('grid_charge')) {
+                    settingDisplay = 'Grid Charge Status';
+                }
+                
+                // Format the old and new values
+                let oldValue = change.old_value || '--';
+                let newValue = change.new_value || '--';
+                
+                if (settingDisplay === 'Grid Charge Status') {
+                    if (oldValue === 'Enabled' || oldValue === 'enabled' || oldValue === '1' || oldValue === 'true') {
+                        oldValue = 'Enabled';
+                    } else if (oldValue !== '--') {
+                        oldValue = 'Disabled';
+                    }
+                    
+                    if (newValue === 'Enabled' || newValue === 'enabled' || newValue === '1' || newValue === 'true') {
+                        newValue = 'Enabled';
+                    } else {
+                        newValue = 'Disabled';
+                    }
+                } else if (settingDisplay === 'Max Grid Charge Current') {
+                    if (oldValue !== '--') oldValue = `${oldValue} A`;
+                    newValue = `${newValue} A`;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${timestamp}</td>
+                        <td>${settingDisplay}</td>
+                        <td>${oldValue}</td>
+                        <td>${newValue}</td>
+                    </tr>
+                `;
+            });
+            
+            $('#grid-history-list').html(html);
+        }
+        
+        // Open the edit modal for a setting
+        function openEditModal(inverter, type, currentValue, topic, pointNumber = null) {
             // Set hidden fields
             $('#edit-inverter').val(inverter);
+            $('#edit-setting-type').val(type);
             
-            // Set display labels
-            $('#setting-inverter-display').text(inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' '));
-            $('#current-value-display').text(currentValue);
+            // Reset all containers (hide them initially)
+            $('#toggle-container').hide();
+            $('#current-container').hide();
+            $('#point-container').hide();
             
-            // Set the current value in the dropdown
-            $('#edit-value').val(currentValue);
+            // Set up the modal based on the setting type
+            if (type === 'gridCharge') {
+                // Grid charge status (toggle)
+                $('#setting-name-display').text('Grid Charge Status');
+                $('#toggle-container').show();
+                
+                // Set the toggle state
+                const isEnabled = currentValue === 'Enabled' || currentValue === 'enabled' || 
+                                  currentValue === '1' || currentValue === 'true';
+                $('#grid-charge-toggle').prop('checked', isEnabled);
+                $('#toggle-label').text(isEnabled ? 'Grid Charge Enabled' : 'Grid Charge Disabled');
+                
+                // Display current value
+                $('#current-value-display').text(isEnabled ? 'Enabled' : 'Disabled');
+                
+            } else if (type === 'maxCurrent') {
+                // Max grid charge current (numeric input)
+                $('#setting-name-display').text('Max Grid Charge Current');
+                $('#current-container').show();
+                
+                // Set the current value
+                $('#edit-current').val(currentValue);
+                
+                // Display current value
+                $('#current-value-display').text(`${currentValue} A`);
+                
+            } else if (type === 'chargePoint') {
+                // Grid charge point (numeric input)
+                $('#setting-name-display').text(`Grid Charge Point ${pointNumber}`);
+                $('#point-container').show();
+                
+                // Set the current value
+                $('#edit-point-value').val(currentValue);
+                
+                // Display current value
+                $('#current-value-display').text(currentValue);
+                
+                // Set unit and range text based on the point number
+                // You can customize this based on what each point represents
+                $('#point-unit').text('V'); // Default unit
+                $('#point-range-text').text('Recommended range: 40V - 60V');
+            }
+            
+            // Set inverter display
+            const inverterDisplay = inverter !== 'unknown_inverter' ? 
+                inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' ') : 
+                'Unknown Inverter';
+            
+            $('#setting-inverter-display').text(inverterDisplay);
+            
+            // Set topic display
+            if (topic) {
+                $('#setting-topic-display').text(topic);
+            } else {
+                // Construct a default topic if not provided
+                if (type === 'gridCharge') {
+                    $('#setting-topic-display').text(`${mqttTopicPrefix}/${inverter}/grid_charge/set`);
+                } else if (type === 'maxCurrent') {
+                    $('#setting-topic-display').text(`${mqttTopicPrefix}/${inverter}/max_grid_charge_current/set`);
+                } else if (type === 'chargePoint') {
+                    $('#setting-topic-display').text(`${mqttTopicPrefix}/${inverter}/grid_charge_point_${pointNumber}/set`);
+                }
+            }
+            
+            // Update toggle label when toggle changes
+            $('#grid-charge-toggle').change(function() {
+                $('#toggle-label').text($(this).is(':checked') ? 'Grid Charge Enabled' : 'Grid Charge Disabled');
+            });
             
             // Show the modal
-            const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
+            const editModal = new bootstrap.Modal(document.getElementById('editGridChargeModal'));
             editModal.show();
         }
         
         // Save the grid charge setting
         function saveGridChargeSetting() {
             const inverter = $('#edit-inverter').val();
-            const value = $('#edit-value').val();
+            const type = $('#edit-setting-type').val();
+            let topic = $('#setting-topic-display').text();
+            let value;
+            
+            // Get the value based on the setting type
+            if (type === 'gridCharge') {
+                value = $('#grid-charge-toggle').is(':checked') ? 'Enabled' : 'Disabled';
+            } else if (type === 'maxCurrent') {
+                value = $('#edit-current').val();
+            } else if (type === 'chargePoint') {
+                value = $('#edit-point-value').val();
+            }
             
             // Validate input
-            if (!value) {
-                showAlert('warning', 'Please select a setting', true);
+            if (value === undefined || value === '') {
+                showAlert('warning', 'Please enter a valid value', true);
                 return;
             }
             
-            // Send to the server
+            // Ensure the topic ends with /set
+            if (!topic.endsWith('/set')) {
+                topic = topic.replace('/state', '/set');
+                if (!topic.endsWith('/set')) {
+                    topic = `${topic}/set`;
+                }
+            }
+            
+            // Send to server
             $.ajax({
                 url: '/api/command',
                 method: 'POST',
                 data: {
-                    topic: `energy/${inverter}/grid_charge/set`,
+                    topic: topic,
                     value: value
                 },
                 success: function(response) {
                     if (response.success) {
                         // Hide the modal
-                        const editModal = bootstrap.Modal.getInstance(document.getElementById('editSettingModal'));
+                        const editModal = bootstrap.Modal.getInstance(document.getElementById('editGridChargeModal'));
                         editModal.hide();
                         
-                        showAlert('success', `Grid charge setting updated successfully to "${value}"`);
+                        // Show success message
+                        let settingDisplay = 'Setting';
+                        if (type === 'gridCharge') {
+                            settingDisplay = 'Grid Charge Status';
+                        } else if (type === 'maxCurrent') {
+                            settingDisplay = 'Max Grid Charge Current';
+                        } else if (type === 'chargePoint') {
+                            settingDisplay = 'Grid Charge Point';
+                        }
                         
-                        // Refresh the changes after a short delay
+                        showAlert('success', `${settingDisplay} updated successfully`);
+                        
+                        // Update our local data
+                        if (type === 'gridCharge') {
+                            if (!gridChargeSettings[inverter]) {
+                                gridChargeSettings[inverter] = {};
+                            }
+                            
+                            gridChargeSettings[inverter].gridCharge = {
+                                value: value,
+                                topic: topic,
+                                timestamp: new Date()
+                            };
+                            
+                            // Re-render the grid charge list
+                            renderGridChargeList();
+                            
+                        } else if (type === 'maxCurrent') {
+                            if (!gridChargeSettings[inverter]) {
+                                gridChargeSettings[inverter] = {};
+                            }
+                            
+                            gridChargeSettings[inverter].maxCurrent = {
+                                value: value,
+                                topic: topic,
+                                timestamp: new Date()
+                            };
+                            
+                            // Re-render the grid charge list
+                            renderGridChargeList();
+                            
+                        } else if (type === 'chargePoint') {
+                            const pointNumber = topic.match(/grid_charge_point_(\d+)/)[1];
+                            
+                            if (!chargePoints[inverter]) {
+                                chargePoints[inverter] = {};
+                            }
+                            
+                            chargePoints[inverter][pointNumber] = {
+                                value: parseFloat(value),
+                                topic: topic,
+                                timestamp: new Date()
+                            };
+                            
+                            // Re-render the charge points list
+                            renderChargePointsList();
+                        }
+                        
+                        // Refresh data after a short delay
                         setTimeout(() => {
+                            loadGridChargeSettings();
+                            loadGridChargePoints();
                             loadRecentChanges();
-                        }, 1000);
+                        }, 2000);
+                        
                     } else {
                         showAlert('danger', `Failed to update setting: ${response.message || 'Unknown error'}`, true);
                     }
@@ -553,13 +1182,7 @@
             });
         }
         
-        // Initialize the edit modal
-        function initializeEditModal() {
-            // This sets up the modal but doesn't open it yet
-            const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
-        }
-        
-        // Show alert message
+        // Show alert
         function showAlert(type, message, inModal = false) {
             const alertId = 'alert-' + Date.now();
             const alertHtml = `
@@ -571,16 +1194,16 @@
             
             if (inModal) {
                 // Insert at the top of the modal body
-                $('.modal-body').prepend(alertHtml);
+                $('#editGridChargeModal .modal-body').prepend(alertHtml);
             } else {
-                // Insert at the top of the page
-                $('#alerts-container').append(alertHtml);
+                // Insert at the top of the alerts container
+                $('#alerts-container').prepend(alertHtml);
             }
             
-            // Auto-dismiss after 3 seconds
+            // Automatically remove alert after 5 seconds
             setTimeout(() => {
                 $(`#${alertId}`).alert('close');
-            }, 3000);
+            }, 5000);
         }
     </script>
 </body>
