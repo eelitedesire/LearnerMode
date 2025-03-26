@@ -983,25 +983,6 @@ function sendWorkModeNotification(changeData) {
 // ================ API ROUTES ================
 
 // API Routes with database integration
-app.get('/api/grid-charge-changes', async (req, res) => {
-  try {
-    if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
-    }
-    
-    const gridChargeChanges = await SettingsChange.find({ 
-      $or: [
-        { topic: { $regex: 'grid_charge' } },
-        { change_type: 'grid_charge' }
-      ]
-    }).sort({ timestamp: -1 })
-    
-    res.json(gridChargeChanges)
-  } catch (error) {
-    console.error('Error retrieving grid charge changes:', error)
-    res.status(500).json({ error: 'Failed to retrieve data' })
-  }
-})
 
 app.get('/api/energy-pattern-changes', async (req, res) => {
   try {
@@ -1522,7 +1503,7 @@ app.get('/work-mode', async (req, res) => {
 app.get('/api/voltage-point-changes', async (req, res) => {
   try {
     if (!dbConnected) {
-      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
     }
     
     const voltagePointChanges = await SettingsChange.find({ 
@@ -1530,37 +1511,61 @@ app.get('/api/voltage-point-changes', async (req, res) => {
         { topic: { $regex: 'voltage_point' } },
         { change_type: 'voltage_point' }
       ]
-    }).sort({ timestamp: -1 })
+    }).sort({ timestamp: -1 });
     
-    res.json(voltagePointChanges)
+    res.json(voltagePointChanges);
   } catch (error) {
-    console.error('Error retrieving voltage point changes:', error)
-    res.status(500).json({ error: 'Failed to retrieve data' })
+    console.error('Error retrieving voltage point changes:', error);
+    res.status(500).json({ error: 'Failed to retrieve data' });
   }
-})
+});
 
 app.get('/grid-charge', async (req, res) => {
   try {
-    let changesCount = 0
+    let changesCount = 0;
     if (dbConnected) {
       changesCount = await SettingsChange.countDocuments({ 
         $or: [
           { topic: { $regex: 'grid_charge' } },
           { change_type: 'grid_charge' }
         ]
-      })
+      });
     }
     
     res.render('grid-charge', { 
       active: learnerModeActive,
       changes_count: changesCount,
       db_connected: dbConnected
-    })
+    });
   } catch (error) {
-    console.error('Error rendering grid-charge page:', error)
-    res.status(500).send('Error loading page data')
+    console.error('Error rendering grid-charge page:', error);
+    res.status(500).send('Error loading page data');
   }
-})
+});
+
+app.get('/api/grid-charge-changes', async (req, res) => {
+  try {
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database not connected', status: 'disconnected' });
+    }
+    
+    // Get all changes related to grid charge, including:
+    // - Basic grid_charge setting
+    // - max_grid_charge_current
+    // - grid_charge_point_X settings
+    const gridChargeChanges = await SettingsChange.find({ 
+      $or: [
+        { topic: { $regex: 'grid_charge' } },
+        { change_type: { $in: ['grid_charge', 'max_grid_charge_current'] } }
+      ]
+    }).sort({ timestamp: -1 });
+    
+    res.json(gridChargeChanges);
+  } catch (error) {
+    console.error('Error retrieving grid charge changes:', error);
+    res.status(500).json({ error: 'Failed to retrieve data' });
+  }
+});
 
 app.get('/energy-pattern', async (req, res) => {
   try {
@@ -1588,26 +1593,26 @@ app.get('/energy-pattern', async (req, res) => {
 // New route for voltage point view
 app.get('/voltage-point', async (req, res) => {
   try {
-    let changesCount = 0
+    let changesCount = 0;
     if (dbConnected) {
       changesCount = await SettingsChange.countDocuments({ 
         $or: [
           { topic: { $regex: 'voltage_point' } },
           { change_type: 'voltage_point' }
         ]
-      })
+      });
     }
     
     res.render('voltage-point', { 
       active: learnerModeActive,
       changes_count: changesCount,
       db_connected: dbConnected
-    })
+    });
   } catch (error) {
-    console.error('Error rendering voltage-point page:', error)
-    res.status(500).send('Error loading page data')
+    console.error('Error rendering voltage-point page:', error);
+    res.status(500).send('Error loading page data');
   }
-})
+});
 
 app.get('/wizard', async (req, res) => {
   try {
@@ -2181,60 +2186,34 @@ app.get('/learner', async (req, res) => {
   }
 })
 
-// Home route
-app.get('/', async (req, res) => {
-  try {
-    let stats = {
-      rules: 0,
-      changes: 0,
-      active_rules: 0
-    }
-    
-    if (dbConnected) {
-      stats.rules = await Rule.countDocuments()
-      stats.changes = await SettingsChange.countDocuments()
-      stats.active_rules = await Rule.countDocuments({ active: true })
-    }
-    
-    res.render('index', { 
-      db_connected: dbConnected,
-      stats: stats,
-      system_state: currentSystemState,
-      mqtt_connected: mqttClient && mqttClient.connected
-    })
-  } catch (error) {
-    console.error('Error rendering index page:', error)
-    res.status(500).send('Error loading page data')
-  }
-})
 
 // Direct MQTT command injection route
 app.post('/api/command', (req, res) => {
   try {
-    const { topic, value } = req.body
+    const { topic, value } = req.body;
     
     if (!topic || !value) {
-      return res.status(400).json({ error: 'Missing topic or value' })
+      return res.status(400).json({ error: 'Missing topic or value' });
     }
     
     if (!mqttClient || !mqttClient.connected) {
-      return res.status(503).json({ error: 'MQTT client not connected' })
+      return res.status(503).json({ error: 'MQTT client not connected' });
     }
     
     mqttClient.publish(topic, value.toString(), { qos: 1, retain: false }, (err) => {
       if (err) {
-        console.error(`Error publishing to ${topic}: ${err.message}`)
-        return res.status(500).json({ error: err.message })
+        console.error(`Error publishing to ${topic}: ${err.message}`);
+        return res.status(500).json({ error: err.message });
       }
       
-      console.log(`Manual command sent: ${topic} = ${value}`)
-      res.json({ success: true, message: `Command sent: ${topic} = ${value}` })
-    })
+      console.log(`Manual command sent: ${topic} = ${value}`);
+      res.json({ success: true, message: `Command sent: ${topic} = ${value}` });
+    });
   } catch (error) {
-    console.error('Error sending command:', error)
-    res.status(500).json({ error: error.message })
+    console.error('Error sending command:', error);
+    res.status(500).json({ error: error.message });
   }
-})
+});
 
 // ================ MQTT and CRON SCHEDULING ================
 
