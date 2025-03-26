@@ -94,10 +94,6 @@
             margin-bottom: 10px;
             background-color: #f8f9fa;
         }
-        .chart-container {
-            height: 250px;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -172,22 +168,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Energy Pattern Impact</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            This chart shows how your energy pattern choices affect your battery state of charge over time.
-                        </div>
-                        
-                        <div class="chart-container">
-                            <canvas id="patternImpactChart"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <div class="col-lg-4">
@@ -212,14 +192,7 @@
                         
                         <div class="system-stat">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-plug me-2"></i>Grid Power:</span>
-                                <span id="grid-power" class="text-danger fw-bold">--</span>
-                            </div>
-                        </div>
-                        
-                        <div class="system-stat">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-bolt me-2"></i>Load:</span>
+                                <span><i class="fas fa-plug me-2"></i>Load Power:</span>
                                 <span id="load-power" class="text-warning fw-bold">--</span>
                             </div>
                         </div>
@@ -312,39 +285,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     
     <script>
         // Global variables
         let inverters = [];
         let currentPatterns = {};
         let systemState = {};
-        let patternImpactChart = null;
         
         // Pattern descriptions for tooltips
         const patternDescriptions = {
-            'Battery first': 'Uses battery power first, then grid. Good for maximizing self-consumption.',
-            'Grid first': 'Uses grid power first, preserving battery for backup. Good for keeping battery fully charged.',
-            'Solar first': 'Prioritizes solar power usage, using grid/battery as needed. Maximizes solar utilization.',
-            'Solar + Battery': 'Uses solar and battery before grid. Best for grid independence.',
-            'Solar + Grid': 'Combines solar with grid power to meet loads while charging battery. Good for maintaining battery health.'
-        };
+    'Battery first': '',
+    'Load first': ''
+};
+
         
         // Pattern icons and colors
         const patternIcons = {
             'Battery first': 'fa-battery-full',
-            'Grid first': 'fa-plug',
-            'Solar first': 'fa-solar-panel',
-            'Solar + Battery': 'fa-sun',
-            'Solar + Grid': 'fa-bolt'
+            'Load first': 'fa-plug',
         };
         
         const patternColors = {
             'Battery first': '#28a745',
-            'Grid first': '#dc3545',
-            'Solar first': '#fd7e14',
-            'Solar + Battery': '#17a2b8',
-            'Solar + Grid': '#6610f2'
+            'Load first': '#dc3545',
         };
         
         // Initialize the page
@@ -357,9 +320,6 @@
             
             // Load recent changes
             loadRecentChanges();
-            
-            // Initialize chart
-            initializeChart();
             
             // Set up event listeners
             setupEventListeners();
@@ -391,46 +351,146 @@
                 loadPatternHistory();
             });
         }
-        
-        // Load current patterns from the API
-        function loadCurrentPatterns() {
-            $.ajax({
-                url: '/api/current-settings',
-                method: 'GET',
-                success: function(response) {
-                    if (response && response.success) {
-                        // Process inverters and their patterns
-                        const inverterCount = response.inverterCount || 1;
-                        inverters = [];
-                        currentPatterns = {};
-                        
-                        // Create inverter list
-                        for (let i = 1; i <= inverterCount; i++) {
-                            const inverterId = `inverter_${i}`;
-                            inverters.push(inverterId);
-                            
-                            // Extract current pattern if available
-                            const currentPattern = response.currentSettings?.energy_pattern?.[inverterId] || 'Unknown';
-                            currentPatterns[inverterId] = currentPattern;
-                        }
-                        
-                        // Render the inverters and their patterns
-                        renderInverters();
-                    } else {
-                        showAlert('warning', 'Failed to load current patterns');
-                        $('#inverters-container').html('<div class="alert alert-warning">Error loading energy patterns</div>');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error loading current patterns:', status, error);
-                    showAlert('danger', 'Error connecting to server');
-                    $('#inverters-container').html('<div class="alert alert-danger">Server connection error</div>');
+   
+    // Load current patterns from the API
+    function loadCurrentPatterns() {
+    // First try the current-settings endpoint (preferred)
+    $.ajax({
+        url: '/api/current-settings',
+        method: 'GET',
+        success: function(response) {
+            console.log("Current settings response:", response);
+            
+            if (response && response.currentSettings && response.currentSettings.energy_pattern) {
+                // Process inverters and their patterns
+                const inverterCount = response.inverterCount || 1;
+                inverters = [];
+                currentPatterns = {};
+                
+                // Create inverter list
+                for (let i = 1; i <= inverterCount; i++) {
+                    const inverterId = `inverter_${i}`;
+                    inverters.push(inverterId);
+                    
+                    // Extract current pattern if available
+                    const currentPattern = response.currentSettings.energy_pattern[inverterId] || 'Unknown';
+                    currentPatterns[inverterId] = currentPattern;
                 }
-            });
+                
+                // Render the inverters and their patterns
+                renderInverters();
+            } else {
+                // Fallback to the energy-pattern-changes endpoint
+                loadCurrentPatternsFromHistory();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading current patterns from settings:', status, error);
+            // Fallback to the energy-pattern-changes endpoint
+            loadCurrentPatternsFromHistory();
         }
-        
-        // Load system state
-        function loadSystemState() {
+    });
+}
+
+function loadCurrentPatternsFromHistory() {
+    $.ajax({
+        url: '/api/energy-pattern-changes',
+        method: 'GET',
+        success: function(response) {
+            console.log("Energy pattern changes response:", response);
+            
+            if (Array.isArray(response) && response.length > 0) {
+                // Group changes by inverter to find the most recent for each
+                const latestByInverter = {};
+                
+                // Process each change
+                response.forEach(change => {
+                    // Extract inverter ID from the topic
+                    const topicParts = change.topic.split('/');
+                    let inverterId = null;
+                    
+                    for (const part of topicParts) {
+                        if (part.startsWith('inverter_')) {
+                            inverterId = part;
+                            break;
+                        }
+                    }
+                    
+                    if (!inverterId) return; // Skip if no inverter ID found
+                    
+                    // Keep track of the most recent change for each inverter
+                    if (!latestByInverter[inverterId] || 
+                        new Date(change.timestamp) > new Date(latestByInverter[inverterId].timestamp)) {
+                        latestByInverter[inverterId] = change;
+                    }
+                });
+                
+                // Now we have the most recent change for each inverter
+                inverters = Object.keys(latestByInverter);
+                currentPatterns = {};
+                
+                // Extract the current patterns
+                inverters.forEach(inverterId => {
+                    currentPatterns[inverterId] = latestByInverter[inverterId].new_value || 'Unknown';
+                });
+                
+                // If no inverters were found in the history, create at least one
+                if (inverters.length === 0) {
+                    inverters = ['inverter_1'];
+                    currentPatterns['inverter_1'] = 'Unknown';
+                }
+                
+                // Render the inverters and their patterns
+                renderInverters();
+            } else {
+                $('#inverters-container').html('<div class="alert alert-warning">No energy patterns found in history</div>');
+                
+                // Create a default inverter anyway
+                inverters = ['inverter_1'];
+                currentPatterns['inverter_1'] = 'Unknown';
+                renderInverters();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading current patterns from history:', status, error);
+            showAlert('danger', 'Error connecting to server');
+            $('#inverters-container').html('<div class="alert alert-danger">Server connection error</div>');
+            
+            // Create a default inverter anyway
+            inverters = ['inverter_1'];
+            currentPatterns['inverter_1'] = 'Unknown';
+            renderInverters();
+        }
+    });
+}
+      // Load system state
+function loadSystemState() {
+    $.ajax({
+        url: '/api/system-state',
+        method: 'GET',
+        success: function(response) {
+            console.log("System state response:", response); // Add debugging
+            if (response && response.current_state) {
+                systemState = response.current_state;
+                
+                // Update UI with system state
+                $('#battery-soc').text(systemState.battery_soc !== null ? systemState.battery_soc + '%' : '--');
+                $('#pv-power').text(systemState.pv_power !== null ? systemState.pv_power + 'W' : '--');
+                $('#load-power').text(systemState.load !== null ? systemState.load + 'W' : '--');
+                $('#last-updated').text(moment(systemState.timestamp).format('MM/DD HH:mm:ss'));
+                
+                // Update battery icon based on SOC
+                updateBatteryIcon(systemState.battery_soc);
+            } else {
+                console.error("Invalid system state response structure:", response);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading system state:', status, error);
+            showAlert('warning', 'Unable to load system status data');
+        }
+    });
+}
             $.ajax({
                 url: '/api/system-state',
                 method: 'GET',
@@ -441,7 +501,6 @@
                         // Update UI with system state
                         $('#battery-soc').text(systemState.battery_soc !== null ? systemState.battery_soc + '%' : '--');
                         $('#pv-power').text(systemState.pv_power !== null ? systemState.pv_power + 'W' : '--');
-                        $('#grid-power').text(systemState.grid_power !== null ? systemState.grid_power + 'W' : '--');
                         $('#load-power').text(systemState.load !== null ? systemState.load + 'W' : '--');
                         $('#last-updated').text(moment(systemState.timestamp).format('MM/DD HH:mm:ss'));
                         
@@ -453,7 +512,6 @@
                     console.error('Error loading system state:', status, error);
                 }
             });
-        }
         
         // Update battery icon based on state of charge
         function updateBatteryIcon(soc) {
@@ -525,10 +583,7 @@
         function renderPatternOptions(inverterId, currentPattern) {
             const patterns = [
                 'Battery first',
-                'Grid first',
-                'Solar first',
-                'Solar + Battery',
-                'Solar + Grid'
+                'Load first'
             ];
             
             let html = '';
@@ -619,68 +674,72 @@
         }
         
         // Display recent changes
-        function displayRecentChanges(changes) {
-            if (!changes || changes.length === 0) {
-                $('#recent-changes').html('<div class="text-center p-3">No recent changes found</div>');
-                return;
+function displayRecentChanges(changes) {
+    console.log("Recent changes data:", changes);
+    
+    if (!changes || (Array.isArray(changes) && changes.length === 0)) {
+        $('#recent-changes').html('<div class="text-center p-3">No recent changes found</div>');
+        return;
+    }
+    
+    // Ensure changes is an array
+    const changesArray = Array.isArray(changes) ? changes : [changes];
+    
+    // Sort changes by timestamp (newest first)
+    changesArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Take only the 10 most recent changes
+    const recentChanges = changesArray.slice(0, 10);
+    
+    let html = '';
+    
+    recentChanges.forEach(change => {
+        const timestamp = moment(change.timestamp).format('MM/DD HH:mm');
+        const topicParts = change.topic ? change.topic.split('/') : [];
+        
+        // Extract inverter from topic
+        let inverter = 'unknown';
+        for (const part of topicParts) {
+            if (part.includes('inverter_')) {
+                inverter = part;
+                break;
             }
-            
-            // Sort changes by timestamp (newest first)
-            changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            // Take only the 10 most recent changes
-            const recentChanges = changes.slice(0, 10);
-            
-            let html = '';
-            
-            recentChanges.forEach(change => {
-                const timestamp = moment(change.timestamp).format('MM/DD HH:mm');
-                const topicParts = change.topic.split('/');
-                
-                // Extract inverter from topic
-                let inverter = 'unknown';
-                for (const part of topicParts) {
-                    if (part.includes('inverter_')) {
-                        inverter = part;
-                        break;
-                    }
-                }
-                
-                const inverterDisplay = inverter !== 'unknown' ? 
-                    `Inverter ${inverter.replace('inverter_', '')}` : 
-                    'Unknown';
-                
-                const oldValue = change.old_value || '-';
-                const newValue = change.new_value || '-';
-                
-                // Determine color based on pattern
-                const newPatternColor = patternColors[newValue] || '#6c757d';
-                
-                html += `
-                    <div class="change-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-bold">${inverterDisplay}</div>
-                                <div class="small text-muted">${timestamp}</div>
-                            </div>
-                            <div class="text-end">
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">${oldValue}</span>
-                                    <i class="fas fa-arrow-right text-muted mx-1"></i>
-                                    <span class="badge" style="background-color: ${newPatternColor}">${newValue}</span>
-                                </div>
-                                <div class="small text-muted mt-1">
-                                    Battery: ${change.system_state?.battery_soc || '-'}%
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            $('#recent-changes').html(html);
         }
         
+        const inverterDisplay = inverter !== 'unknown' ? 
+            `Inverter ${inverter.replace('inverter_', '')}` : 
+            'Unknown';
+        
+        const oldValue = change.old_value || '-';
+        const newValue = change.new_value || '-';
+        
+        // Determine color based on pattern
+        const newPatternColor = patternColors[newValue] || '#6c757d';
+        
+        html += `
+            <div class="change-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">${inverterDisplay}</div>
+                        <div class="small text-muted">${timestamp}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">${oldValue}</span>
+                            <i class="fas fa-arrow-right text-muted mx-1"></i>
+                            <span class="badge" style="background-color: ${newPatternColor}">${newValue}</span>
+                        </div>
+                        <div class="small text-muted mt-1">
+                            Battery: ${change.system_state?.battery_soc || '-'}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    $('#recent-changes').html(html);
+}
         // Load pattern history
         function loadPatternHistory() {
             // Get filter values
@@ -774,138 +833,6 @@
                 });
                 $('#history-inverter-filter').html(inverterOptions);
             }
-        }
-        
-        // Initialize the chart
-        function initializeChart() {
-            const ctx = document.getElementById('patternImpactChart').getContext('2d');
-            
-            patternImpactChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Battery SoC',
-                        data: [],
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
-                        tension: 0.2,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            min: 0,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Battery SoC (%)'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Time'
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    // Add pattern info in tooltip if available
-                                    const index = context.dataIndex;
-                                    if (index < patternEvents.length) {
-                                        return `Pattern: ${patternEvents[index] || 'Unknown'}`;
-                                    }
-                                    return '';
-                                }
-                            }
-                        },
-                        annotation: {
-                            annotations: []
-                        }
-                    }
-                }
-            });
-            
-            // Load chart data on initialization
-            loadChartData();
-        }
-        
-        // Load chart data
-        function loadChartData() {
-            $.ajax({
-                url: '/api/settings-history/energy_pattern',
-                method: 'GET',
-                data: {
-                    days: 2 // Get last 2 days of data
-                },
-                success: function(response) {
-                    updateChart(response);
-                },
-                error: function(error) {
-                    console.error('Error loading chart data:', error);
-                }
-            });
-        }
-        
-        // Update the chart with new data
-        function updateChart(response) {
-            if (!response || !response.data || response.data.length === 0) {
-                return;
-            }
-            
-            // Extract timestamps and SoC values
-            const timestamps = [];
-            const socValues = [];
-            const patternEvents = [];
-            
-            // Get pattern changes and associated SoC
-            response.data.forEach(item => {
-                if (item.system_state && item.system_state.battery_soc !== null) {
-                    // Add data point
-                    timestamps.push(moment(item.timestamp).format('MM/DD HH:mm'));
-                    socValues.push(item.system_state.battery_soc);
-                    patternEvents.push(item.new_value);
-                }
-            });
-            
-            // If no valid data points, return
-            if (timestamps.length === 0) {
-                return;
-            }
-            
-            // Update chart with new data
-            patternImpactChart.data.labels = timestamps;
-            patternImpactChart.data.datasets[0].data = socValues;
-            
-            // Create pattern change annotations
-            const annotations = [];
-            patternEvents.forEach((pattern, index) => {
-                if (pattern) {
-                    annotations.push({
-                        type: 'line',
-                        xMin: index,
-                        xMax: index,
-                        borderColor: patternColors[pattern] || '#6c757d',
-                        borderWidth: 2,
-                        label: {
-                            content: pattern,
-                            enabled: true,
-                            position: 'top'
-                        }
-                    });
-                }
-            });
-            
-            // Update chart
-            patternImpactChart.update();
         }
         
         function showAlert(type, message, autoHide = true) {
