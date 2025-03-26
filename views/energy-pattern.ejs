@@ -1,3 +1,4 @@
+<!-- energy-pattern.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,166 +9,94 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #f5f7fa;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .navbar-brand {
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            background-color: #f8f9fa;
         }
         .card {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 24px;
-            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border-radius: 8px;
             border: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transform: translateY(-3px);
         }
         .card-header {
-            background: linear-gradient(to right, #4a86e8, #5e9cea);
-            color: white;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0 !important;
-            padding: 15px 20px;
+            background-color: #f1f8ff;
+            border-bottom: 1px solid #e3f2fd;
+            border-radius: 8px 8px 0 0 !important;
         }
         .change-item {
             cursor: pointer;
-            padding: 16px 20px;
-            border-bottom: 1px solid #eaedf2;
-            transition: all 0.25s ease;
-            border-left: 3px solid transparent;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
         }
         .change-item:hover {
-            background-color: #f8f9fc;
-            border-left: 3px solid #4a86e8;
+            background-color: #f8f9fa;
         }
         .change-item:last-child {
             border-bottom: none;
         }
         .change-value {
-            font-weight: 600;
-            color: #10b981;
-            background-color: rgba(16, 185, 129, 0.1);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            font-weight: 500;
         }
         .inverter-heading {
-            background: linear-gradient(to right, #64748b, #94a3b8);
-            padding: 12px 16px;
+            background-color: #e9ecef;
+            padding: 10px 15px;
             font-weight: 600;
-            margin-top: 20px;
-            border-radius: 7px;
-            color: white;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-top: 15px;
+            border-radius: 5px;
         }
         .modal-header {
-            background: linear-gradient(to right, #4a86e8, #5e9cea);
-            color: white;
-            border-bottom: none;
-        }
-        .modal-title {
-            font-weight: 600;
-        }
-        .btn-close {
-            filter: brightness(0) invert(1);
+            background-color: #f1f8ff;
         }
         .timestamp {
             font-size: 0.85rem;
-            color: #64748b;
+            color: #6c757d;
         }
         .setting-title {
             font-weight: 600;
             font-size: 1.1rem;
-            color: #334155;
         }
         .edit-icon {
-            color: #4a86e8;
-            transition: all 0.2s ease;
-            height: 32px;
-            width: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
+            color: #007bff;
+            opacity: 0.7;
         }
         .change-item:hover .edit-icon {
-            background-color: rgba(74, 134, 232, 0.1);
-            transform: scale(1.1);
+            opacity: 1;
         }
         .nav-link.active {
-            font-weight: 600;
-            color: #4a86e8 !important;
-            border-bottom: 2px solid #4a86e8;
+            font-weight: bold;
+            color: #007bff !important;
         }
-        .form-select, .form-control {
-            border-radius: 6px;
-            border: 1px solid #d1d5db;
-            padding: 10px 14px;
-            transition: all 0.2s ease;
+        .changes-list {
+            max-height: 500px;
+            overflow-y: auto;
         }
-        .form-select:focus, .form-control:focus {
-            border-color: #4a86e8;
-            box-shadow: 0 0 0 3px rgba(74, 134, 232, 0.25);
+        .pattern-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .btn-primary {
-            background-color: #4a86e8;
-            border-color: #4a86e8;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+        .pattern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
-        .btn-primary:hover {
-            background-color: #3b78e7;
-            border-color: #3b78e7;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(59, 120, 231, 0.2);
+        .pattern-card.active {
+            border: 2px solid #007bff;
         }
-        .btn-secondary {
-            background-color: #94a3b8;
-            border-color: #94a3b8;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 6px;
+        .pattern-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
         }
-        .alert {
-            border-radius: 8px;
-            border: none;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        .pattern-option {
+            margin-bottom: 15px;
         }
-        table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        .system-stat {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
         }
-        table th {
-            background-color: #f8fafc;
-            font-weight: 600;
-            color: #334155;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-        }
-        table td, table th {
-            padding: 12px 16px;
-            border-bottom: 1px solid #eaedf2;
-        }
-        table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        table tbody tr:hover {
-            background-color: rgba(74, 134, 232, 0.03);
+        .chart-container {
+            height: 250px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -214,83 +143,166 @@
         <!-- Alerts container -->
         <div id="alerts-container"></div>
 
-
-
         <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
+            <div class="col-lg-8">
+                <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Energy Pattern Changes</h5>
+                        <h5 class="mb-0"><i class="fas fa-battery-three-quarters me-2"></i>Energy Pattern</h5>
                         <div>
-                            <button class="btn btn-primary" id="refresh-settings">
+                            <button class="btn btn-outline-primary me-2" id="view-history-btn">
+                                <i class="fas fa-history me-1"></i> View History
+                            </button>
+                            <button class="btn btn-primary" id="refresh-patterns">
                                 <i class="fas fa-sync-alt me-1"></i> Refresh
                             </button>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info shadow-sm">
+                        <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
-                            Click on any inverter's energy pattern to modify its setting. Historical changes are displayed below.
+                            Energy pattern controls how your system prioritizes different energy sources. Choose the pattern that best fits your current needs.
                         </div>
                         
-                        <!-- Recent changes will be loaded here -->
-                        <div id="recent-changes-container">
-                            <p class="text-center py-5">
-                                <span class="spinner-border text-primary" role="status"></span>
-                                <br>
-                                <span class="mt-2 d-inline-block">Loading recent changes...</span>
-                            </p>
+                        <div id="inverters-container">
+                            <!-- Inverters will be loaded here -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="mt-2">Loading inverters...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Energy Pattern Impact</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            This chart shows how your energy pattern choices affect your battery state of charge over time.
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="patternImpactChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>System Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="system-stat">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-battery-half me-2"></i>Battery SoC:</span>
+                                <span id="battery-soc" class="text-primary fw-bold">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="system-stat">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-solar-panel me-2"></i>PV Power:</span>
+                                <span id="pv-power" class="text-success fw-bold">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="system-stat">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-plug me-2"></i>Grid Power:</span>
+                                <span id="grid-power" class="text-danger fw-bold">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="system-stat">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-bolt me-2"></i>Load:</span>
+                                <span id="load-power" class="text-warning fw-bold">--</span>
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted mt-3 small">
+                            <i class="fas fa-clock me-1"></i> Last updated: <span id="last-updated">--</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Changes</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="changes-list" id="recent-changes">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="mt-2">Loading recent changes...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-
     </div>
 
-    <!-- Edit Setting Modal -->
-    <div class="modal fade" id="editSettingModal" tabindex="-1" aria-labelledby="editSettingModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+    <!-- Energy Pattern History Modal -->
+    <div class="modal fade" id="patternHistoryModal" tabindex="-1" aria-labelledby="patternHistoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editSettingModalLabel">Edit Energy Pattern</h5>
+                    <h5 class="modal-title" id="patternHistoryModalLabel">Energy Pattern Change History</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editSettingForm">
-                        <input type="hidden" id="edit-inverter">
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Energy Pattern</label>
-                            <p class="text-muted small" id="setting-inverter-display">Inverter</p>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="edit-value" class="form-label">Select Pattern</label>
-                            <select class="form-select" id="edit-value">
-                                <option value="Battery first">Battery first</option>
-                                <option value="Grid first">	Load first</option>
-                               
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Current Pattern</label>
-                            <p class="form-control-plaintext" id="current-value-display">-</p>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i> 
-                                Changing the energy pattern affects how power flows between solar, battery, and grid.
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">Filter by Inverter</span>
+                                <select class="form-select" id="history-inverter-filter">
+                                    <option value="all">All Inverters</option>
+                                    <!-- Inverter options will be added dynamically -->
+                                </select>
                             </div>
                         </div>
-                    </form>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">Time Range</span>
+                                <select class="form-select" id="history-time-range">
+                                    <option value="24">Last 24 Hours</option>
+                                    <option value="48">Last 48 Hours</option>
+                                    <option value="168" selected>Last 7 Days</option>
+                                    <option value="720">Last 30 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Inverter</th>
+                                    <th>Old Pattern</th>
+                                    <th>New Pattern</th>
+                                    <th>Battery SoC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pattern-history-list">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <div class="mt-2">Loading history...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="save-setting-btn">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -300,35 +312,295 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     
     <script>
+        // Global variables
+        let inverters = [];
+        let currentPatterns = {};
+        let systemState = {};
+        let patternImpactChart = null;
+        
+        // Pattern descriptions for tooltips
+        const patternDescriptions = {
+            'Battery first': 'Uses battery power first, then grid. Good for maximizing self-consumption.',
+            'Grid first': 'Uses grid power first, preserving battery for backup. Good for keeping battery fully charged.',
+            'Solar first': 'Prioritizes solar power usage, using grid/battery as needed. Maximizes solar utilization.',
+            'Solar + Battery': 'Uses solar and battery before grid. Best for grid independence.',
+            'Solar + Grid': 'Combines solar with grid power to meet loads while charging battery. Good for maintaining battery health.'
+        };
+        
+        // Pattern icons and colors
+        const patternIcons = {
+            'Battery first': 'fa-battery-full',
+            'Grid first': 'fa-plug',
+            'Solar first': 'fa-solar-panel',
+            'Solar + Battery': 'fa-sun',
+            'Solar + Grid': 'fa-bolt'
+        };
+        
+        const patternColors = {
+            'Battery first': '#28a745',
+            'Grid first': '#dc3545',
+            'Solar first': '#fd7e14',
+            'Solar + Battery': '#17a2b8',
+            'Solar + Grid': '#6610f2'
+        };
+        
         // Initialize the page
         $(document).ready(function() {
+            // Load current patterns and system state
+            loadCurrentPatterns();
+            
+            // Load system state
+            loadSystemState();
+            
             // Load recent changes
             loadRecentChanges();
             
-
+            // Initialize chart
+            initializeChart();
             
             // Set up event listeners
             setupEventListeners();
             
-            // Initialize the edit modal
-            initializeEditModal();
+            // Refresh data every 30 seconds
+            setInterval(function() {
+                loadSystemState();
+            }, 30000);
         });
         
         // Setup event listeners
         function setupEventListeners() {
             // Refresh button
-            $('#refresh-settings').click(function() {
-                loadRecentChanges();
-
-                showAlert('info', 'Data refreshed');
+            $('#refresh-patterns').click(function() {
+                loadCurrentPatterns();
+                loadSystemState();
+                showAlert('info', 'Energy patterns refreshed');
             });
             
-            // Save setting button
-            $('#save-setting-btn').click(function() {
-                saveEnergyPattern();
+            // View history button
+            $('#view-history-btn').click(function() {
+                loadPatternHistory();
+                const historyModal = new bootstrap.Modal(document.getElementById('patternHistoryModal'));
+                historyModal.show();
+            });
+            
+            // History filter change
+            $('#history-inverter-filter, #history-time-range').change(function() {
+                loadPatternHistory();
+            });
+        }
+        
+        // Load current patterns from the API
+        function loadCurrentPatterns() {
+            $.ajax({
+                url: '/api/current-settings',
+                method: 'GET',
+                success: function(response) {
+                    if (response && response.success) {
+                        // Process inverters and their patterns
+                        const inverterCount = response.inverterCount || 1;
+                        inverters = [];
+                        currentPatterns = {};
+                        
+                        // Create inverter list
+                        for (let i = 1; i <= inverterCount; i++) {
+                            const inverterId = `inverter_${i}`;
+                            inverters.push(inverterId);
+                            
+                            // Extract current pattern if available
+                            const currentPattern = response.currentSettings?.energy_pattern?.[inverterId] || 'Unknown';
+                            currentPatterns[inverterId] = currentPattern;
+                        }
+                        
+                        // Render the inverters and their patterns
+                        renderInverters();
+                    } else {
+                        showAlert('warning', 'Failed to load current patterns');
+                        $('#inverters-container').html('<div class="alert alert-warning">Error loading energy patterns</div>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading current patterns:', status, error);
+                    showAlert('danger', 'Error connecting to server');
+                    $('#inverters-container').html('<div class="alert alert-danger">Server connection error</div>');
+                }
+            });
+        }
+        
+        // Load system state
+        function loadSystemState() {
+            $.ajax({
+                url: '/api/system-state',
+                method: 'GET',
+                success: function(response) {
+                    if (response && response.current_state) {
+                        systemState = response.current_state;
+                        
+                        // Update UI with system state
+                        $('#battery-soc').text(systemState.battery_soc !== null ? systemState.battery_soc + '%' : '--');
+                        $('#pv-power').text(systemState.pv_power !== null ? systemState.pv_power + 'W' : '--');
+                        $('#grid-power').text(systemState.grid_power !== null ? systemState.grid_power + 'W' : '--');
+                        $('#load-power').text(systemState.load !== null ? systemState.load + 'W' : '--');
+                        $('#last-updated').text(moment(systemState.timestamp).format('MM/DD HH:mm:ss'));
+                        
+                        // Update battery icon based on SOC
+                        updateBatteryIcon(systemState.battery_soc);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading system state:', status, error);
+                }
+            });
+        }
+        
+        // Update battery icon based on state of charge
+        function updateBatteryIcon(soc) {
+            let iconClass = 'fa-battery-empty';
+            
+            if (soc === null || soc === undefined) {
+                // No data
+                iconClass = 'fa-battery-empty';
+            } else if (soc >= 90) {
+                iconClass = 'fa-battery-full';
+            } else if (soc >= 70) {
+                iconClass = 'fa-battery-three-quarters';
+            } else if (soc >= 40) {
+                iconClass = 'fa-battery-half';
+            } else if (soc >= 10) {
+                iconClass = 'fa-battery-quarter';
+            }
+            
+            // Update the icon
+            $('#battery-soc').prev().find('i').removeClass().addClass(`fas ${iconClass} me-2`);
+        }
+        
+        // Render the inverters and their patterns
+        function renderInverters() {
+            let html = '';
+            
+            if (inverters.length === 0) {
+                html = '<div class="alert alert-warning">No inverters detected</div>';
+            } else {
+                // For each inverter
+                inverters.forEach((inverterId, index) => {
+                    const inverterNumber = index + 1;
+                    const currentPattern = currentPatterns[inverterId] || 'Unknown';
+                    
+                    html += `
+                        <div class="mb-4">
+                            <div class="inverter-heading mb-3">
+                                <i class="fas fa-microchip me-2"></i>Inverter ${inverterNumber}
+                                <span class="badge bg-primary ms-2">
+                                    Current: ${currentPattern}
+                                </span>
+                            </div>
+                            
+                            <div class="row" id="patterns-${inverterId}">
+                                <!-- Pattern options -->
+                                ${renderPatternOptions(inverterId, currentPattern)}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            $('#inverters-container').html(html);
+            
+            // Add click handlers to pattern cards
+            $('.pattern-card').click(function() {
+                const inverterId = $(this).data('inverter');
+                const pattern = $(this).data('pattern');
+                
+                // Set the new pattern
+                setEnergyPattern(inverterId, pattern);
+            });
+            
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        }
+        
+        // Render pattern options for an inverter
+        function renderPatternOptions(inverterId, currentPattern) {
+            const patterns = [
+                'Battery first',
+                'Grid first',
+                'Solar first',
+                'Solar + Battery',
+                'Solar + Grid'
+            ];
+            
+            let html = '';
+            
+            patterns.forEach(pattern => {
+                const isActive = pattern === currentPattern;
+                const icon = patternIcons[pattern] || 'fa-question';
+                const color = patternColors[pattern] || '#6c757d';
+                const description = patternDescriptions[pattern] || 'No description available';
+                
+                html += `
+                    <div class="col-md-4 col-sm-6 pattern-option">
+                        <div class="card pattern-card ${isActive ? 'active' : ''}" 
+                             data-inverter="${inverterId}" 
+                             data-pattern="${pattern}"
+                             data-bs-toggle="tooltip"
+                             data-bs-placement="top"
+                             title="${description}">
+                            <div class="card-body text-center">
+                                <i class="fas ${icon} pattern-icon" style="color: ${color};"></i>
+                                <h5 class="card-title">${pattern}</h5>
+                                <p class="card-text small">${description.substring(0, 60)}${description.length > 60 ? '...' : ''}</p>
+                                ${isActive ? 
+                                    '<div class="mt-2 badge bg-success">Current Setting</div>' : 
+                                    '<div class="mt-2 text-muted small">Click to select</div>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+        
+        // Set energy pattern
+        function setEnergyPattern(inverterId, pattern) {
+            $.ajax({
+                url: '/api/command',
+                method: 'POST',
+                data: {
+                    topic: `energy/${inverterId}/energy_pattern/set`,
+                    value: pattern
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Update local data
+                        currentPatterns[inverterId] = pattern;
+                        
+                        // Update UI
+                        $(`#patterns-${inverterId} .pattern-card`).removeClass('active');
+                        $(`#patterns-${inverterId} .pattern-card[data-pattern="${pattern}"]`).addClass('active');
+                        
+                        // Update the badge
+                        $(`.inverter-heading:contains("Inverter ${inverterId.split('_')[1]}") .badge`).text(`Current: ${pattern}`);
+                        
+                        // Show success message
+                        showAlert('success', `Energy pattern for Inverter ${inverterId.split('_')[1]} set to ${pattern}`);
+                        
+                        // Refresh data after a short delay
+                        setTimeout(() => {
+                            loadRecentChanges();
+                            loadSystemState();
+                        }, 2000);
+                    } else {
+                        showAlert('danger', `Failed to set energy pattern: ${response.message || 'Unknown error'}`);
+                    }
+                },
+                error: function(error) {
+                    console.error('Error setting energy pattern:', error);
+                    showAlert('danger', `Error setting energy pattern: ${error.responseJSON?.error || 'Server error'}`);
+                }
             });
         }
         
@@ -341,211 +613,302 @@
                     displayRecentChanges(response);
                 },
                 error: function() {
-                    $('#recent-changes-container').html('<div class="alert alert-warning">Unable to load recent changes</div>');
+                    $('#recent-changes').html('<div class="alert alert-warning m-3">Failed to load recent changes</div>');
                 }
             });
         }
         
-        // Display recent changes grouped by inverter
+        // Display recent changes
         function displayRecentChanges(changes) {
-            const container = $('#recent-changes-container');
-            
             if (!changes || changes.length === 0) {
-                container.html('<div class="alert alert-warning">No recent energy pattern changes recorded</div>');
+                $('#recent-changes').html('<div class="text-center p-3">No recent changes found</div>');
                 return;
             }
             
-            // Group changes by inverter
-            const inverterChanges = {};
+            // Sort changes by timestamp (newest first)
+            changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            changes.forEach(change => {
-                // Extract inverter from topic (e.g., "inverter_1/energy_pattern/state")
-                const topicParts = change.topic ? change.topic.split('/') : [];
-                let inverter = "unknown";
+            // Take only the 10 most recent changes
+            const recentChanges = changes.slice(0, 10);
+            
+            let html = '';
+            
+            recentChanges.forEach(change => {
+                const timestamp = moment(change.timestamp).format('MM/DD HH:mm');
+                const topicParts = change.topic.split('/');
                 
-                // Find the inverter_X part in the topic
+                // Extract inverter from topic
+                let inverter = 'unknown';
                 for (const part of topicParts) {
-                    if (part.startsWith('inverter_')) {
+                    if (part.includes('inverter_')) {
                         inverter = part;
                         break;
                     }
                 }
                 
-                // If no inverter found in topic but it's in the change_type, use that instead
-                if (inverter === "unknown" && change.change_type && change.change_type.includes('inverter_')) {
-                    inverter = change.change_type.split('/')[0];
-                }
+                const inverterDisplay = inverter !== 'unknown' ? 
+                    `Inverter ${inverter.replace('inverter_', '')}` : 
+                    'Unknown';
                 
-                // Initialize array for this inverter if it doesn't exist
-                if (!inverterChanges[inverter]) {
-                    inverterChanges[inverter] = [];
-                }
+                const oldValue = change.old_value || '-';
+                const newValue = change.new_value || '-';
                 
-                // Add change to appropriate inverter array
-                inverterChanges[inverter].push(change);
-            });
-            
-            // Display changes grouped by inverter
-            let html = '';
-            
-            // Get all inverter keys and sort them naturally
-            const inverters = Object.keys(inverterChanges).sort((a, b) => {
-                const aNum = parseInt(a.replace('inverter_', ''));
-                const bNum = parseInt(b.replace('inverter_', ''));
-                return aNum - bNum;
-            });
-            
-            for (const inverter of inverters) {
-                // Get changes for this inverter and sort by timestamp (newest first)
-                const inverterData = inverterChanges[inverter]
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                // Determine color based on pattern
+                const newPatternColor = patternColors[newValue] || '#6c757d';
                 
-                // Format inverter name for display
-                const displayName = inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' ');
-                
-                html += `<div class="inverter-heading">${displayName}</div>`;
-                
-                // Get most recent state for this inverter
-                const latestChange = inverterData[0];
-                
-                // Create a clickable card with current state
                 html += `
-                    <div class="change-item" data-inverter="${inverter}" data-value="${latestChange.new_value}">
+                    <div class="change-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <div class="setting-title">Current Energy Pattern</div>
-                                <div class="mt-2">
-                                    <span class="change-value">${latestChange.new_value}</span>
-                                </div>
-                                <div class="mt-2">
-                                    <small class="text-muted">Topic: ${latestChange.topic || 'N/A'}</small>
-                                </div>
+                                <div class="fw-bold">${inverterDisplay}</div>
+                                <div class="small text-muted">${timestamp}</div>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <div class="d-flex flex-column align-items-end me-3">
-                                    <span class="timestamp">Last changed:</span>
-                                    <span class="fw-medium">${moment(latestChange.timestamp).format('MM/DD HH:mm')}</span>
+                            <div class="text-end">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">${oldValue}</span>
+                                    <i class="fas fa-arrow-right text-muted mx-1"></i>
+                                    <span class="badge" style="background-color: ${newPatternColor}">${newValue}</span>
                                 </div>
-                                <div class="edit-icon">
-                                    <i class="fas fa-edit"></i>
+                                <div class="small text-muted mt-1">
+                                    Battery: ${change.system_state?.battery_soc || '-'}%
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
-                
-                // Show recent history for this inverter
-                html += `<div class="mt-3 mb-4"><h6 class="text-muted">Recent History</h6>`;
-                
-                // Skip the first one (already shown above) and show at most 5
-                const historyToShow = inverterData.slice(1, 6);
-                
-                if (historyToShow.length === 0) {
-                    html += `<p class="text-muted small">No additional changes recorded</p>`;
-                } else {
-                    html += `<table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>From</th>
-                                <th>To</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-                        
-                    historyToShow.forEach(change => {
-                        html += `<tr>
-                            <td>${moment(change.timestamp).format('MM/DD HH:mm')}</td>
-                            <td>${change.old_value || '-'}</td>
-                            <td>${change.new_value}</td>
-                        </tr>`;
-                        html += `<tr class="text-muted">
-                            <td colspan="3"><small>Topic: ${change.topic || 'N/A'}</small></td>
-                        </tr>`;
-                    });
-                    
-                    html += `</tbody></table>`;
+            });
+            
+            $('#recent-changes').html(html);
+        }
+        
+        // Load pattern history
+        function loadPatternHistory() {
+            // Get filter values
+            const inverterFilter = $('#history-inverter-filter').val();
+            const timeRange = $('#history-time-range').val();
+            
+            // Show loading spinner
+            $('#pattern-history-list').html(`
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2">Loading history...</div>
+                    </td>
+                </tr>
+            `);
+            
+            // Make API request
+            $.ajax({
+                url: '/api/energy-pattern-changes',
+                method: 'GET',
+                data: {
+                    hours: timeRange,
+                    inverter: inverterFilter === 'all' ? null : inverterFilter
+                },
+                success: function(response) {
+                    displayPatternHistory(response, inverterFilter);
+                },
+                error: function() {
+                    $('#pattern-history-list').html('<tr><td colspan="5" class="text-center">Failed to load history</td></tr>');
                 }
-                
-                html += `</div>`;
-            }
-            
-            container.html(html);
-            
-            // Add click event to change items
-            $('.change-item').click(function() {
-                const inverter = $(this).data('inverter');
-                const value = $(this).data('value');
-                openEditModal(inverter, value);
             });
         }
         
-        // Open the edit modal for a specific setting
-        function openEditModal(inverter, currentValue) {
-            // Set hidden fields
-            $('#edit-inverter').val(inverter);
-            
-            // Set display labels
-            $('#setting-inverter-display').text(inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' '));
-            $('#current-value-display').text(currentValue);
-            
-            // Set the current value in the dropdown
-            $('#edit-value').val(currentValue);
-            
-            // Show the modal
-            const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
-            editModal.show();
-        }
-        
-        // Save the energy pattern
-        function saveEnergyPattern() {
-            const inverter = $('#edit-inverter').val();
-            const value = $('#edit-value').val();
-            
-            // Validate input
-            if (!value) {
-                showAlert('warning', 'Please select an energy pattern', true);
+        // Display pattern history
+        function displayPatternHistory(changes, inverterFilter) {
+            if (!changes || changes.length === 0) {
+                $('#pattern-history-list').html('<tr><td colspan="5" class="text-center">No history found</td></tr>');
                 return;
             }
             
-            // Send to the server
-            $.ajax({
-                url: '/api/command',
-                method: 'POST',
+            // Sort changes by timestamp (newest first)
+            changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Filter by inverter if needed
+            if (inverterFilter && inverterFilter !== 'all') {
+                changes = changes.filter(change => change.topic.includes(inverterFilter));
+            }
+            
+            let html = '';
+            
+            changes.forEach(change => {
+                const timestamp = moment(change.timestamp).format('MM/DD/YYYY HH:mm:ss');
+                const topicParts = change.topic.split('/');
+                
+                // Extract inverter from topic
+                let inverter = 'unknown';
+                for (const part of topicParts) {
+                    if (part.includes('inverter_')) {
+                        inverter = part;
+                        break;
+                    }
+                }
+                
+                const inverterDisplay = inverter !== 'unknown' ? 
+                    `Inverter ${inverter.replace('inverter_', '')}` : 
+                    'Unknown';
+                
+                const oldValue = change.old_value || '-';
+                const newValue = change.new_value || '-';
+                const batterySoc = change.system_state?.battery_soc || '-';
+                
+                html += `
+                    <tr>
+                        <td>${timestamp}</td>
+                        <td>${inverterDisplay}</td>
+                        <td><span class="badge bg-secondary">${oldValue}</span></td>
+                        <td><span class="badge" style="background-color: ${patternColors[newValue] || '#6c757d'}">${newValue}</span></td>
+                        <td>${batterySoc}%</td>
+                    </tr>
+                `;
+            });
+            
+            $('#pattern-history-list').html(html);
+            
+            // Update filter options if needed
+            if ($('#history-inverter-filter option').length <= 1) {
+                // Add inverter options to filter dropdown
+                let inverterOptions = '<option value="all">All Inverters</option>';
+                inverters.forEach((inverterId, index) => {
+                    inverterOptions += `<option value="${inverterId}">Inverter ${index + 1}</option>`;
+                });
+                $('#history-inverter-filter').html(inverterOptions);
+            }
+        }
+        
+        // Initialize the chart
+        function initializeChart() {
+            const ctx = document.getElementById('patternImpactChart').getContext('2d');
+            
+            patternImpactChart = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    topic: `energy/${inverter}/energy_pattern/set`,
-                    value: value
+                    labels: [],
+                    datasets: [{
+                        label: 'Battery SoC',
+                        data: [],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Battery SoC (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    // Add pattern info in tooltip if available
+                                    const index = context.dataIndex;
+                                    if (index < patternEvents.length) {
+                                        return `Pattern: ${patternEvents[index] || 'Unknown'}`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: []
+                        }
+                    }
+                }
+            });
+            
+            // Load chart data on initialization
+            loadChartData();
+        }
+        
+        // Load chart data
+        function loadChartData() {
+            $.ajax({
+                url: '/api/settings-history/energy_pattern',
+                method: 'GET',
+                data: {
+                    days: 2 // Get last 2 days of data
                 },
                 success: function(response) {
-                    if (response.success) {
-                        // Hide the modal
-                        const editModal = bootstrap.Modal.getInstance(document.getElementById('editSettingModal'));
-                        editModal.hide();
-                        
-                        showAlert('success', `Energy pattern updated successfully to "${value}"`);
-                        
-                        // Refresh the changes after a short delay
-                        setTimeout(() => {
-                            loadRecentChanges();
-                        }, 1000);
-                    } else {
-                        showAlert('danger', `Failed to update setting: ${response.message || 'Unknown error'}`, true);
-                    }
+                    updateChart(response);
                 },
                 error: function(error) {
-                    showAlert('danger', `Error updating setting: ${error.responseJSON?.error || 'Server error'}`, true);
+                    console.error('Error loading chart data:', error);
                 }
             });
         }
         
-        // Initialize the edit modal
-        function initializeEditModal() {
-            // This sets up the modal but doesn't open it yet
-            const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
+        // Update the chart with new data
+        function updateChart(response) {
+            if (!response || !response.data || response.data.length === 0) {
+                return;
+            }
+            
+            // Extract timestamps and SoC values
+            const timestamps = [];
+            const socValues = [];
+            const patternEvents = [];
+            
+            // Get pattern changes and associated SoC
+            response.data.forEach(item => {
+                if (item.system_state && item.system_state.battery_soc !== null) {
+                    // Add data point
+                    timestamps.push(moment(item.timestamp).format('MM/DD HH:mm'));
+                    socValues.push(item.system_state.battery_soc);
+                    patternEvents.push(item.new_value);
+                }
+            });
+            
+            // If no valid data points, return
+            if (timestamps.length === 0) {
+                return;
+            }
+            
+            // Update chart with new data
+            patternImpactChart.data.labels = timestamps;
+            patternImpactChart.data.datasets[0].data = socValues;
+            
+            // Create pattern change annotations
+            const annotations = [];
+            patternEvents.forEach((pattern, index) => {
+                if (pattern) {
+                    annotations.push({
+                        type: 'line',
+                        xMin: index,
+                        xMax: index,
+                        borderColor: patternColors[pattern] || '#6c757d',
+                        borderWidth: 2,
+                        label: {
+                            content: pattern,
+                            enabled: true,
+                            position: 'top'
+                        }
+                    });
+                }
+            });
+            
+            // Update chart
+            patternImpactChart.update();
         }
         
-        // Show alert message
-        function showAlert(type, message, inModal = false) {
+        function showAlert(type, message, autoHide = true) {
             const alertId = 'alert-' + Date.now();
             const alertHtml = `
                 <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -554,21 +917,16 @@
                 </div>
             `;
             
-            if (inModal) {
-                // Insert at the top of the modal body
-                $('.modal-body').prepend(alertHtml);
-            } else {
-                // Insert at the top of the page
-                $('#alerts-container').append(alertHtml);
-            }
+            // Insert at the top of the alerts container
+            $('#alerts-container').prepend(alertHtml);
             
-            // Auto-dismiss after 3 seconds
-            setTimeout(() => {
-                $(`#${alertId}`).alert('close');
-            }, 3000);
+            // Automatically remove alert after 5 seconds if autoHide is true
+            if (autoHide) {
+                setTimeout(() => {
+                    $(`#${alertId}`).alert('close');
+                }, 5000);
+            }
         }
-        
-
     </script>
 </body>
 </html>
