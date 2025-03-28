@@ -1,17 +1,32 @@
-<!-- views/rules.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy Management Rules</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
+    <title>Carbonoz SolarAutopilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+}
 :root {
-    /* Color system */
-    --primary: #3a86ff;          /* Main accent color */
-    --primary-dark: #0a66c2;     /* Darker shade of primary */
+    --primary-color: #DEAF0B;
+    --bg-color: #f5f6fa;
+    --text-color: #2f3640;
+    --icon-color: #636e72;
+    --green: #4CAF50;
+    --red: #F44336;
+    --blue: #2196F3;
+    --amber: #FFC107;
+    --gray: #757575;
+
+      /* Color system */
+      --primary: #DEAF0B;          /* Main accent color */
+    --primary-dark: #DEAF0C;     /* Darker shade of primary */
     --secondary: #38b000;        /* Success/active color */
     --warning: #ffbe0b;          /* Warning color */
     --danger: #ef476f;           /* Danger/error color */
@@ -58,41 +73,750 @@
     --transition-base: all 0.2s ease-in-out;
     --transition-fast: all 0.1s ease-in-out;
     --transition-slow: all 0.3s ease-in-out;
-}
-
-/* Base Styles */
-body {
-    font-family: var(--font-family);
-    background-color: #f5f7fa;
-    color: var(--grey-800);
-    line-height: 1.5;
+   }
+   
+   body, html {
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-weight: var(--font-weight-header);
-    margin-top: 0;
-    margin-bottom: var(--spacer);
-    color: var(--grey-900);
-}
-
-a {
-    color: var(--primary);
+    height: 100%;
+    
+   }
+    /* Sidebar styles */
+    .sidebar {
+        width: 280px;
+        height: 100vh;
+        background-color: white;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        transition: width 0.3s ease;
+    }
+   
+           .logo-container {
+               padding: 1.5rem;
+               border-bottom: 1px solid #e5e7eb;
+               display: flex;
+               align-items: center;
+               gap: 0.75rem;
+           }
+   
+           .logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+   }
+   
+   .logo-text {
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 18px;
+   }
+   
+   .logo-text .highlight {
+    color: var(--primary-color);
+    margin-left: 10px;
+   }
+   
+   
+   nav {
+    flex-grow: 1;
+   }
+   
+   nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+   }
+   nav li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 18px;
+   }
+   
+   nav li a{
     text-decoration: none;
-    transition: var(--transition-base);
+    color: #2f3640;
+    font-weight: bold;
+   }
+   nav li:hover {
+    background-color: var(--bg-color);
+   }
+   
+   nav li i {
+    margin-right: 15px;
+    color: var(--icon-color);
+    font-size: 24px;
+   }
+   
+   .bottom-options {
+    padding: 20px;
+    border-top: 1px solid #dcdde1;
+   }
+   
+   .toggle-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 16px;
+   }
+   
+   .toggle-text {
+    margin-right: 10px;
+   }
+   
+   .toggle-switch {
+    width: 50px;
+    height: 25px;
+    background-color: #dcdde1;
+    border-radius: 12.5px;
+    position: relative;
+    transition: background-color 0.3s;
+   }
+   .toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+   }
+   
+   .toggle-switch.active {
+    background-color: var(--primary-color);
+   }
+   
+   .toggle-switch.active::before {
+    transform: translateX(25px);
+   }
+   
+   .sidebar.collapsed .logo-text,
+   .sidebar.collapsed .search,
+   .sidebar.collapsed nav li span,
+   .sidebar.collapsed .toggle-text {
+    display: none;
+   }
+   
+   .sidebar.collapsed .logo {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li i {
+    margin-right: 0;
+   }
+           /* Main content styles */
+           .main-content {
+               flex: 1;
+               margin-left: 280px;
+               padding: 2rem;
+           }
+   
+           .content-header {
+               margin-bottom: 2rem;
+           }
+   
+           .content-header h2 {
+               font-size: 1.875rem;
+               font-weight: 700;
+               color: #111827;
+           }
+   
+           .metrics-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+               gap: 1.5rem;
+               margin-bottom: 2rem;
+           }
+   
+           .metric-card {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .metric-title {
+               font-size: 0.875rem;
+               font-weight: 600;
+               color: #4b5563;
+               margin-bottom: 0.5rem;
+           }
+   
+           .metric-value {
+               font-size: 1.5rem;
+               font-weight: 700;
+               margin-bottom: 0.25rem;
+           }
+   
+           .metric-subtitle {
+               font-size: 0.875rem;
+               color: #6b7280;
+           }
+   
+           .chart-container {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               margin-bottom: 2rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .chart-wrapper {
+               height: 400px;
+               margin-top: 1rem;
+           }
+   
+           .period-buttons {
+               display: flex;
+               gap: 0.75rem;
+               margin-bottom: 1rem;
+           }
+   
+           .period-btn {
+               padding: 0.5rem 1rem;
+               border: none;
+               background-color: #e5e7eb;
+               color: #4b5563;
+               border-radius: 6px;
+               cursor: pointer;
+               font-weight: 500;
+               transition: all 0.2s;
+           }
+   
+           .period-btn:hover {
+               background-color: #d1d5db;
+           }
+   
+           .period-btn.active {
+               background-color: #DEAF0B;
+               color: white;
+           }
+   
+           /* Toggle styles */
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .slider {
+               position: absolute;
+               cursor: pointer;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+               background-color: #e5e7eb;
+               transition: .4s;
+               border-radius: 34px;
+           }
+   
+           .slider:before {
+               position: absolute;
+               content: "";
+               height: 16px;
+               width: 16px;
+               left: 4px;
+               bottom: 4px;
+               background-color: white;
+               transition: .4s;
+               border-radius: 50%;
+           }
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           /* Updated and new styles */
+           .bottom-controls {
+               padding: 1.5rem;
+               border-top: 1px solid #e5e7eb;
+           }
+   
+           .control-item {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               margin-bottom: 1rem;
+           }
+   
+           .control-label {
+               font-size: 0.875rem;
+               color: #4b5563;
+           }
+   
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .sidebar {
+    width: 280px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    z-index: 10;
+   }
+   
+   .sidebar.collapsed {
+    width: 80px;
+   }
+   
+   .logo {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+   }
+   
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           .total-emissions {
+               font-size: 1.25rem;
+               font-weight: 600;
+               margin-bottom: 1rem;
+               color: #374151;
+           }
+   
+           .summary-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+               gap: 1rem;
+               margin-bottom: 2rem;
+           }
+   
+           .summary-item {
+               background-color: white;
+               border-radius: 8px;
+               padding: 1rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .summary-label {
+               font-size: 0.875rem;
+               color: #6b7280;
+               display: block;
+               margin-bottom: 0.5rem;
+           }
+   
+           .summary-value {
+               font-size: 1.25rem;
+               font-weight: 600;
+           }
+   
+       
+   
+           /* Responsive styles */
+           @media (max-width: 768px) {
+               .sidebar {
+                   width: 100%;
+                   height: auto;
+                   position: static;
+                   border-right: none;
+                   border-bottom: 1px solid #e5e7eb;
+               }
+   
+               .main-content {
+                   margin-left: 0;
+               }
+   
+               body.collapsed-sidebar .sidebar {
+                   display: none;
+               }
+   
+               body.collapsed-sidebar .main-content {
+                   margin-left: 0;
+               }
+   
+               .metrics-grid,
+               .summary-grid {
+                   grid-template-columns: 1fr;
+               }
+   
+               .period-buttons {
+                   flex-wrap: wrap;
+               }
+   
+               .period-btn {
+                   flex: 1 0 calc(50% - 0.375rem);
+                   margin-bottom: 0.75rem;
+               }
+           }
+
+/* loading css */
+
+.loading-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: #f8f9fa;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ z-index: 9999;
 }
 
-a:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
+.loading-spinner {
+ width: 60px;
+ height: 60px;
+ border: 5px solid #e0e0e0;
+ border-top: 5px solid #3498db;
+ border-radius: 50%;
+ animation: spin 1s linear infinite;
 }
 
-.container {
-    max-width: 1200px;
-    padding: 0 var(--spacer);
-    margin: 0 auto;
+@keyframes spin {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
 }
+
+.dashboard-column {
+flex-basis: calc(33.33333% - 2px);
+margin-right: 2px;
+margin-bottom: 2px;
+}
+
+@media only screen and (max-width: 128em) {
+.dashboard-column {
+ flex-basis: calc(50% - 2px);
+}
+}
+
+@media only screen and (max-width: 62em) {
+.dashboard-column {
+ flex-basis: calc(100% - 2px);
+}
+}
+
+.dashboard-column .card {
+border: 0;
+}
+
+.dashboard-column .card .iframe-moving {
+display: block;
+height: 100%;
+min-height: 33em;
+position: relative;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-moving {
+ min-height: 107em;
+}
+}
+.dashboard-column .card .iframe-overview {
+display: block;
+height: 100%;
+min-height: 22em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-overview {
+ min-height: 18em;
+}
+}
+
+.dashboard-column .card .iframe-battery-power {
+display: block;
+height: 60%;
+min-height: 18em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-power {
+ min-height: 15em;
+}
+}
+
+.dashboard-column .card .iframe-battery-soc {
+display: block;
+height: 40%;
+min-height: 14em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-soc {
+ min-height: 12em;
+}
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: rgba(24, 27, 31, 1);
+ color: #f5f6fa;
+}
+
+.dark-mode .main-content{
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .sidebar {
+    background-color: rgba(24, 27, 31, 1);
+}
+
+.dark-mode .sidebar .logo-icon {
+ color: #2f3640;
+}
+
+.dark-mode .sidebar .logo-text {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li:hover {
+ background-color: #383838;
+}
+
+.dark-mode .sidebar nav li a {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li i {
+ color: #dcdde1;
+}
+
+.dark-mode .toggle-sidebar,
+.dark-mode .toggle-dark-mode {
+ color: #f5f6fa;
+}
+
+.dark-mode .toggle-switch {
+    background-color: var(--primary-color);
+}
+
+.dark-mode .toggle-switch.active {
+ background-color: var(--primary-color);
+}
+
+.dark-mode header {
+    background-color: rgb(17, 18, 23);
+}
+
+.dark-mode .content-card {
+    background-color: rgba(24, 27, 31, 1);
+ color: #fff;
+}
+
+
+.dark-mode .loading-overlay{
+    background-color: rgba(24, 27, 31, 1);
+}
+
+/* Mobile Sidebar Improvements */
+@media (max-width: 768px) {
+    /* Sidebar base styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1000;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: none;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Improved hamburger button */
+    .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 8px;
+    }
+
+    .mobile-toggle span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background-color: var(--text-color);
+        margin: 5px auto;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Improved nav items */
+    .sidebar nav ul {
+        padding: 1rem 0;
+    }
+
+    .sidebar nav li {
+        padding: 0.875rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .sidebar nav li a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .sidebar nav li i {
+        font-size: 1.25rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .sidebar nav li:active {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Improved overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Dark mode adjustments */
+    .dark-mode .mobile-toggle {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .mobile-toggle span {
+        background-color: #f5f6fa;
+    }
+
+    .dark-mode .sidebar nav li:active {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Ensure main content adjusts properly */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding-top: 4.5rem;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-open .main-content {
+        filter: blur(2px);
+        pointer-events: none;
+    }
+}
+
+
+  /* Main content styling */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2rem;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: margin-left 0.3s ease;
+}
+.main-content .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
 
 /* Header & Navigation */
 .page-header {
@@ -321,6 +1045,7 @@ a:hover {
 .btn-primary:hover {
     background-color: var(--primary-dark);
     border-color: var(--primary-dark);
+    color: #fff;
 }
 
 .btn-success {
@@ -344,6 +1069,7 @@ a:hover {
 .btn-outline-primary {
     color: var(--primary);
     border-color: var(--primary);
+    color: #fff;
 }
 
 .btn-outline-primary:hover {
@@ -729,184 +1455,534 @@ a:hover {
 .text-success { color: var(--secondary) !important; }
 .text-warning { color: var(--warning) !important; }
 .text-danger { color: var(--danger) !important; }
-    </style>
+
+
+/* Improved responsive layout for main content */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .metrics-grid,
+    .summary-grid,
+    .rule-card .row {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .rule-card .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rule-card .card-header .rule-actions {
+        margin-top: 0.75rem;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .d-flex.justify-content-between > div {
+        width: 100%;
+    }
+
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Fix main white background sections in dark mode */
+body.dark-mode #pageContent {
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+/* Fix any remaining white background containers */
+body.dark-mode .container,
+body.dark-mode .container-fluid {
+    background-color: transparent;
+}
+
+/* Fix white background in rule cards and sections */
+body.dark-mode .bg-light {
+    background-color: rgba(36, 39, 49, 1) !important;
+}
+
+/* Dark mode improvements for main content */
+body.dark-mode .card,
+body.dark-mode .rule-card,
+body.dark-mode .metric-card,
+body.dark-mode .summary-card,
+body.dark-mode .summary-item,
+body.dark-mode .chart-container {
+    background-color: rgb(32, 36, 41);
+    color: #f5f6fa;
+    border-color: rgba(55, 60, 70, 1);
+}
+
+body.dark-mode .card-header {
+    /* Leave card-header with gradient, it works well in dark mode */
+    color: white;
+}
+body.dark-mode .card-header {
+    /* Leave card-header with gradient, it works well in dark mode */
+    color: white;
+}
+
+
+body.dark-mode .card-footer {
+    background-color: rgba(30, 33, 43, 1);
+    border-color: rgba(55, 60, 70, 1);
+}
+
+body.dark-mode .text-muted {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .rule-description,
+body.dark-mode .metric-title,
+body.dark-mode .summary-label,
+body.dark-mode .form-check-label {
+    color: #e2e2e2;
+}
+
+body.dark-mode .condition-text,
+body.dark-mode .action-text {
+    background-color: rgb(32, 36, 41);
+    color: #e2e2e2;
+}
+
+body.dark-mode .badge.bg-secondary {
+    background-color: #495057 !important;
+}
+
+body.dark-mode .badge.bg-success {
+    background-color: #2a9134 !important;
+}
+
+body.dark-mode .badge.bg-warning {
+    background-color: #e6a800 !important;
+    color: #212529;
+}
+
+body.dark-mode .alert-info {
+    background-color: rgba(41, 54, 94, 1);
+    color: #e2e2e2;
+    border-color: rgba(51, 64, 104, 1);
+}
+
+body.dark-mode .alert-danger {
+    background-color: rgba(94, 41, 54, 1);
+    color: #e2e2e2;
+    border-color: rgba(104, 51, 64, 1);
+}
+
+body.dark-mode .alert-link {
+    color: #DEAF0B;
+}
+
+body.dark-mode .btn-outline-secondary {
+    color: #ced4da;
+    border-color: #6c757d;
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+    background-color: #495057;
+    color: #f8f9fa;
+}
+
+body.dark-mode .btn-outline-primary {
+    color: #f8f9fa;
+    border-color: var(--primary);
+}
+
+body.dark-mode .btn-outline-success {
+    color: #f8f9fa;
+    border-color: var(--secondary);
+}
+
+body.dark-mode .btn-outline-danger {
+    color: #f8f9fa;
+    border-color: var(--danger);
+}
+
+body.dark-mode .form-check-input {
+    background-color: #495057;
+}
+
+/* Fix rule cards in dark mode */
+body.dark-mode .rule-card {
+    background-color: rgb(32, 36, 41);
+    border-color: rgba(55, 60, 70, 1);
+    color: #ffffff;
+}
+
+/* Ensure rule titles are white in dark mode */
+body.dark-mode .rule-card .rule-name,
+body.dark-mode .rule-card .card-header span {
+    color: #ffffff !important;
+}
+
+body.dark-mode .rule-card .condition-text,
+body.dark-mode .rule-card .action-text,
+body.dark-mode .rule-card .time-restrictions {
+    background-color: rgba(45, 48, 58, 1);
+    color: #e2e2e2;
+}
+
+/* Fix white backgrounds in specific components */
+body.dark-mode .page-header,
+body.dark-mode .breadcrumb,
+body.dark-mode .time-restrictions,
+body.dark-mode .d-flex {
+    background-color: transparent;
+}
+
+/* Fix text color in card headers */
+body.dark-mode .card-header,
+body.dark-mode .card-header h4,
+body.dark-mode .card-header span,
+body.dark-mode .card-header .form-check-label {
+    color: #ffffff !important;
+}
+
+/* Fix text color in various components */
+body.dark-mode .card-body,
+body.dark-mode .card-footer,
+body.dark-mode .condition-text,
+body.dark-mode .action-text,
+body.dark-mode .time-restrictions,
+body.dark-mode .rule-last-triggered {
+    color: #ffffff;
+}
+
+/* Better mobile UX for buttons */
+@media (max-width: 576px) {
+    .rule-actions .btn {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+        text-align: center;
+    }
+    
+    .d-flex.justify-content-between.align-items-center.mb-4 > div {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .d-flex.justify-content-between.align-items-center.mb-4 .btn {
+        width: 100%;
+        margin: 0 !important;
+    }
+    
+    .d-flex.flex-wrap.justify-content-center.gap-3 {
+        justify-content: start !important;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        flex-wrap: nowrap !important;
+    }
+    
+    .d-flex.flex-wrap.justify-content-center.gap-3 a {
+        flex: 0 0 auto;
+    }
+}
+
+/* Better modal appearance in dark mode */
+body.dark-mode .modal-content {
+    background-color: rgba(36, 39, 49, 1);
+    color: #f5f6fa;
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: rgba(55, 60, 70, 1);
+}
+
+body.dark-mode .modal-footer {
+    border-top-color: rgba(55, 60, 70, 1);
+}
+
+body.dark-mode .btn-secondary {
+    background-color: #495057;
+    border-color: #343a40;
+}
+
+body.dark-mode .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Improved spinner in dark mode */
+body.dark-mode .spinner-border.text-primary {
+    color: var(--primary) !important;
+}
+
+/* Fix the top menu navigation in responsive mode */
+@media (max-width: 768px) {
+    .d-flex.flex-wrap.justify-content-center.gap-3.p-2.bg-light {
+        background-color: white !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        padding: 0.75rem 0.5rem !important;
+        justify-content: start !important;
+        margin: -0.5rem -0.5rem 1rem -0.5rem;
+        width: calc(100% + 1rem);
+    }
+
+    body.dark-mode .d-flex.flex-wrap.justify-content-center.gap-3.p-2.bg-light {
+        background-color: rgba(36, 39, 49, 1) !important;
+    }
+    
+    .nav-link {
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+    }
+}
+
+/* Fix the active toggle switch in dark mode */
+body.dark-mode .form-check-input:checked {
+    background-color: var(--primary);
+}
+
+/* Fix alerts in dark mode */
+body.dark-mode .alert {
+    color: #f5f6fa;
+}
+
+/* Fix dashboard navigation in dark mode */
+body.dark-mode .d-flex.flex-wrap.justify-content-center.gap-3.p-2.bg-light,
+body.dark-mode .d-flex.flex-wrap.justify-content-center.gap-3.p-2 {
+    background-color: rgba(36, 39, 49, 1) !important;
+}
+
+body.dark-mode .nav-link {
+    color: #f5f6fa;
+}
+
+body.dark-mode .nav-link.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+</style>
 </head>
 <body>
+      <!-- Add hamburger menu button -->
+      <button class="mobile-toggle" id="mobileToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="container">
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+          </div>
+          <div id="pageContent"> </div>
 
-<div class="container mt-4">
-    <div class="database-status">
-        <% if (db_connected) { %>
-            <span class="badge bg-success">Database Connected</span>
-        <% } else { %>
-            <span class="badge bg-danger">Database Disconnected</span>
-        <% } %>
-    </div>
-    
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Rules</li>
-        </ol>
-    </nav>
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Energy Management Rules</h1>
-        <div>
-            <a href="/rule-history" class="btn btn-outline-secondary me-2">View History</a>
-            <a href="/wizard" class="btn btn-primary">Create New Rule</a>
-        </div>
-    </div>
-    
-    <!-- Dashboard Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card dashboard-card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Total Rules</h5>
-                    <p class="dashboard-number"><%= rules_count || 0 %></p>
-                </div>
+          <div class="sidebar" id="sidebar">
+            <div class="logo">
+              <div class="logo-icon">
+                <img src="https://carbonoz.com/assets/images/image04.jpg?v=8b5d1d9b" width="45px" alt="">
+              </div>
+              <a href="https://carbonoz.com/" target="_blank" style="text-decoration: none;">
+                <span class="logo-text">CARBONOZ <span class="highlight">SolarAutopilot</span></span>
+              </a>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card dashboard-card h-100">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Active Rules</h5>
-                    <p class="dashboard-number"><%= active_rules_count || 0 %></p>
-                </div>
+          
+            <nav>
+              <ul>
+                <li><a href="/"><i>🏠</i><span>Dashboard</span></a></li>
+                <li><a href="/chart"><i>📊</i><span>Charts</span></a></li>
+                <li><a href="/messages"><i>💬</i><span>Messages</span></a></li>
+                <li><a href="/settings"><i>⚙️</i><span>Settings</span></a></li>
+                <li><a href="/analytics"><i>📈</i><span>Analytics</span></a></li>
+                <li><a href="/learner"><i>🧠</i><span>Learner Mode</span></a></li>
+                <li><a href="/results"><i>🌱</i><span>Carbon Intensity</span></a></li>
+              </ul>
+            </nav>
+            
+            <div class="bottom-options">
+              <div class="toggle-dark-mode" id="toggleDarkMode">
+                <span class="toggle-text">Dark Mode</span>
+                <div class="toggle-switch" id="darkModeSwitch"></div>
+              </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card dashboard-card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Current System State</h5>
-                    <div>
-                        <span class="badge bg-primary system-state-badge">Battery: <%= system_state.battery_soc || '?' %>%</span>
-                        <span class="badge bg-success system-state-badge">PV: <%= system_state.pv_power || '?' %>W</span>
-                        <span class="badge bg-danger system-state-badge">Load: <%= system_state.load || '?' %>W</span>
-                        <span class="badge bg-info system-state-badge">Grid: <%= system_state.grid_power || '?' %>W</span>
+          </div>
+          
+     
+
+          <div class="main-content">
+
+            <div class="container">
+                <div class="d-flex flex-wrap justify-content-center gap-3 p-2 bg-light rounded shadow-sm">
+                    <a class="nav-link text-nowrap" href="/grid-charge">
+                        <i class="fas fa-plug me-1" style="color: #007BFF;"></i>Grid Charge
+                    </a>
+                    <a class="nav-link text-nowrap" href="/energy-pattern">
+                        <i class="fas fa-battery-three-quarters me-1" style="color: #28A745;"></i>Energy Pattern
+                    </a>
+                    <a class="nav-link text-nowrap" href="/work-mode">
+                        <i class="fas fa-cogs me-1" style="color: #FFC107;"></i>Work Mode
+                    </a>
+                    <a class="nav-link text-nowrap" href="/battery-charging">
+                        <i class="fas fa-charging-station me-1" style="color: #17A2B8;"></i>Battery Charging
+                    </a>
+                    <a class="nav-link text-nowrap" href="/voltage-point">
+                        <i class="fas fa-bolt me-1" style="color: #DC3545;"></i>Voltage Points
+                    </a>
+                    <a class="nav-link text-nowrap" href="/rules">
+                        <i class="fas fa-tasks me-1" style="color: #6610F2;"></i>Rules
+                    </a>
+                    <a class="nav-link text-nowrap" href="/learner">
+                        <i class="fas fa-brain me-1" style="color: #6C757D;"></i>Learner
+                    </a>
+                    <a class="nav-link text-nowrap" href="/logs">
+                        <i class="fas fa-file-alt me-1" style="color: #FF5733;"></i>Logs
+                    </a>
+                </div>
+                
+                <br>
+    
+            
+                <div class="container mt-4">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Energy Management Rules</h4>
+                        <div>
+                            <a href="/rule-history" class="btn btn-outline-secondary me-2">View History</a>
+                            <a href="/wizard" class="btn btn-primary">Create New Rule</a>
+                        </div>
                     </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>All Rules</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="showActiveOnly" checked>
+                                <label class="form-check-label" for="showActiveOnly">Show active only</label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="rulesContainer">
+                                <!-- Rules will be loaded here -->
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading rules...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rule Template (hidden, used for rendering) -->
+                    <template id="ruleTemplate">
+                        <div class="card rule-card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="rule-name fw-bold"></span>
+                                    <span class="badge bg-secondary rule-active-badge ms-2"></span>
+                                </div>
+                                <div class="rule-actions">
+                                    <button class="btn btn-sm btn-outline-success run-rule-btn" title="Run Rule Now">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary duplicate-rule-btn" title="Duplicate Rule">
+                                        <i class="bi bi-files"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary edit-rule-btn" title="Edit Rule">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-rule-btn" title="Delete Rule">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="rule-description mb-3"></div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Conditions:</h6>
+                                        <div class="rule-conditions"></div>
+                                        
+                                        <div class="rule-time-restrictions mt-3"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Actions:</h6>
+                                        <div class="rule-actions-list"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3 text-end">
+                                    <small class="text-muted rule-last-triggered"></small>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input rule-active-toggle" type="checkbox">
+                                    <label class="form-check-label">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <% if (recently_triggered && recently_triggered.length > 0) { %>
-    <div class="card mb-4">
-        <div class="card-header">
-            Recently Triggered Rules
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <% recently_triggered.forEach(rule => { %>
-                <div class="col-md-4 mb-2">
-                    <div class="card">
-                        <div class="card-body py-2">
-                            <strong><%= rule.name %></strong>
-                            <div class="rule-date">
-                                <%= new Date(rule.lastTriggered).toLocaleString() %>
+                
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete the rule "<span id="deleteRuleName"></span>"?
+                                <p class="text-danger mt-2">This action cannot be undone.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <% }); %>
             </div>
+         
         </div>
-    </div>
-    <% } %>
-    
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>All Rules</span>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="showActiveOnly" checked>
-                <label class="form-check-label" for="showActiveOnly">Show active only</label>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="rulesContainer">
-                <!-- Rules will be loaded here -->
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading rules...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Rule Template (hidden, used for rendering) -->
-    <template id="ruleTemplate">
-        <div class="card rule-card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="rule-name fw-bold"></span>
-                    <span class="badge bg-secondary rule-active-badge ms-2"></span>
-                </div>
-                <div class="rule-actions">
-                    <button class="btn btn-sm btn-outline-success run-rule-btn" title="Run Rule Now">
-                        <i class="bi bi-play-fill"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary duplicate-rule-btn" title="Duplicate Rule">
-                        <i class="bi bi-files"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary edit-rule-btn" title="Edit Rule">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger delete-rule-btn" title="Delete Rule">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="rule-description mb-3"></div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Conditions:</h6>
-                        <div class="rule-conditions"></div>
-                        
-                        <div class="rule-time-restrictions mt-3"></div>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Actions:</h6>
-                        <div class="rule-actions-list"></div>
-                    </div>
-                </div>
-                
-                <div class="mt-3 text-end">
-                    <small class="text-muted rule-last-triggered"></small>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="form-check form-switch">
-                    <input class="form-check-input rule-active-toggle" type="checkbox">
-                    <label class="form-check-label">Active</label>
-                </div>
-            </div>
-        </div>
-    </template>
-</div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete the rule "<span id="deleteRuleName"></span>"?
-                <p class="text-danger mt-2">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+ 
+  <script src="/js/loading.js"></script>
+  <script src="/js/dark-mode.js"></script>
+  <script src="/js/mobile.js"></script>
+    
+       
+      
+<script>
+       // loading js
+        
+   document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const pageContent = document.getElementById('pageContent');
+  
+    // Simulate loading time (you can adjust this as needed)
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+      pageContent.style.display = 'block';
+      // Trigger a custom event to signal that the page is ready
+      document.dispatchEvent(new Event('pageReady'));
+    }, 1500); // 1.5 seconds loading time
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -1322,5 +2398,6 @@ a:hover {
         return names[setting] || setting;
     }
 </script>
+
 </body>
 </html>
