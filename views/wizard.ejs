@@ -1,18 +1,31 @@
-<!-- views/wizard.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy Management Rule Wizard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <style>
+    <title>Carbonoz SolarAutopilot</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+}
+   
 
- :root {
+   :root {
     /* Color system */
-    --primary: #3a86ff;          /* Main accent color */
-    --primary-dark: #0a66c2;     /* Darker shade of primary */
+    --primary-color: #DEAF0B;
+    --bg-color: #f5f6fa;
+    --text-color: #2f3640;
+    --icon-color: #636e72;
+    --green: #4CAF50;
+    --red: #F44336;
+    --blue: #2196F3;
+    --amber: #FFC107;
+    --gray: #757575;
+    --primary: #DEAF0B;          /* Main accent color */
+    --primary-dark: #DEAF0E;     /* Darker shade of primary */
     --secondary: #38b000;        /* Success/active color */
     --warning: #ffbe0b;          /* Warning color */
     --danger: #ef476f;           /* Danger/error color */
@@ -67,33 +80,742 @@
     --wizard-hover-color: var(--grey-200);
 }
 
-/* Base Styles */
-body {
-    font-family: var(--font-family);
-    background-color: #f5f7fa;
-    color: var(--grey-800);
-    line-height: 1.5;
+   body, html {
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-weight: var(--font-weight-header);
-    margin-top: 0;
-    margin-bottom: var(--spacer);
-    color: var(--grey-900);
-}
-
-a {
-    color: var(--primary);
+    height: 100%;
+    
+   }
+    /* Sidebar styles */
+    .sidebar {
+        width: 280px;
+        height: 100vh;
+        background-color: white;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        transition: width 0.3s ease;
+    }
+   
+           .logo-container {
+               padding: 1.5rem;
+               border-bottom: 1px solid #e5e7eb;
+               display: flex;
+               align-items: center;
+               gap: 0.75rem;
+           }
+   
+           .logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+   }
+   
+   .logo-text {
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 18px;
+   }
+   
+   .logo-text .highlight {
+    color: var(--primary-color);
+    margin-left: 10px;
+   }
+   
+   
+   nav {
+    flex-grow: 1;
+   }
+   
+   nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+   }
+   nav li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 18px;
+   }
+   
+   nav li a{
     text-decoration: none;
-    transition: var(--transition-base);
+    color: #2f3640;
+    font-weight: bold;
+   }
+   nav li:hover {
+    background-color: var(--bg-color);
+   }
+   
+   nav li i {
+    margin-right: 15px;
+    color: var(--icon-color);
+    font-size: 24px;
+   }
+   
+   .bottom-options {
+    padding: 20px;
+    border-top: 1px solid #dcdde1;
+   }
+   
+   .toggle-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 16px;
+   }
+   
+   .toggle-text {
+    margin-right: 10px;
+   }
+   
+   .toggle-switch {
+    width: 50px;
+    height: 25px;
+    background-color: #dcdde1;
+    border-radius: 12.5px;
+    position: relative;
+    transition: background-color 0.3s;
+   }
+   .toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+   }
+   
+   .toggle-switch.active {
+    background-color: var(--primary-color);
+   }
+   
+   .toggle-switch.active::before {
+    transform: translateX(25px);
+   }
+   
+   .sidebar.collapsed .logo-text,
+   .sidebar.collapsed .search,
+   .sidebar.collapsed nav li span,
+   .sidebar.collapsed .toggle-text {
+    display: none;
+   }
+   
+   .sidebar.collapsed .logo {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li i {
+    margin-right: 0;
+   }
+           /* Main content styles */
+           .main-content {
+               flex: 1;
+               margin-left: 280px;
+               padding: 2rem;
+           }
+   
+           .content-header {
+               margin-bottom: 2rem;
+           }
+   
+           .content-header h2 {
+               font-size: 1.875rem;
+               font-weight: 700;
+               color: #111827;
+           }
+   
+           .metrics-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+               gap: 1.5rem;
+               margin-bottom: 2rem;
+           }
+   
+           .metric-card {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .metric-title {
+               font-size: 0.875rem;
+               font-weight: 600;
+               color: #4b5563;
+               margin-bottom: 0.5rem;
+           }
+   
+           .metric-value {
+               font-size: 1.5rem;
+               font-weight: 700;
+               margin-bottom: 0.25rem;
+           }
+   
+           .metric-subtitle {
+               font-size: 0.875rem;
+               color: #6b7280;
+           }
+   
+           .chart-container {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               margin-bottom: 2rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .chart-wrapper {
+               height: 400px;
+               margin-top: 1rem;
+           }
+   
+           .period-buttons {
+               display: flex;
+               gap: 0.75rem;
+               margin-bottom: 1rem;
+           }
+   
+           .period-btn {
+               padding: 0.5rem 1rem;
+               border: none;
+               background-color: #e5e7eb;
+               color: #4b5563;
+               border-radius: 6px;
+               cursor: pointer;
+               font-weight: 500;
+               transition: all 0.2s;
+           }
+   
+           .period-btn:hover {
+               background-color: #d1d5db;
+           }
+   
+           .period-btn.active {
+               background-color: #DEAF0B;
+               color: white;
+           }
+   
+           /* Toggle styles */
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .slider {
+               position: absolute;
+               cursor: pointer;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+               background-color: #e5e7eb;
+               transition: .4s;
+               border-radius: 34px;
+           }
+   
+           .slider:before {
+               position: absolute;
+               content: "";
+               height: 16px;
+               width: 16px;
+               left: 4px;
+               bottom: 4px;
+               background-color: white;
+               transition: .4s;
+               border-radius: 50%;
+           }
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           /* Updated and new styles */
+           .bottom-controls {
+               padding: 1.5rem;
+               border-top: 1px solid #e5e7eb;
+           }
+   
+           .control-item {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               margin-bottom: 1rem;
+           }
+   
+           .control-label {
+               font-size: 0.875rem;
+               color: #4b5563;
+           }
+   
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .sidebar {
+    width: 280px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    z-index: 10;
+   }
+   
+   .sidebar.collapsed {
+    width: 80px;
+   }
+   
+   .logo {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+   }
+   
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           .total-emissions {
+               font-size: 1.25rem;
+               font-weight: 600;
+               margin-bottom: 1rem;
+               color: #374151;
+           }
+   
+           .summary-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+               gap: 1rem;
+               margin-bottom: 2rem;
+           }
+   
+           .summary-item {
+               background-color: white;
+               border-radius: 8px;
+               padding: 1rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .summary-label {
+               font-size: 0.875rem;
+               color: #6b7280;
+               display: block;
+               margin-bottom: 0.5rem;
+           }
+   
+           .summary-value {
+               font-size: 1.25rem;
+               font-weight: 600;
+           }
+   
+       
+   
+           /* Responsive styles */
+           @media (max-width: 768px) {
+               .sidebar {
+                   width: 100%;
+                   height: auto;
+                   position: static;
+                   border-right: none;
+                   border-bottom: 1px solid #e5e7eb;
+               }
+   
+               .main-content {
+                   margin-left: 0;
+               }
+   
+               body.collapsed-sidebar .sidebar {
+                   display: none;
+               }
+   
+               body.collapsed-sidebar .main-content {
+                   margin-left: 0;
+               }
+   
+               .metrics-grid,
+               .summary-grid {
+                   grid-template-columns: 1fr;
+               }
+   
+               .period-buttons {
+                   flex-wrap: wrap;
+               }
+   
+               .period-btn {
+                   flex: 1 0 calc(50% - 0.375rem);
+                   margin-bottom: 0.75rem;
+               }
+           }
+
+/* loading css */
+
+.loading-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: #f8f9fa;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ z-index: 9999;
 }
 
-a:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
+.loading-spinner {
+ width: 60px;
+ height: 60px;
+ border: 5px solid #e0e0e0;
+ border-top: 5px solid #3498db;
+ border-radius: 50%;
+ animation: spin 1s linear infinite;
 }
+
+@keyframes spin {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
+}
+
+.dashboard-column {
+flex-basis: calc(33.33333% - 2px);
+margin-right: 2px;
+margin-bottom: 2px;
+}
+
+@media only screen and (max-width: 128em) {
+.dashboard-column {
+ flex-basis: calc(50% - 2px);
+}
+}
+
+@media only screen and (max-width: 62em) {
+.dashboard-column {
+ flex-basis: calc(100% - 2px);
+}
+}
+
+.dashboard-column .card {
+border: 0;
+}
+
+.dashboard-column .card .iframe-moving {
+display: block;
+height: 100%;
+min-height: 33em;
+position: relative;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-moving {
+ min-height: 107em;
+}
+}
+.dashboard-column .card .iframe-overview {
+display: block;
+height: 100%;
+min-height: 22em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-overview {
+ min-height: 18em;
+}
+}
+
+.dashboard-column .card .iframe-battery-power {
+display: block;
+height: 60%;
+min-height: 18em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-power {
+ min-height: 15em;
+}
+}
+
+.dashboard-column .card .iframe-battery-soc {
+display: block;
+height: 40%;
+min-height: 14em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-soc {
+ min-height: 12em;
+}
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: rgba(24, 27, 31, 1);
+ color: #f5f6fa;
+}
+
+.dark-mode .main-content{
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .sidebar {
+    background-color: rgba(24, 27, 31, 1);
+}
+
+.dark-mode .sidebar .logo-icon {
+ color: #2f3640;
+}
+
+.dark-mode .sidebar .logo-text {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li:hover {
+ background-color: #383838;
+}
+
+.dark-mode .sidebar nav li a {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li i {
+ color: #dcdde1;
+}
+
+.dark-mode .toggle-sidebar,
+.dark-mode .toggle-dark-mode {
+ color: #f5f6fa;
+}
+
+.dark-mode .toggle-switch {
+    background-color: var(--primary-color);
+}
+
+.dark-mode .toggle-switch.active {
+ background-color: var(--primary-color);
+}
+
+.dark-mode header {
+    background-color: rgb(17, 18, 23);
+}
+
+.dark-mode .content-card {
+    background-color: rgba(24, 27, 31, 1);
+ color: #fff;
+}
+
+
+.dark-mode .loading-overlay{
+    background-color: rgba(24, 27, 31, 1);
+}
+
+/* Mobile Sidebar Improvements */
+@media (max-width: 768px) {
+    /* Sidebar base styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1000;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: none;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Improved hamburger button */
+    .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 8px;
+    }
+
+    .mobile-toggle span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background-color: var(--text-color);
+        margin: 5px auto;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Improved nav items */
+    .sidebar nav ul {
+        padding: 1rem 0;
+    }
+
+    .sidebar nav li {
+        padding: 0.875rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .sidebar nav li a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .sidebar nav li i {
+        font-size: 1.25rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .sidebar nav li:active {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Improved overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Dark mode adjustments */
+    .dark-mode .mobile-toggle {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .mobile-toggle span {
+        background-color: #f5f6fa;
+    }
+
+    .dark-mode .sidebar nav li:active {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Ensure main content adjusts properly */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding-top: 4.5rem;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-open .main-content {
+        filter: blur(2px);
+        pointer-events: none;
+    }
+}
+
+
+  /* Main content styling */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2rem;
+  color: var(--text-color);
+  transition: margin-left 0.3s ease;
+}
+
 
 .container {
     max-width: 1200px;
@@ -1010,36 +1732,317 @@ a:hover {
     font-size: 0.9rem;
 }
 
-/* Responsive Adjustments */
+/* Responsive fixes for main-content */
 @media (max-width: 768px) {
-    .page-header,
-    .filtering-controls {
-        flex-direction: column;
-        align-items: flex-start;
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+        transition: margin-left 0.3s ease;
     }
     
-    .page-header > div,
-    .filtering-controls > div {
-        margin-top: var(--spacer);
-        width: 100%;
+    /* Better form layout on mobile */
+    .wizard-step .row > [class*="col-"] {
+        margin-bottom: 1rem;
     }
     
-    .action-buttons {
+    /* Make wizard steps more mobile-friendly */
+    .wizard-steps {
         flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
     }
     
-    .summary-cards {
-        grid-template-columns: 1fr;
+    .wizard-step-indicator {
+        flex: 0 0 auto;
+        width: 45%;
+        margin-bottom: 1rem;
     }
     
-    .card-header {
+    /* Improve buttons layout on mobile */
+    .wizard-step .d-flex.justify-content-between {
         flex-direction: column;
-        align-items: flex-start;
+        gap: 0.5rem;
     }
     
-    .card-header > div + div {
-        margin-top: 0.5rem;
+    .wizard-step .d-flex.justify-content-between button {
         width: 100%;
+    }
+    
+    /* Better card layout on mobile */
+    .condition-card .row,
+    .action-card .row {
+        flex-direction: column;
+    }
+    
+    .condition-card .col-md-1,
+    .action-card .col-md-1 {
+        align-self: flex-end;
+        margin-top: 0.5rem;
+    }
+    
+    /* Adjust date picker layout */
+    #specificDatesContainer .row {
+        flex-direction: column;
+    }
+    
+    #specificDatesContainer .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Dark mode improvements for main-content */
+.dark-mode .main-content {
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+/* Fix for the main container */
+.dark-mode .main-content > .container {
+    background-color: rgba(24, 27, 31, 1);
+}
+.dark-mode .container .mt-4 {
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+/* Form elements in dark mode */
+.dark-mode .form-control,
+.dark-mode .form-select {
+    background-color: rgba(17, 18, 23, 1);
+    border-color: #495057;
+    color: #f5f6fa;
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+    background-color: rgba(33, 37, 41, 1);
+    border-color: var(--primary);
+    color: #f5f6fa;
+}
+
+.dark-mode .form-label,
+.dark-mode .form-check-label {
+    color: #f5f6fa;
+}
+/* Enhanced Dark Mode for Main Content Elements */
+.dark-mode .card {
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .card-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+}
+
+.dark-mode .card-body {
+    color: #f5f6fa;
+}
+
+.dark-mode .form-control,
+.dark-mode .form-select,
+.dark-mode .time-picker,
+.dark-mode .date-picker {
+    background-color: rgba(33, 37, 41, 1);
+    border-color: #495057;
+    color: #f5f6fa;
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+    background-color: rgba(33, 37, 41, 1);
+    border-color: var(--primary);
+    color: #f5f6fa;
+}
+
+.dark-mode .form-check-label {
+    color: #f5f6fa;
+}
+
+.dark-mode .text-muted {
+    color: #adb5bd !important;
+}
+
+.dark-mode .preview-container {
+    background-color: rgba(33, 37, 41, 1);
+    border-color: #495057;
+}
+
+.dark-mode .wizard-step-text {
+    color: #f5f6fa;
+}
+
+.dark-mode .wizard-step-indicator.active .wizard-step-text {
+    color: var(--primary);
+}
+
+.dark-mode .day-selector label {
+    background-color: rgba(33, 37, 41, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .day-selector:hover label {
+    background-color: #495057;
+}
+
+.dark-mode .wizard-steps::before {
+    background-color: #495057;
+}
+
+.dark-mode .wizard-step-number {
+    background-color: rgba(33, 37, 41, 1);
+    border-color: #495057;
+    color: #f5f6fa;
+}
+
+.dark-mode .condition-card,
+.dark-mode .action-card {
+    background-color: rgba(17, 18, 23, 1);
+    border-color: #495057;
+}
+
+.dark-mode .condition-card:hover,
+.dark-mode .action-card:hover {
+    border-color: var(--primary);
+}
+
+/* Fix for flatpickr in dark mode */
+.dark-mode .flatpickr-calendar {
+    background-color: rgba(33, 37, 41, 1);
+    color: #f5f6fa;
+    box-shadow: 0 3px 13px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .flatpickr-day {
+    color: #f5f6fa;
+}
+
+.dark-mode .flatpickr-months .flatpickr-month,
+.dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months,
+.dark-mode .flatpickr-weekday {
+    color: #f5f6fa;
+    fill: #f5f6fa;
+}
+
+.dark-mode .flatpickr-time input,
+.dark-mode .flatpickr-time .flatpickr-am-pm {
+    background-color: rgba(33, 37, 41, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .flatpickr-day.today {
+    border-color: var(--primary);
+}
+
+.dark-mode .flatpickr-day.selected {
+    background: var(--primary);
+    color: white;
+}
+
+/* Enhanced Responsive Design for Wizard */
+@media (max-width: 768px) {
+    .wizard-steps {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .wizard-step-indicator {
+        flex-basis: 40%;
+        margin-bottom: 0.75rem;
+    }
+    
+    .wizard-step-text {
+        font-size: 0.75rem;
+    }
+    
+    .wizard-step-number {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .form-label {
+        margin-top: 0.75rem;
+    }
+    
+    /* Better organization for condition and action cards on mobile */
+    .condition-card .row,
+    .action-card .row {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .condition-card .col-md-1,
+    .action-card .col-md-1 {
+        margin-top: 1rem;
+        align-self: flex-end;
+    }
+    
+    .condition-card .col-md-3,
+    .condition-card .col-md-4,
+    .action-card .col-md-3,
+    .action-card .col-md-4 {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Improve button layout on mobile */
+    .d-flex.justify-content-between {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    /* Calendar date selector improvements */
+    .day-selector {
+        margin-bottom: 0.5rem;
+    }
+    
+    .days-of-week-container {
+        justify-content: center;
+    }
+    
+    /* Better time picker layout */
+    #timeRestrictionsContainer .row {
+        flex-direction: column;
+    }
+    
+    /* Specific dates container */
+    #specificDatesContainer .row {
+        flex-direction: column;
+    }
+    
+    #specificDatesContainer .col-md-6 {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    /* Make preview more readable on mobile */
+    .preview-line {
+        word-break: break-word;
+    }
+    
+    /* Better card spacing on mobile */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+}
+
+/* Improved date tag display for mobile */
+.date-tag {
+    margin-bottom: 0.5rem;
+}
+
+/* Fix for time pickers */
+.flatpickr-calendar {
+    width: 100%;
+    max-width: 240px;
+}
+
+@media (max-width: 400px) {
+    .wizard-step-indicator {
+        flex-basis: 100%;
     }
 }
 
@@ -1083,214 +2086,293 @@ a:hover {
 .text-success { color: var(--secondary) !important; }
 .text-warning { color: var(--warning) !important; }
 .text-danger { color: var(--danger) !important; }
-    </style>
+
+
+</style>
 </head>
 <body>
+      <!-- Add hamburger menu button -->
+      <button class="mobile-toggle" id="mobileToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="container">
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+          </div>
+          <div id="pageContent"> </div>
 
-<div class="container mt-4">
-    <div class="success-message alert alert-success alert-dismissible fade show" role="alert">
-        <strong>Success!</strong> Your rule has been created successfully.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    
-    <h1>Energy Management Rule Wizard</h1>
-    
-    <div class="wizard-nav">
-        <div class="progress">
-            <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Step 1 of 4</div>
-        </div>
-    </div>
-    
-    <form id="ruleWizardForm">
-        <!-- Step 1: Basic Information -->
-        <div class="wizard-step active" id="step1">
-            <div class="card mb-4">
-                <div class="card-header">
-                    Step 1: Basic Information
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="ruleName" class="form-label">Rule Name *</label>
-                        <input type="text" class="form-control" id="ruleName" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="ruleDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="ruleDescription" name="description" rows="3"></textarea>
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="ruleActive" name="active" checked>
-                        <label class="form-check-label" for="ruleActive">Rule Active</label>
-                    </div>
-                </div>
+          <div class="sidebar" id="sidebar">
+            <div class="logo">
+              <div class="logo-icon">
+                <img src="https://carbonoz.com/assets/images/image04.jpg?v=8b5d1d9b" width="45px" alt="">
+              </div>
+              <a href="https://carbonoz.com/" target="_blank" style="text-decoration: none;">
+                <span class="logo-text">CARBONOZ <span class="highlight">SolarAutopilot</span></span>
+              </a>
             </div>
+          
+            <nav>
+              <ul>
+                <li><a href="/"><i>🏠</i><span>Dashboard</span></a></li>
+                <li><a href="/chart"><i>📊</i><span>Charts</span></a></li>
+                <li><a href="/messages"><i>💬</i><span>Messages</span></a></li>
+                <li><a href="/settings"><i>⚙️</i><span>Settings</span></a></li>
+                <li><a href="/analytics"><i>📈</i><span>Analytics</span></a></li>
+                <li><a href="/learner"><i>🧠</i><span>Learner Mode</span></a></li>
+                <li><a href="/results"><i>🌱</i><span>Carbon Intensity</span></a></li>
+              </ul>
+            </nav>
             
-            <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" onclick="window.location.href='/rules'">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
+            <div class="bottom-options">
+              <div class="toggle-dark-mode" id="toggleDarkMode">
+                <span class="toggle-text">Dark Mode</span>
+                <div class="toggle-switch" id="darkModeSwitch"></div>
+              </div>
             </div>
-        </div>
-        
-        <!-- Step 2: Conditions -->
-        <div class="wizard-step" id="step2">
-            <div class="card mb-4">
-                <div class="card-header">
-                    Step 2: Conditions
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">Define when this rule should run. Add one or more conditions that must be met.</p>
-                    
-                    <div id="conditionsContainer">
-                        <!-- Conditions will be added here dynamically -->
-                    </div>
-                    
-                    <button type="button" class="btn btn-outline-secondary" onclick="addCondition()">
-                        <i class="bi bi-plus-circle"></i> Add Condition
-                    </button>
-                </div>
-            </div>
+          </div>
+          
+     
+
+          <div class="main-content">
+
+            <div class="container">
+                <div class="d-flex flex-wrap justify-content-center gap-3 p-2 rounded shadow-sm">
             
-            <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" onclick="prevStep(2)">Previous</button>
-                <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
-            </div>
-        </div>
-        
-        <!-- Step 3: Time Restrictions -->
-        <div class="wizard-step" id="step3">
-            <div class="card mb-4">
-                <div class="card-header">
-                    Step 3: Time Restrictions
-                </div>
-                <div class="card-body">
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="enableTimeRestrictions" name="timeRestrictionsEnabled">
-                        <label class="form-check-label" for="enableTimeRestrictions">Enable Time Restrictions</label>
+                <div class="container mt-4">
+                    <div class="success-message alert alert-success alert-dismissible fade show" role="alert">
+                        <strong>Success!</strong> Your rule has been created successfully.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     
-                    <div id="timeRestrictionsContainer" style="display: none;">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Days of Week</label>
-                                <div class="d-flex flex-wrap">
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="dayMonday" name="days" value="monday">
-                                        <label class="form-check-label" for="dayMonday">Monday</label>
+                    <h4>Energy Management Rule Wizard</h4>
+                    
+                    <div class="wizard-nav">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Step 1 of 4</div>
+                        </div>
+                    </div>
+                    
+                    <form id="ruleWizardForm">
+                        <!-- Step 1: Basic Information -->
+                        <div class="wizard-step active" id="step1">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    Step 1: Basic Information
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="ruleName" class="form-label">Rule Name *</label>
+                                        <input type="text" class="form-control" id="ruleName" name="name" required>
                                     </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="dayTuesday" name="days" value="tuesday">
-                                        <label class="form-check-label" for="dayTuesday">Tuesday</label>
+                                    <div class="mb-3">
+                                        <label for="ruleDescription" class="form-label">Description</label>
+                                        <textarea class="form-control" id="ruleDescription" name="description" rows="3"></textarea>
                                     </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="dayWednesday" name="days" value="wednesday">
-                                        <label class="form-check-label" for="dayWednesday">Wednesday</label>
-                                    </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="dayThursday" name="days" value="thursday">
-                                        <label class="form-check-label" for="dayThursday">Thursday</label>
-                                    </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="dayFriday" name="days" value="friday">
-                                        <label class="form-check-label" for="dayFriday">Friday</label>
-                                    </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="daySaturday" name="days" value="saturday">
-                                        <label class="form-check-label" for="daySaturday">Saturday</label>
-                                    </div>
-                                    <div class="form-check me-3">
-                                        <input class="form-check-input" type="checkbox" id="daySunday" name="days" value="sunday">
-                                        <label class="form-check-label" for="daySunday">Sunday</label>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="ruleActive" name="active" checked>
+                                        <label class="form-check-label" for="ruleActive">Rule Active</label>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="startTime" class="form-label">Start Time</label>
-                                <input type="text" class="form-control time-picker" id="startTime" name="startTime" placeholder="HH:MM">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="endTime" class="form-label">End Time</label>
-                                <input type="text" class="form-control time-picker" id="endTime" name="endTime" placeholder="HH:MM">
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="window.location.href='/rules'">Cancel</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="enableSpecificDates" name="enableSpecificDates">
-                                <label class="form-check-label" for="enableSpecificDates">Enable Specific Dates (Holiday Mode)</label>
-                            </div>
-                        </div>
-                        
-                        <div class="calendar-dates" id="specificDatesContainer">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="specificDate" class="form-label">Select Date</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control date-picker" id="specificDate" placeholder="YYYY-MM-DD">
-                                        <button class="btn btn-outline-secondary" type="button" id="addDateBtn">Add</button>
-                                    </div>
-                                    <small class="form-text text-muted">Add specific dates to the calendar (e.g., holidays, vacations)</small>
+                        <!-- Step 2: Conditions -->
+                        <div class="wizard-step" id="step2">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    Step 2: Conditions
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Selected Dates</label>
-                                    <div id="selectedDates" class="p-2 border rounded">
-                                        <!-- Selected dates will appear here -->
-                                        <p class="text-muted mb-0" id="noDatesMessage">No dates selected</p>
+                                <div class="card-body">
+                                    <p class="text-muted">Define when this rule should run. Add one or more conditions that must be met.</p>
+                                    
+                                    <div id="conditionsContainer">
+                                        <!-- Conditions will be added here dynamically -->
                                     </div>
+                                    
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addCondition()">
+                                        <i class="bi bi-plus-circle"></i> Add Condition
+                                    </button>
                                 </div>
                             </div>
-                            <input type="hidden" id="calendarDates" name="calendarDates" value="">
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep(2)">Previous</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                            </div>
                         </div>
-                    </div>
+                        
+                        <!-- Step 3: Time Restrictions -->
+                        <div class="wizard-step" id="step3">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    Step 3: Time Restrictions
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="enableTimeRestrictions" name="timeRestrictionsEnabled">
+                                        <label class="form-check-label" for="enableTimeRestrictions">Enable Time Restrictions</label>
+                                    </div>
+                                    
+                                    <div id="timeRestrictionsContainer" style="display: none;">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Days of Week</label>
+                                                <div class="d-flex flex-wrap">
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="dayMonday" name="days" value="monday">
+                                                        <label class="form-check-label" for="dayMonday">Monday</label>
+                                                    </div>
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="dayTuesday" name="days" value="tuesday">
+                                                        <label class="form-check-label" for="dayTuesday">Tuesday</label>
+                                                    </div>
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="dayWednesday" name="days" value="wednesday">
+                                                        <label class="form-check-label" for="dayWednesday">Wednesday</label>
+                                                    </div>
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="dayThursday" name="days" value="thursday">
+                                                        <label class="form-check-label" for="dayThursday">Thursday</label>
+                                                    </div>
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="dayFriday" name="days" value="friday">
+                                                        <label class="form-check-label" for="dayFriday">Friday</label>
+                                                    </div>
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="daySaturday" name="days" value="saturday">
+                                                        <label class="form-check-label" for="daySaturday">Saturday</label>
+                                                    </div>
+                                                    <div class="form-check me-3">
+                                                        <input class="form-check-input" type="checkbox" id="daySunday" name="days" value="sunday">
+                                                        <label class="form-check-label" for="daySunday">Sunday</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="startTime" class="form-label">Start Time</label>
+                                                <input type="text" class="form-control time-picker" id="startTime" name="startTime" placeholder="HH:MM">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="endTime" class="form-label">End Time</label>
+                                                <input type="text" class="form-control time-picker" id="endTime" name="endTime" placeholder="HH:MM">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="enableSpecificDates" name="enableSpecificDates">
+                                                <label class="form-check-label" for="enableSpecificDates">Enable Specific Dates (Holiday Mode)</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="calendar-dates" id="specificDatesContainer">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="specificDate" class="form-label">Select Date</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control date-picker" id="specificDate" placeholder="YYYY-MM-DD">
+                                                        <button class="btn btn-outline-secondary" type="button" id="addDateBtn">Add</button>
+                                                    </div>
+                                                    <small class="form-text text-muted">Add specific dates to the calendar (e.g., holidays, vacations)</small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Selected Dates</label>
+                                                    <div id="selectedDates" class="p-2 border rounded">
+                                                        <!-- Selected dates will appear here -->
+                                                        <p class="text-muted mb-0" id="noDatesMessage">No dates selected</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="calendarDates" name="calendarDates" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep(3)">Previous</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Actions -->
+                        <div class="wizard-step" id="step4">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    Step 4: Actions
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">Define what actions should be taken when conditions are met.</p>
+                                    
+                                    <div id="actionsContainer">
+                                        <!-- Actions will be added here dynamically -->
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-outline-secondary" onclick="addAction()">
+                                        <i class="bi bi-plus-circle"></i> Add Action
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    Rule Preview
+                                </div>
+                                <div class="card-body">
+                                    <div class="preview-container">
+                                        <div id="rulePreview">
+                                            <!-- Rule preview will be shown here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep(4)">Previous</button>
+                                <button type="button" class="btn btn-primary" onclick="saveRule()">Save Rule</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
+          
             
-            <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" onclick="prevStep(3)">Previous</button>
-                <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
-            </div>
+            
         </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script src="/js/loading.js"></script>
+  <script src="/js/dark-mode.js"></script>
+  <script src="/js/mobile.js"></script>
+    
+       
+      
+<script>
+       // loading js
         
-        <!-- Step 4: Actions -->
-        <div class="wizard-step" id="step4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    Step 4: Actions
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">Define what actions should be taken when conditions are met.</p>
-                    
-                    <div id="actionsContainer">
-                        <!-- Actions will be added here dynamically -->
-                    </div>
-                    
-                    <button type="button" class="btn btn-outline-secondary" onclick="addAction()">
-                        <i class="bi bi-plus-circle"></i> Add Action
-                    </button>
-                </div>
-            </div>
-            
-            <div class="card mb-4">
-                <div class="card-header">
-                    Rule Preview
-                </div>
-                <div class="card-body">
-                    <div class="preview-container">
-                        <div id="rulePreview">
-                            <!-- Rule preview will be shown here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" onclick="prevStep(4)">Previous</button>
-                <button type="button" class="btn btn-primary" onclick="saveRule()">Save Rule</button>
-            </div>
-        </div>
-    </form>
-</div>
+   document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const pageContent = document.getElementById('pageContent');
+  
+    // Simulate loading time (you can adjust this as needed)
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+      pageContent.style.display = 'block';
+      // Trigger a custom event to signal that the page is ready
+      document.dispatchEvent(new Event('pageReady'));
+    }, 1500); // 1.5 seconds loading time
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -1577,6 +2659,10 @@ function addAction() {
                             <option value="all">All Inverters</option>
                             <option value="inverter_1">Inverter 1</option>
                             <option value="inverter_2">Inverter 2</option>
+                             <option value="inverter_3">Inverter 1</option>
+                            <option value="inverter_4">Inverter 2</option>
+                             <option value="inverter_5">Inverter 1</option>
+                            <option value="inverter_6">Inverter 2</option>
                         </select>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
@@ -1614,11 +2700,9 @@ function updateActionValueOptions(settingSelect) {
         `;
     } else if (setting === 'energy_pattern' || setting === 'work_mode') {
         valueSelect.innerHTML = `
-            <option value="Battery first">Battery First</option>
-            <option value="Grid first">Grid First</option>
-            <option value="Solar first">Solar First</option>
-            <option value="Solar + Battery">Solar + Battery</option>
-            <option value="Solar + Grid">Solar + Grid</option>
+            <option value="Battery first">Battery first</option>
+            <option value="Grid first">Load first</option>
+         
         `;
     } else if (setting === 'max_discharge_current' || setting === 'max_charge_current' || 
               setting === 'max_grid_charge_current') {
@@ -1985,5 +3069,7 @@ function saveRule() {
     });
 }
 </script>
+
+
 </body>
 </html>
