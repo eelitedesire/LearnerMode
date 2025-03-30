@@ -1,575 +1,2148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Energy System Learner</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    .card-grid {
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbonoz SolarAutopilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+}
+:root {
+    --primary-color: #DEAF0B;
+    --bg-color: #f5f6fa;
+    --text-color: #2f3640;
+    --icon-color: #636e72;
+    --green: #4CAF50;
+    --red: #F44336;
+    --blue: #2196F3;
+    --amber: #FFC107;
+    --gray: #757575;
+   }
+   
+   body, html {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    
+   }
+    /* Sidebar styles */
+    .sidebar {
+        width: 280px;
+        height: 100vh;
+        background-color: white;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        transition: width 0.3s ease;
+    }
+   
+           .logo-container {
+               padding: 1.5rem;
+               border-bottom: 1px solid #e5e7eb;
+               display: flex;
+               align-items: center;
+               gap: 0.75rem;
+           }
+   
+           .logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+   }
+   
+   .logo-text {
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 18px;
+   }
+   
+   .logo-text .highlight {
+    color: var(--primary-color);
+    margin-left: 10px;
+   }
+   
+   
+   nav {
+    flex-grow: 1;
+   }
+   
+   nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+   }
+   nav li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 18px;
+   }
+   
+   nav li a{
+    text-decoration: none;
+    color: #2f3640;
+    font-weight: bold;
+   }
+   nav li:hover {
+    background-color: var(--bg-color);
+   }
+   
+   nav li i {
+    margin-right: 15px;
+    color: var(--icon-color);
+    font-size: 24px;
+   }
+   
+   .bottom-options {
+    padding: 20px;
+    border-top: 1px solid #dcdde1;
+   }
+   
+   .toggle-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 16px;
+   }
+   
+   .toggle-text {
+    margin-right: 10px;
+   }
+   
+   .toggle-switch {
+    width: 50px;
+    height: 25px;
+    background-color: #dcdde1;
+    border-radius: 12.5px;
+    position: relative;
+    transition: background-color 0.3s;
+   }
+   .toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+   }
+   
+   .toggle-switch.active {
+    background-color: var(--primary-color);
+   }
+   
+   .toggle-switch.active::before {
+    transform: translateX(25px);
+   }
+   
+   .sidebar.collapsed .logo-text,
+   .sidebar.collapsed .search,
+   .sidebar.collapsed nav li span,
+   .sidebar.collapsed .toggle-text {
+    display: none;
+   }
+   
+   .sidebar.collapsed .logo {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li i {
+    margin-right: 0;
+   }
+           /* Main content styles */
+           .main-content {
+               flex: 1;
+               margin-left: 280px;
+               padding: 2rem;
+           }
+   
+           .content-header {
+               margin-bottom: 2rem;
+           }
+   
+           .content-header h2 {
+               font-size: 1.875rem;
+               font-weight: 700;
+               color: #111827;
+           }
+   
+           .metrics-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+               gap: 1.5rem;
+               margin-bottom: 2rem;
+           }
+   
+           .metric-card {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .metric-title {
+               font-size: 0.875rem;
+               font-weight: 600;
+               color: #4b5563;
+               margin-bottom: 0.5rem;
+           }
+   
+           .metric-value {
+               font-size: 1.5rem;
+               font-weight: 700;
+               margin-bottom: 0.25rem;
+           }
+   
+           .metric-subtitle {
+               font-size: 0.875rem;
+               color: #6b7280;
+           }
+   
+           .chart-container {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               margin-bottom: 2rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .chart-wrapper {
+               height: 400px;
+               margin-top: 1rem;
+           }
+   
+           .period-buttons {
+               display: flex;
+               gap: 0.75rem;
+               margin-bottom: 1rem;
+           }
+   
+           .period-btn {
+               padding: 0.5rem 1rem;
+               border: none;
+               background-color: #e5e7eb;
+               color: #4b5563;
+               border-radius: 6px;
+               cursor: pointer;
+               font-weight: 500;
+               transition: all 0.2s;
+           }
+   
+           .period-btn:hover {
+               background-color: #d1d5db;
+           }
+   
+           .period-btn.active {
+               background-color: #DEAF0B;
+               color: white;
+           }
+   
+           /* Toggle styles */
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .slider {
+               position: absolute;
+               cursor: pointer;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+               background-color: #e5e7eb;
+               transition: .4s;
+               border-radius: 34px;
+           }
+   
+           .slider:before {
+               position: absolute;
+               content: "";
+               height: 16px;
+               width: 16px;
+               left: 4px;
+               bottom: 4px;
+               background-color: white;
+               transition: .4s;
+               border-radius: 50%;
+           }
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           /* Updated and new styles */
+           .bottom-controls {
+               padding: 1.5rem;
+               border-top: 1px solid #e5e7eb;
+           }
+   
+           .control-item {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               margin-bottom: 1rem;
+           }
+   
+           .control-label {
+               font-size: 0.875rem;
+               color: #4b5563;
+           }
+   
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .sidebar {
+    width: 280px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    z-index: 10;
+   }
+   
+   .sidebar.collapsed {
+    width: 80px;
+   }
+   
+   .logo {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+   }
+   
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           .total-emissions {
+               font-size: 1.25rem;
+               font-weight: 600;
+               margin-bottom: 1rem;
+               color: #374151;
+           }
+   
+           .summary-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+               gap: 1rem;
+               margin-bottom: 2rem;
+           }
+   
+           .summary-item {
+               background-color: white;
+               border-radius: 8px;
+               padding: 1rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .summary-label {
+               font-size: 0.875rem;
+               color: #6b7280;
+               display: block;
+               margin-bottom: 0.5rem;
+           }
+   
+           .summary-value {
+               font-size: 1.25rem;
+               font-weight: 600;
+           }
+   
+       
+   
+           /* Responsive styles */
+           @media (max-width: 768px) {
+               .sidebar {
+                   width: 100%;
+                   height: auto;
+                   position: static;
+                   border-right: none;
+                   border-bottom: 1px solid #e5e7eb;
+               }
+   
+               .main-content {
+                   margin-left: 0;
+               }
+   
+               body.collapsed-sidebar .sidebar {
+                   display: none;
+               }
+   
+               body.collapsed-sidebar .main-content {
+                   margin-left: 0;
+               }
+   
+               .metrics-grid,
+               .summary-grid {
+                   grid-template-columns: 1fr;
+               }
+   
+               .period-buttons {
+                   flex-wrap: wrap;
+               }
+   
+               .period-btn {
+                   flex: 1 0 calc(50% - 0.375rem);
+                   margin-bottom: 0.75rem;
+               }
+           }
+
+/* loading css */
+
+.loading-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: #f8f9fa;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ z-index: 9999;
+}
+
+.loading-spinner {
+ width: 60px;
+ height: 60px;
+ border: 5px solid #e0e0e0;
+ border-top: 5px solid #3498db;
+ border-radius: 50%;
+ animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
+}
+
+.dashboard-column {
+flex-basis: calc(33.33333% - 2px);
+margin-right: 2px;
+margin-bottom: 2px;
+}
+
+@media only screen and (max-width: 128em) {
+.dashboard-column {
+ flex-basis: calc(50% - 2px);
+}
+}
+
+@media only screen and (max-width: 62em) {
+.dashboard-column {
+ flex-basis: calc(100% - 2px);
+}
+}
+
+.dashboard-column .card {
+border: 0;
+}
+
+.dashboard-column .card .iframe-moving {
+display: block;
+height: 100%;
+min-height: 33em;
+position: relative;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-moving {
+ min-height: 107em;
+}
+}
+.dashboard-column .card .iframe-overview {
+display: block;
+height: 100%;
+min-height: 22em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-overview {
+ min-height: 18em;
+}
+}
+
+.dashboard-column .card .iframe-battery-power {
+display: block;
+height: 60%;
+min-height: 18em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-power {
+ min-height: 15em;
+}
+}
+
+.dashboard-column .card .iframe-battery-soc {
+display: block;
+height: 40%;
+min-height: 14em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-soc {
+ min-height: 12em;
+}
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: rgba(24, 27, 31, 1);
+ color: #f5f6fa;
+}
+
+.dark-mode .main-content{
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .sidebar {
+    background-color: rgba(24, 27, 31, 1);
+}
+
+.dark-mode .sidebar .logo-icon {
+ color: #2f3640;
+}
+
+.dark-mode .sidebar .logo-text {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li:hover {
+ background-color: #383838;
+}
+
+.dark-mode .sidebar nav li a {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li i {
+ color: #dcdde1;
+}
+
+.dark-mode .toggle-sidebar,
+.dark-mode .toggle-dark-mode {
+ color: #f5f6fa;
+}
+
+.dark-mode .toggle-switch {
+    background-color: var(--primary-color);
+}
+
+.dark-mode .toggle-switch.active {
+ background-color: var(--primary-color);
+}
+
+.dark-mode header {
+    background-color: rgb(17, 18, 23);
+}
+
+.dark-mode .content-card {
+    background-color: rgba(24, 27, 31, 1);
+ color: #fff;
+}
+
+
+.dark-mode .loading-overlay{
+    background-color: rgba(24, 27, 31, 1);
+}
+
+/* Mobile Sidebar Improvements */
+@media (max-width: 768px) {
+    /* Sidebar base styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1000;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: none;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Improved hamburger button */
+    .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 8px;
+    }
+
+    .mobile-toggle span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background-color: var(--text-color);
+        margin: 5px auto;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Improved nav items */
+    .sidebar nav ul {
+        padding: 1rem 0;
+    }
+
+    .sidebar nav li {
+        padding: 0.875rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .sidebar nav li a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .sidebar nav li i {
+        font-size: 1.25rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .sidebar nav li:active {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Improved overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Dark mode adjustments */
+    .dark-mode .mobile-toggle {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .mobile-toggle span {
+        background-color: #f5f6fa;
+    }
+
+    .dark-mode .sidebar nav li:active {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Ensure main content adjusts properly */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding-top: 4.5rem;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-open .main-content {
+        filter: blur(2px);
+        pointer-events: none;
+    }
+}
+
+
+  /* Main content styling */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2rem;
+  color: var(--text-color);
+  transition: margin-left 0.3s ease;
+}
+
+
+.main-content .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.card {
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 20px;
+    }
+    .nav-link.active {
+            font-weight: bold;
+            color: #DEAF0B !important;
+        }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      border-radius: 10px 10px 0 0 !important;
+      font-weight: 600;
+      background: #DEAF0B;
+      
+    }
+    
+    .system-state-card {
+      background: #fff;
+      color: #000;
+      border: none;
+    }
+    
+    .system-state-card .card-header {
+      background: #DEAF0B;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    
+    .state-item {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .state-value {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .learner-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    
+    .learner-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #2ecc71;
+    }
+    
+    input:focus + .slider {
+      box-shadow: 0 0 1px #2ecc71;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .badge-battery {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    
+    .badge-battery-high {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .badge-battery-medium {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .badge-battery-low {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .badge-power {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .badge-grid {
+      background-color: #9b59b6;
+      color: white;
+    }
+    
+    .badge-load {
+      background-color: #e67e22;
+      color: white;
+    }
+    
+    .changes-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .monitored-settings-list {
+      column-count: 2;
+      column-gap: 20px;
+    }
+
+    @media (max-width: 767px) {
+      .monitored-settings-list {
+        column-count: 1;
+      }
+    }
+    
+    .system-state-gauges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 15px;
+    }
+    
+    .gauge-container {
+      text-align: center;
+      flex: 1 0 30%;
+      margin-bottom: 20px;
+    }
+    
+    .gauge {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+      position: relative;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .gauge::before {
+      content: "";
+      display: block;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: calc(100% - 20px);
+      height: calc(100% - 20px);
+      background: #fff;
+      border-radius: 50%;
+      z-index: 2;
+    }
+    
+    .gauge-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 3;
+    }
+    
+    .gauge-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: conic-gradient(var(--fill-color) var(--fill-percent), #ecf0f1 var(--fill-percent));
+      z-index: 1;
+    }
+    
+    .gauge-value {
+      color: #2c3e50;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+      font-weight: 700;
+    }
+    
+    .gauge-label {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .navbar-nav .nav-link.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+    
+    .dashboard-stats {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
     }
-    .pattern-bg {
-      background-color: #f8fafc;
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a5f3fc' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    
+    .stat-card {
+      padding: 15px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      color: white;
     }
-    .change-card {
+    
+    .stat-icon {
+      font-size: 2rem;
+      margin-right: 15px;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    .stat-battery {
+      background: linear-gradient(to right, #11998e, #38ef7d);
+    }
+    
+    .stat-pv {
+      background: linear-gradient(to right, #f2994a, #f2c94c);
+    }
+    
+    .stat-load {
+      background: linear-gradient(to right, #e74c3c, #e84393);
+    }
+    
+    .stat-grid {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+    }
+    
+    .refresh-btn {
+      border-radius: 50px;
+      padding: 8px 16px;
       transition: all 0.3s ease;
     }
-    .change-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    .refresh-btn:hover {
+      transform: scale(1.05);
     }
-    .badge {
-      position: absolute;
-      top: -10px;
-      right: -10px;
+
+    .db-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-left: 15px;
+      font-weight: bold;
     }
-  </style>
+    
+    
+    /* Animation for system state updates */
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.5);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+      }
+    }
+    
+    .updated-value {
+      animation: pulse 1.5s;
+    }
+
+    
+/* Enhanced dark mode styles for main-content */
+.dark-mode .main-content {
+    background-color: #181b1f;
+    color: #f5f6fa;
+}
+
+/* Dark mode styles for cards and components */
+.dark-mode .card {
+    background-color: #222831;
+    border-color: #393e46;
+}
+
+.dark-mode .card-header {
+    background-color: #DEAF0B;
+    color: #fff;
+    border-bottom-color: #393e46;
+}
+
+.dark-mode .card-body {
+    color: #f5f6fa;
+}
+
+.dark-mode .table {
+    color: #f5f6fa;
+}
+
+.dark-mode .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+}
+
+.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .table-light, 
+.dark-mode .table-light > th, 
+.dark-mode .table-light > td {
+    background-color: #2f3542;
+    color: #f5f6fa;
+}
+
+.dark-mode .bg-light {
+    background-color: #2f3542 !important;
+}
+
+.dark-mode .text-muted {
+    color: #a4b0be !important;
+}
+
+.dark-mode .nav-link {
+    color: #dcdde1;
+}
+
+.dark-mode .nav-link:hover {
+    color: #DEAF0B;
+}
+
+.dark-mode .nav-link.active {
+    color: #DEAF0B !important;
+    background-color: rgba(222, 175, 11, 0.1);
+}
+
+/* Dark mode gauge customization */
+.dark-mode .gauge::before {
+    background-color: #222831;
+}
+
+.dark-mode .gauge-value {
+    color: #f5f6fa;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .gauge-label {
+    color: #dcdde1;
+}
+
+/* Dark mode toggle switch */
+.dark-mode .slider {
+    background-color: #4b4b4b;
+}
+
+.dark-mode input:checked + .slider {
+    background-color: #DEAF0B;
+}
+
+.dark-mode .slider:before {
+    background-color: #f5f6fa;
+}
+
+/* Dark mode alerts */
+.dark-mode .alert-info {
+    background-color: #0d47a1;
+    color: #f5f6fa;
+    border-color: #0d47a1;
+}
+
+.dark-mode .alert-danger {
+    background-color: #b71c1c;
+    color: #f5f6fa;
+    border-color: #b71c1c;
+}
+
+.dark-mode .alert-success {
+    background-color: #1b5e20;
+    color: #f5f6fa;
+    border-color: #1b5e20;
+}
+
+/* Enhanced dashboard stats for dark mode */
+.dark-mode .dashboard-stats .stat-card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .stat-battery {
+    background: linear-gradient(to right, #0f9b0f, #1db954);
+}
+
+.dark-mode .stat-pv {
+    background: linear-gradient(to right, #ff8f00, #ffb74d);
+}
+
+.dark-mode .stat-load {
+    background: linear-gradient(to right, #c62828, #e57373);
+}
+
+.dark-mode .stat-grid {
+    background: linear-gradient(to right, #1565c0, #64b5f6);
+}
+
+/* Badge styles for dark mode */
+.dark-mode .badge-battery-high {
+    background-color: #2e7d32;
+}
+
+.dark-mode .badge-battery-medium {
+    background-color: #f57c00;
+}
+
+.dark-mode .badge-battery-low {
+    background-color: #c62828;
+}
+
+.dark-mode .badge-power {
+    background-color: #0288d1;
+}
+
+.dark-mode .badge-grid {
+    background-color: #7b1fa2;
+}
+
+.dark-mode .badge-load {
+    background-color: #d84315;
+}
+
+/* Improved responsiveness for all screen sizes */
+@media (max-width: 1200px) {
+    .gauge-container {
+        flex: 1 0 50%;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .main-content {
+        padding: 1.5rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1.1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem;
+        margin-left: 0;
+    }
+    
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .gauge-container {
+        flex: 1 0 100%;
+    }
+    
+    .gauge {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .system-state-gauges {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat-card {
+        padding: 10px;
+    }
+    
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-right: 10px;
+    }
+    
+    .refresh-btn {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 0.75rem;
+    }
+    
+    .mobile-toggle {
+        top: 0.5rem;
+        left: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 1.1rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+    }
+    
+    .gauge {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .gauge-value {
+        font-size: 1.25rem;
+    }
+    
+    .gauge-label {
+        font-size: 0.8rem;
+    }
+    
+    .d-flex.flex-wrap.justify-content-center.gap-3 {
+        gap: 0.5rem !important;
+    }
+    
+    .nav-link {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .learner-switch {
+        width: 50px;
+        height: 28px;
+    }
+    
+    .changes-list {
+        max-height: 300px;
+    }
+}
+
+/* Improved tablet view for learner control panel */
+@media (max-width: 991px) and (min-width: 769px) {
+    .col-md-4, .col-md-8 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .col-md-8 {
+        margin-top: 1rem;
+    }
+}
+
+/* Toast notification improvements */
+.dark-mode .toast {
+    background-color: #222831;
+    color: #f5f6fa;
+}
+
+.dark-mode .toast-header {
+    background-color: #393e46;
+    color: #f5f6fa;
+    border-bottom-color: #4a4a4a;
+}
+
+.dark-mode .toast-body {
+    background-color: #222831;
+}
+
+/* Loading overlay for dark mode */
+.dark-mode .loading-overlay {
+    background-color: #181b1f;
+}
+
+.dark-mode .loading-spinner {
+    border-color: #393e46;
+    border-top-color: #DEAF0B;
+}
+
+/* Focus states for better accessibility */
+.dark-mode button:focus,
+.dark-mode .nav-link:focus,
+.dark-mode input:focus {
+    outline: 2px solid #DEAF0B;
+    outline-offset: 2px;
+}
+
+/* Print-friendly styles */
+@media print {
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    .sidebar, 
+    .refresh-btn, 
+    .toggle-sidebar, 
+    .mobile-toggle, 
+    .learner-switch {
+        display: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+        border: 1px solid #ddd;
+        margin-bottom: 1rem;
+    }
+    
+    .changes-list {
+        max-height: none;
+    }
+}
+</style>
 </head>
-<body class="pattern-bg min-h-screen">
-  <div class="container mx-auto px-4 py-8">
-    <header class="mb-10">
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">Energy System Learner</h1>
-        <div class="flex items-center space-x-4">
-          <div class="relative inline-block">
-            <span class="<%= active ? 'bg-green-500' : 'bg-gray-400' %> inline-block w-3 h-3 rounded-full"></span>
-            <span class="ml-2 text-gray-700"><%= active ? 'Active' : 'Inactive' %></span>
+<body>
+      <!-- Add hamburger menu button -->
+      <button class="mobile-toggle" id="mobileToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="container">
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
           </div>
-          <button id="toggleLearner" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition">
-            <%= active ? 'Disable' : 'Enable' %> Learner
-          </button>
-        </div>
-      </div>
-      <p class="text-gray-600 mt-2">Monitoring <%= monitored_settings.length %> settings | <%= changes_count %> total changes recorded</p>
-    </header>
+          <div id="pageContent"> </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-      <!-- Energy Pattern Card -->
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-500">
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-white">Energy Pattern Changes</h2>
-            <div class="bg-white text-blue-600 rounded-full h-8 w-8 flex items-center justify-center">
-              <i class="fas fa-bolt"></i>
+          <div class="sidebar" id="sidebar">
+            <div class="logo">
+              <div class="logo-icon">
+                <img src="https://carbonoz.com/assets/images/image04.jpg?v=8b5d1d9b" width="45px" alt="">
+              </div>
+              <a href="https://carbonoz.com/" target="_blank" style="text-decoration: none;">
+                <span class="logo-text">CARBONOZ <span class="highlight">SolarAutopilot</span></span>
+              </a>
             </div>
-          </div>
-        </div>
-        <div class="p-6" id="energyPatternContainer">
-          <div class="animate-pulse flex space-x-4">
-            <div class="flex-1 space-y-4 py-1">
-              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div class="space-y-2">
-                <div class="h-4 bg-gray-200 rounded"></div>
-                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+          
+            <nav>
+              <ul>
+                <li><a href="/"><i>🏠</i><span>Dashboard</span></a></li>
+                <li><a href="/chart"><i>📊</i><span>Charts</span></a></li>
+                <li><a href="/messages"><i>💬</i><span>Messages</span></a></li>
+                <li><a href="/settings"><i>⚙️</i><span>Settings</span></a></li>
+                <li><a href="/analytics"><i>📈</i><span>Analytics</span></a></li>
+                <li><a href="/learner"><i>🧠</i><span>Learner Mode</span></a></li>
+                <li><a href="/results"><i>🌱</i><span>Carbon Intensity</span></a></li>
+              </ul>
+            </nav>
+            
+            <div class="bottom-options">
+              <div class="toggle-dark-mode" id="toggleDarkMode">
+                <span class="toggle-text">Dark Mode</span>
+                <div class="toggle-switch" id="darkModeSwitch"></div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="px-6 py-3 bg-gray-100 text-center">
-          <a href="/energy-pattern" class="text-blue-600 hover:text-blue-800 font-medium">
-            View All Energy Pattern Changes <i class="fas fa-arrow-right ml-1"></i>
-          </a>
-        </div>
-      </div>
+          
+     
 
-      <!-- Grid Charge Card -->
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500">
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-white">Grid Charge Changes</h2>
-            <div class="bg-white text-purple-600 rounded-full h-8 w-8 flex items-center justify-center">
-              <i class="fas fa-plug"></i>
-            </div>
-          </div>
+          <div class="main-content">
+            <div class="container">
+                <div class="d-flex flex-wrap justify-content-center gap-3 p-2 bg-light rounded shadow-sm">
+                      <a class="nav-link text-nowrap" href="/grid-charge">
+                          <a class="nav-link active text-nowrap" href="/learner">
+                              <i class="fas fa-brain me-1" style="color: #6C757D;"></i>Learner
+                          </a>
+                          <a class="nav-link text-nowrap" href="/grid-charge">
+                              <i class="fas fa-plug me-1" style="color: #007BFF;"></i>Grid Charge
+                          </a>
+                      <a class="nav-link  text-nowrap" href="/energy-pattern">
+                          <i class="fas fa-battery-three-quarters me-1" style="color: #28A745;"></i>Energy Pattern
+                      </a>
+                      <a class="nav-link text-nowrap" href="/voltage-point">
+                          <i class="fas fa-bolt me-1" style="color: #DC3545;"></i>Voltage Points
+                      </a>
+                      <a class="nav-link text-nowrap" href="/work-mode">
+                          <i class="fas fa-cogs me-1" style="color: #FFC107;"></i>Work Mode
+                      </a>
+                      <a class="nav-link text-nowrap" href="/battery-charging">
+                          <i class="fas fa-charging-station me-1" style="color: #17A2B8;"></i>Battery Charging
+                      </a>
+                  
+                      <a class="nav-link text-nowrap" href="/rules">
+                          <i class="fas fa-tasks me-1" style="color: #6610F2;"></i>Rules
+                      </a>
+                     
+                  </div>
+                  <br>
+              
+                  <!-- Learner Mode Control Panel -->
+                  <div class="row mb-4">
+                    <div class="col-md-12">
+                      <div class="card">
+                        <div class="card-header text-white">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-toggles me-2"></i>Learner Mode Control</h5>
+                            <button id="refreshBtn" class="btn btn-sm btn-light refresh-btn">
+                              <i class="bi bi-arrow-clockwise me-1"></i>Refresh Data
+                            </button>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <div class="row align-items-center">
+                            <div class="col-md-4">
+                              <div class="d-flex align-items-center">
+                                <label class="learner-switch me-3">
+                                  <input type="checkbox" id="learnerToggle" <%= active ? 'checked' : '' %>>
+                                  <span class="slider"></span>
+                                </label>
+                                <div>
+                                  <h5 class="mb-0">Learner Mode</h5>
+                                  <p class="mb-0 text-muted" id="learnerStatus">
+                                    <% if (active) { %>
+                                      <span class="text-success">Active</span> - Recording system changes
+                                    <% } else { %>
+                                      <span class="text-danger">Inactive</span> - Not recording system changes
+                                    <% } %>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-8 text-center">
+                              <div class="d-flex flex-column align-items-center">
+                                <h5>Recorded Changes</h5>
+                                <span class="badge bg-primary fs-5 p-2"><%= changes_count %></span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <!-- System State Dashboard -->
+                  <div class="row mb-4">
+                    <div class="col-md-12">
+                      <div class="card system-state-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                          <h5 class="mb-0"><i class="bi bi-activity me-2"></i>Current System State</h5>
+                          <span id="lastUpdated" class="badge bg-dark"></span>
+                        </div>
+                        <div class="card-body p-0">
+                          <!-- System Stats Dashboard -->
+                          <div class="dashboard-stats p-3">
+                            <div class="stat-card stat-battery">
+                              <div class="stat-icon">
+                                <i class="bi bi-battery-full"></i>
+                              </div>
+                              <div>
+                                <div class="stat-value" id="batteryValue">--</div>
+                                <div class="stat-label">Battery SOC (%)</div>
+                              </div>
+                            </div>
+                            
+                            <div class="stat-card stat-pv">
+                              <div class="stat-icon">
+                                <i class="bi bi-sun"></i>
+                              </div>
+                              <div>
+                                <div class="stat-value" id="pvValue">--</div>
+                                <div class="stat-label">PV Power (kW)</div>
+                              </div>
+                            </div>
+                            
+                            <div class="stat-card stat-load">
+                              <div class="stat-icon">
+                                <i class="bi bi-lightning"></i>
+                              </div>
+                              <div>
+                                <div class="stat-value" id="loadValue">--</div>
+                                <div class="stat-label">Load (kW)</div>
+                              </div>
+                            </div>
+                            
+                            <div class="stat-card stat-grid">
+                              <div class="stat-icon">
+                                <i class="bi bi-plug"></i>
+                              </div>
+                              <div>
+                                <div class="stat-value" id="gridVoltageValue">--</div>
+                                <div class="stat-label">Grid Voltage (V)</div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- Gauges for visual representation -->
+                          <div class="system-state-gauges">
+                            <div class="gauge-container">
+                              <div class="gauge">
+                                <div class="gauge-fill" id="batterySocGauge"></div>
+                                <div class="gauge-value" id="batterySocValue">--</div>
+                              </div>
+                              <div class="gauge-label">Battery SOC (%)</div>
+                            </div>
+                            
+                            <div class="gauge-container">
+                              <div class="gauge">
+                                <div class="gauge-fill" id="pvPowerGauge"></div>
+                                <div class="gauge-value" id="pvPowerValue">--</div>
+                              </div>
+                              <div class="gauge-label">PV Power (kW)</div>
+                            </div>
+                            
+                            <div class="gauge-container">
+                              <div class="gauge">
+                                <div class="gauge-fill" id="loadGauge"></div>
+                                <div class="gauge-value" id="loadValue2">--</div>
+                              </div>
+                              <div class="gauge-label">Load (kW)</div>
+                            </div>
+                          </div>
+                          
+                          <!-- Detailed System State Table -->
+                          <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="systemStateTable">
+                              <thead>
+                                <tr>
+                                  <th>Parameter</th>
+                                  <th>Value</th>
+                                  <th>Status</th>
+                                  <th>Last Change</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>Battery State of Charge</td>
+                                  <td id="battery_soc_cell">--</td>
+                                  <td id="battery_soc_status">--</td>
+                                  <td id="battery_soc_time">--</td>
+                                </tr>
+                                <tr>
+                                  <td>PV Power</td>
+                                  <td id="pv_power_cell">--</td>
+                                  <td id="pv_power_status">--</td>
+                                  <td id="pv_power_time">--</td>
+                                </tr>
+                                <tr>
+                                  <td>Load</td>
+                                  <td id="load_cell">--</td>
+                                  <td id="load_status">--</td>
+                                  <td id="load_time">--</td>
+                                </tr>
+                                <tr>
+                                  <td>Grid Voltage</td>
+                                  <td id="grid_voltage_cell">--</td>
+                                  <td id="grid_voltage_status">--</td>
+                                  <td id="grid_voltage_time">--</td>
+                                </tr>
+                                <tr>
+                                  <td>Grid Power</td>
+                                  <td id="grid_power_cell">--</td>
+                                  <td id="grid_power_status">--</td>
+                                  <td id="grid_power_time">--</td>
+                                </tr>
+                                <tr>
+                                  <td>Inverter State</td>
+                                  <td id="inverter_state_cell">--</td>
+                                  <td id="inverter_state_status">--</td>
+                                  <td id="inverter_state_time">--</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <!-- Recent Setting Changes -->
+                  <div class="row">
+                    <div class="col-12">
+                      <div class="card">
+                        <div class="card-header text-white">
+                          <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Setting Changes</h5>
+                        </div>
+                        <div class="card-body p-0">
+                          <div class="changes-list" id="recentChanges">
+                            <div class="text-center p-5">
+                              <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                              </div>
+                              <p class="mt-3">Loading recent changes...</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+        
         </div>
-        <div class="p-6" id="gridChargeContainer">
-          <div class="animate-pulse flex space-x-4">
-            <div class="flex-1 space-y-4 py-1">
-              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div class="space-y-2">
-                <div class="h-4 bg-gray-200 rounded"></div>
-                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="px-6 py-3 bg-gray-100 text-center">
-          <a href="/grid-charge" class="text-purple-600 hover:text-purple-800 font-medium">
-            View All Grid Charge Changes <i class="fas fa-arrow-right ml-1"></i>
-          </a>
-        </div>
-      </div>
-    </div>
 
-
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
-      <div class="px-6 py-4 bg-gradient-to-r from-indigo-500 to-violet-500">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-white">Voltage Point Changes</h2>
-          <div class="bg-white text-indigo-600 rounded-full h-8 w-8 flex items-center justify-center">
-            <i class="fas fa-bolt"></i>
-          </div>
-        </div>
-      </div>
-      <div class="p-6" id="voltagePointContainer">
-        <div class="animate-pulse flex space-x-4">
-          <div class="flex-1 space-y-4 py-1">
-            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div class="space-y-2">
-              <div class="h-4 bg-gray-200 rounded"></div>
-              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="px-6 py-3 bg-gray-100 text-center">
-        <a href="/voltage-point" class="text-indigo-600 hover:text-indigo-800 font-medium">
-          View All Voltage Point Changes <i class="fas fa-arrow-right ml-1"></i>
-        </a>
-      </div>
-    </div>
-
-    <!-- System State Card -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
-      <div class="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-white">Current System State</h2>
-          <div class="bg-white text-green-600 rounded-full h-8 w-8 flex items-center justify-center">
-            <i class="fas fa-tachometer-alt"></i>
-          </div>
-        </div>
-      </div>
-      <div class="p-6" id="systemStateContainer">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- System state metrics will be populated here -->
-          <div class="animate-pulse flex space-x-4">
-            <div class="flex-1 space-y-4 py-1">
-              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-            </div>
-          </div>
-          <div class="animate-pulse flex space-x-4">
-            <div class="flex-1 space-y-4 py-1">
-              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-            </div>
-          </div>
-          <div class="animate-pulse flex space-x-4">
-            <div class="flex-1 space-y-4 py-1">
-              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-white">Recent Setting Changes</h2>
-          <div class="bg-white text-amber-600 rounded-full h-8 w-8 flex items-center justify-center">
-            <i class="fas fa-history"></i>
-          </div>
-        </div>
-      </div>
-      <div class="p-6" id="recentChangesContainer">
-        <div class="animate-pulse flex space-x-4">
-          <div class="flex-1 space-y-6 py-1">
-            <div class="h-2 bg-gray-200 rounded"></div>
-            <div class="space-y-3">
-              <div class="grid grid-cols-3 gap-4">
-                <div class="h-2 bg-gray-200 rounded col-span-2"></div>
-                <div class="h-2 bg-gray-200 rounded col-span-1"></div>
-              </div>
-              <div class="h-2 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            // References to DOM elements
+            const learnerToggle = document.getElementById('learnerToggle');
+            const learnerStatus = document.getElementById('learnerStatus');
+            const recentChanges = document.getElementById('recentChanges');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const lastUpdated = document.getElementById('lastUpdated');
+            
+            // Initialize gauges
+            updateGauge('batterySocGauge', 0, '#2ecc71');
+            updateGauge('pvPowerGauge', 0, '#f39c12');
+            updateGauge('loadGauge', 0, '#e74c3c');
+            
+            // Toggle learner mode
+            learnerToggle.addEventListener('change', function() {
+              toggleLearnerMode(this.checked);
+            });
+            
+            // Refresh data
+            refreshBtn.addEventListener('click', function() {
+              fetchSystemState();
+              fetchRecentChanges();
+            });
+            
+            // Initial data fetch
+            fetchSystemState();
+            fetchRecentChanges();
+            
+            // Set up periodic refresh
+            setInterval(fetchSystemState, 30000); // Every 30 seconds
+            setInterval(fetchRecentChanges, 60000); // Every minute
+            
+            // Update timestamp
+            updateTimestamp();
+            setInterval(updateTimestamp, 10000); // Every 10 seconds
+            
+            // Functions
+            function toggleLearnerMode(active) {
+              fetch('/api/learner/toggle', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  const status = data.active ? 
+                    '<span class="text-success">Active</span> - Recording system changes' : 
+                    '<span class="text-danger">Inactive</span> - Not recording system changes';
+                  learnerStatus.innerHTML = status;
+                  
+                  // Show toast notification
+                  showToast(data.active ? 'Learner mode activated' : 'Learner mode deactivated');
+                } else {
+                  showToast('Failed to toggle learner mode', 'error');
+                  learnerToggle.checked = !active; // Revert toggle
+                }
+              })
+              .catch(error => {
+                console.error('Error toggling learner mode:', error);
+                showToast('Error toggling learner mode', 'error');
+                learnerToggle.checked = !active; // Revert toggle
+              });
+            }
+            
+            function fetchSystemState() {
+              fetch('/api/system-state')
+              .then(response => response.json())
+              .then(data => {
+                updateSystemState(data.current_state);
+                updateTimestamp();
+              })
+              .catch(error => {
+                console.error('Error fetching system state:', error);
+              });
+            }
+            
+            function fetchRecentChanges() {
+              fetch('/api/learner/changes?limit=10')
+              .then(response => response.json())
+              .then(data => {
+                updateRecentChanges(data);
+              })
+              .catch(error => {
+                console.error('Error fetching recent changes:', error);
+                recentChanges.innerHTML = `
+                  <div class="alert alert-danger m-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Error loading recent changes. Please try again later.
+                  </div>
+                `;
+              });
+            }
+            
+            // Dashboard stats to kW conversion
+            function updateSystemState(state) {
+              // Update dashboard stats
+              updateValue('batteryValue', state.battery_soc ? state.battery_soc.toFixed(1) : '--');
+              
+              // Convert W to kW for power values
+              const pvPowerKw = state.pv_power ? (state.pv_power / 1000).toFixed(1) : '--';
+              const loadKw = state.load ? (state.load / 1000).toFixed(1) : '--';
+              const gridPowerKw = state.grid_power ? (state.grid_power / 1000).toFixed(1) : '--';
+              
+              updateValue('pvValue', pvPowerKw);
+              updateValue('loadValue', loadKw);
+              updateValue('gridVoltageValue', state.grid_voltage ? state.grid_voltage.toFixed(1) : '--');
+              
+              // Update detailed table
+              updateTableCell('battery_soc', state.battery_soc, '%', state.battery_soc < 20 ? 'danger' : state.battery_soc < 50 ? 'warning' : 'success');
+              updateTableCell('pv_power', state.pv_power ? state.pv_power / 1000 : null, 'kW', state.pv_power < 1000 ? 'warning' : 'success');
+              updateTableCell('load', state.load ? state.load / 1000 : null, 'kW', state.load > 10000 ? 'danger' : state.load > 5000 ? 'warning' : 'success');
+              updateTableCell('grid_voltage', state.grid_voltage, 'V', state.grid_voltage < 220 ? 'danger' : 'success');
+              updateTableCell('grid_power', state.grid_power ? state.grid_power / 1000 : null, 'kW', state.grid_power > 0 ? 'warning' : 'success');
+              updateTableCell('inverter_state', state.inverter_state, '', '');
+              
+              // Update gauges
+              if (state.battery_soc !== null) {
+                updateGauge('batterySocGauge', state.battery_soc / 100, getBatteryColor(state.battery_soc));
+                document.getElementById('batterySocValue').textContent = state.battery_soc ? state.battery_soc.toFixed(1) : '--';
+              }
+              
+              if (state.pv_power !== null) {
+                // Assuming max PV power is 10kW for gauge scaling
+                const pvPowerKw = state.pv_power / 1000;
+                const pvPowerPercentage = Math.min(pvPowerKw / 10, 1);
+                updateGauge('pvPowerGauge', pvPowerPercentage, '#f39c12');
+                document.getElementById('pvPowerValue').textContent = pvPowerKw.toFixed(1);
+              }
+              
+              if (state.load !== null) {
+                // Assuming max load is 15kW for gauge scaling
+                const loadKw = state.load / 1000;
+                const loadPercentage = Math.min(loadKw / 15, 1);
+                updateGauge('loadGauge', loadPercentage, '#e74c3c');
+                document.getElementById('loadValue2').textContent = loadKw.toFixed(1);
+              }
+            }
+            
+            function updateRecentChanges(changes) {
+              if (!changes || changes.length === 0) {
+                recentChanges.innerHTML = `
+                  <div class="alert alert-info m-3">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    No setting changes have been recorded yet.
+                  </div>
+                `;
+                return;
+              }
+              
+              let html = `
+                <table class="table table-hover table-striped mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Time</th>
+                      <th>Setting</th>
+                      <th>Change</th>
+                      <th>System State</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              `;
+              
+              changes.forEach(change => {
+                const date = new Date(change.timestamp);
+                const formattedDate = date.toLocaleString();
+                
+                const settingName = change.topic.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                // Format the old and new values
+                let oldValue = change.old_value;
+                let newValue = change.new_value;
+                
+                // If old or new value is undefined, display appropriate text
+                if (oldValue === undefined || oldValue === null) {
+                  oldValue = '<em>Not set</em>';
+                }
+                
+                if (newValue === undefined || newValue === null) {
+                  newValue = '<em>Not set</em>';
+                }
+                
+                // Create badge based on change type
+                let typeBadge = '';
+                switch (change.change_type) {
+                  case 'grid_charge':
+                    typeBadge = '<span class="badge bg-danger">Grid Charge</span>';
+                    break;
+                  case 'energy_pattern':
+                    typeBadge = '<span class="badge bg-success">Energy Pattern</span>';
+                    break;
+                  case 'voltage_point':
+                    typeBadge = '<span class="badge bg-warning text-dark">Voltage Point</span>';
+                    break;
+                  case 'max_discharge_current':
+                  case 'max_charge_current':
+                  case 'max_grid_charge_current':
+                  case 'max_generator_charge_current':
+                  case 'battery_float_charge_voltage':
+                  case 'battery_absorption_charge_voltage':
+                  case 'battery_equalization_charge_voltage':
+                    typeBadge = '<span class="badge bg-info">Battery Charging</span>';
+                    break;
+                  default:
+                    typeBadge = '<span class="badge bg-secondary">Setting</span>';
+                }
+                
+            // Format system state compact display
+                let systemState = '';
+                if (change.system_state) {
+                  systemState = `
+                    <small>
+                      ${change.system_state.battery_soc ? `<span class="badge ${getBatteryBadgeClass(change.system_state.battery_soc)}">SOC: ${change.system_state.battery_soc}%</span>` : ''}
+                      ${change.system_state.pv_power ? `<span class="badge badge-power">PV: ${(change.system_state.pv_power/1000).toFixed(1)}kW</span>` : ''}
+                      ${change.system_state.load ? `<span class="badge badge-load">Load: ${(change.system_state.load/1000).toFixed(1)}kW</span>` : ''}
+                    </small>
+                  `;
+                }
+                
+                html += `
+                  <tr>
+                    <td><small>${formattedDate}</small></td>
+                    <td>
+                      ${typeBadge}
+                      <div class="mt-1"><strong>${settingName}</strong></div>
+                    </td>
+                    <td>
+                      <div class="text-decoration-line-through text-muted">${oldValue}</div>
+                      <div class="text-success"><i class="bi bi-arrow-right-short"></i> ${newValue}</div>
+                    </td>
+                    <td>${systemState}</td>
+                  </tr>
+                `;
+              });
+              
+              html += `
+                  </tbody>
+                </table>
+              `;
+              
+              recentChanges.innerHTML = html;
+            }
+            
+            function updateTimestamp() {
+              const now = new Date();
+              lastUpdated.textContent = `Updated: ${now.toLocaleTimeString()}`;
+            }
+            
+            function updateValue(elementId, value) {
+              const element = document.getElementById(elementId);
+              if (element) {
+                // Add animation class if value has changed
+                if (element.textContent !== value) {
+                  element.classList.add('updated-value');
+                  setTimeout(() => {
+                    element.classList.remove('updated-value');
+                  }, 1500);
+                }
+                element.textContent = value;
+              }
+            }
+            
+            function updateTableCell(parameter, value, unit, statusClass) {
+              const valueCell = document.getElementById(`${parameter}_cell`);
+              const statusCell = document.getElementById(`${parameter}_status`);
+              const timeCell = document.getElementById(`${parameter}_time`);
+              
+              if (valueCell && value !== null && value !== undefined) {
+                let displayValue = parameter === 'inverter_state' ? value : `${value.toFixed(typeof value === 'number' ? 1 : 0)} ${unit}`;
+                
+                // Add animation if value has changed
+                if (valueCell.textContent !== displayValue) {
+                  valueCell.classList.add('updated-value');
+                  setTimeout(() => {
+                    valueCell.classList.remove('updated-value');
+                  }, 1500);
+                }
+                
+                valueCell.textContent = displayValue;
+              } else if (valueCell) {
+                valueCell.textContent = '--';
+              }
+              
+              if (statusCell) {
+                if (value !== null && value !== undefined) {
+                  let statusHtml = '';
+                  
+                  if (parameter === 'inverter_state') {
+                    statusHtml = `<span class="badge bg-info">${value}</span>`;
+                  } else if (parameter === 'grid_power') {
+                    // Special handling for grid power
+                    if (value > 1000) {
+                      statusHtml = '<span class="badge bg-danger">High Grid Draw</span>';
+                    } else if (value > 0) {
+                      statusHtml = '<span class="badge bg-warning text-dark">Grid Drawing</span>';
+                    } else if (value < -1000) {
+                      statusHtml = '<span class="badge bg-success">High Grid Export</span>';
+                    } else if (value < 0) {
+                      statusHtml = '<span class="badge bg-info">Grid Export</span>';
+                    } else {
+                      statusHtml = '<span class="badge bg-secondary">Neutral</span>';
+                    }
+                  } else if (statusClass === 'danger') {
+                    statusHtml = '<span class="badge bg-danger">Critical</span>';
+                  } else if (statusClass === 'warning') {
+                    statusHtml = '<span class="badge bg-warning text-dark">Warning</span>';
+                  } else if (statusClass === 'success') {
+                    statusHtml = '<span class="badge bg-success">Good</span>';
+                  } else {
+                    statusHtml = '<span class="badge bg-secondary">Unknown</span>';
+                  }
+                  
+                  statusCell.innerHTML = statusHtml;
+                } else {
+                  statusCell.innerHTML = '<span class="badge bg-secondary">Unknown</span>';
+                }
+              }
+              
+              if (timeCell) {
+                timeCell.textContent = new Date().toLocaleTimeString();
+              }
+            }
+            
+            function updateGauge(gaugeId, percentage, color) {
+              const gauge = document.getElementById(gaugeId);
+              if (gauge) {
+                gauge.style.setProperty('--fill-color', color);
+                gauge.style.setProperty('--fill-percent', `${percentage * 100}%`);
+              }
+            }
+            
+            function getBatteryColor(percentage) {
+              if (percentage < 20) return '#e74c3c'; // Red
+              if (percentage < 50) return '#f39c12'; // Orange
+              return '#2ecc71'; // Green
+            }
+            
+            function getBatteryBadgeClass(percentage) {
+              if (percentage < 20) return 'badge-battery badge-battery-low';
+              if (percentage < 50) return 'badge-battery badge-battery-medium';
+              return 'badge-battery badge-battery-high';
+            }
+            
+            function showToast(message, type = 'success') {
+              // Create toast container if it doesn't exist
+              let toastContainer = document.querySelector('.toast-container');
+              
+              if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+              }
+              
+              // Create toast element
+              const toastId = `toast-${Date.now()}`;
+              const toastEl = document.createElement('div');
+              toastEl.className = `toast ${type === 'error' ? 'bg-danger text-white' : 'bg-success text-white'}`;
+              toastEl.setAttribute('role', 'alert');
+              toastEl.setAttribute('aria-live', 'assertive');
+              toastEl.setAttribute('aria-atomic', 'true');
+              toastEl.setAttribute('id', toastId);
+              
+              toastEl.innerHTML = `
+                <div class="toast-header ${type === 'error' ? 'bg-danger text-white' : 'bg-success text-white'}">
+                  <strong class="me-auto">
+                    <i class="bi ${type === 'error' ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill'} me-2"></i>
+                    Energy System
+                  </strong>
+                  <small>just now</small>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                  ${message}
+                </div>
+              `;
+              
+              toastContainer.appendChild(toastEl);
+              
+              // Initialize and show the toast
+              const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
+              toast.show();
+              
+              // Remove toast after it's hidden
+              toastEl.addEventListener('hidden.bs.toast', function() {
+                toastEl.remove();
+              });
+            }
+            
+            function exportData() {
+              fetch('/api/learner/changes')
+                .then(response => response.json())
+                .then(data => {
+                  // Convert data to CSV or JSON
+                  const json = JSON.stringify(data, null, 2);
+                  const blob = new Blob([json], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  
+                  // Create and trigger download
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `energy_system_learner_data_${new Date().toISOString().slice(0, 10)}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  
+                  showToast('Data exported successfully');
+                })
+                .catch(error => {
+                  console.error('Error exporting data:', error);
+                  showToast('Error exporting data', 'error');
+                });
+            }
+          });
+        </script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-  // Store the current system state globally once we fetch it
-  let currentSystemState = null;
-  // Set update interval (in milliseconds)
-  const updateInterval = 30000; // 30 seconds
-
-  // Toggle learner mode
-  document.getElementById('toggleLearner').addEventListener('click', function() {
-    fetch('/api/learner/toggle', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        window.location.reload();
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  });
-
-  // Initial load of all panels
-  loadAllData();
+       // loading js
+        
+   document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const pageContent = document.getElementById('pageContent');
   
-  // Set up periodic refresh
-  setInterval(loadAllData, updateInterval);
-
-  // Function to load all data
-// Function to load all data
-function loadAllData() {
-  // First load current system state, then use it for all panels
-  fetch('/api/learner/status')
-    .then(response => response.json())
-    .then(data => {
-      // Store current system state for use in other panels
-      currentSystemState = data.current_system_state;
-      
-      // Update the system state panel
-      updateSystemStatePanel(currentSystemState);
-      
-      // Now that we have the current state, load the other panels
-      loadEnergyPatternChanges();
-      loadGridChargeChanges();
-      loadVoltagePointChanges(); // Add this line to call the function
-      loadAllRecentChanges();
-    })
-    .catch(error => {
-      console.error('Error loading system state:', error);
-      // Still try to load other panels even if system state fails
-      loadEnergyPatternChanges();
-      loadGridChargeChanges();
-      loadVoltagePointChanges(); // Add this line here too
-      loadAllRecentChanges();
-    });
-}
-
-  // Function to update the system state panel
-  function updateSystemStatePanel(systemState) {
-    const container = document.getElementById('systemStateContainer');
-    
-    if (!systemState) {
-      container.innerHTML = '<p class="text-gray-500 text-center py-4">System state data not available.</p>';
-      return;
-    }
-    
-    let html = `
-      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
-        <span class="text-sm text-gray-500 mb-1">Battery State of Charge</span>
-        <div class="flex items-center">
-          <i class="fas fa-battery-half text-green-500 mr-2"></i>
-          <span class="text-xl font-semibold">${systemState.battery_soc || 'N/A'}%</span>
-        </div>
-      </div>
-      
-      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
-        <span class="text-sm text-gray-500 mb-1">PV Power</span>
-        <div class="flex items-center">
-          <i class="fas fa-sun text-yellow-500 mr-2"></i>
-          <span class="text-xl font-semibold">${systemState.pv_power || 'N/A'} W</span>
-        </div>
-      </div>
-      
-      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
-        <span class="text-sm text-gray-500 mb-1">Load</span>
-        <div class="flex items-center">
-          <i class="fas fa-plug text-blue-500 mr-2"></i>
-          <span class="text-xl font-semibold">${systemState.load || 'N/A'} W</span>
-        </div>
-      </div>
-      
-      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
-        <span class="text-sm text-gray-500 mb-1">Grid Voltage</span>
-        <div class="flex items-center">
-          <i class="fas fa-bolt text-orange-500 mr-2"></i>
-          <span class="text-xl font-semibold">${systemState.grid_voltage || 'N/A'} V</span>
-        </div>
-      </div>
-      
-      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
-        <span class="text-sm text-gray-500 mb-1">Grid Power</span>
-        <div class="flex items-center">
-          <i class="fas fa-tower-broadcast text-red-500 mr-2"></i>
-          <span class="text-xl font-semibold">${systemState.grid_power || 'N/A'} W</span>
-        </div>
-      </div>
-      
-      <div class="flex flex-col p-4 border border-gray-200 rounded-lg">
-        <span class="text-sm text-gray-500 mb-1">Inverter State</span>
-        <div class="flex items-center">
-          <i class="fas fa-microchip text-purple-500 mr-2"></i>
-          <span class="text-xl font-semibold">${systemState.inverter_state || 'N/A'}</span>
-        </div>
-      </div>
-    `;
-    
-    container.innerHTML = html;
-  }
-
-  // Function to load energy pattern changes
-  function loadEnergyPatternChanges() {
-    fetch('/api/energy-pattern-changes')
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('energyPatternContainer');
-        if (data.length === 0) {
-          container.innerHTML = '<p class="text-gray-500 text-center py-4">No energy pattern changes recorded yet.</p>';
-          return;
-        }
-        
-        // Show latest 3 changes
-        const latestChanges = data.slice(0, 3);
-        let html = '';
-        
-        latestChanges.forEach(change => {
-          // Use the current system state if the change record doesn't have it
-          const systemState = (change.system_state && Object.keys(change.system_state).length > 0) 
-            ? change.system_state 
-            : currentSystemState;
-          
-          html += `
-            <div class="mb-4 p-4 border border-gray-200 rounded-lg change-card relative">
-              <span class="badge px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                ${new Date(change.timestamp).toLocaleDateString()}
-              </span>
-              <h3 class="font-medium text-gray-900 mb-1">${change.topic}</h3>
-              <div class="flex items-center justify-between text-sm">
-                <div class="text-gray-500">
-                  <span class="font-medium">From:</span> ${formatValue(change.old_value)}
-                </div>
-                <i class="fas fa-arrow-right text-gray-400"></i>
-                <div class="text-blue-600">
-                  <span class="font-medium">To:</span> ${formatValue(change.new_value)}
-                </div>
-              </div>
-              <div class="mt-2 text-xs text-gray-500">
-                Battery: ${systemState?.battery_soc || currentSystemState?.battery_soc || 'N/A'}% | 
-                PV: ${systemState?.pv_power || currentSystemState?.pv_power || 'N/A'}W | 
-                Load: ${systemState?.load || currentSystemState?.load || 'N/A'}W
-              </div>
-            </div>
-          `;
-        });
-        
-        container.innerHTML = html;
-      })
-      .catch(error => {
-        console.error('Error loading energy pattern changes:', error);
-      });
-  }
-
-  // Function to load grid charge changes
-  function loadGridChargeChanges() {
-    fetch('/api/grid-charge-changes')
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('gridChargeContainer');
-        if (data.length === 0) {
-          container.innerHTML = '<p class="text-gray-500 text-center py-4">No grid charge changes recorded yet.</p>';
-          return;
-        }
-        
-        // Show latest 3 changes
-        const latestChanges = data.slice(0, 3);
-        let html = '';
-        
-        latestChanges.forEach(change => {
-          // Use the current system state if the change record doesn't have it
-          const systemState = (change.system_state && Object.keys(change.system_state).length > 0) 
-            ? change.system_state 
-            : currentSystemState;
-          
-          html += `
-            <div class="mb-4 p-4 border border-gray-200 rounded-lg change-card relative">
-              <span class="badge px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
-                ${new Date(change.timestamp).toLocaleDateString()}
-              </span>
-              <h3 class="font-medium text-gray-900 mb-1">${change.topic}</h3>
-              <div class="flex items-center justify-between text-sm">
-                <div class="text-gray-500">
-                  <span class="font-medium">From:</span> ${formatValue(change.old_value)}
-                </div>
-                <i class="fas fa-arrow-right text-gray-400"></i>
-                <div class="text-purple-600">
-                  <span class="font-medium">To:</span> ${formatValue(change.new_value)}
-                </div>
-              </div>
-              <div class="mt-2 text-xs text-gray-500">
-                Battery: ${systemState?.battery_soc || currentSystemState?.battery_soc || 'N/A'}% | 
-                Grid: ${systemState?.grid_power || currentSystemState?.grid_power || 'N/A'}W | 
-                Grid V: ${systemState?.grid_voltage || currentSystemState?.grid_voltage || 'N/A'}V
-              </div>
-            </div>
-          `;
-        });
-        
-        container.innerHTML = html;
-      })
-      .catch(error => {
-        console.error('Error loading grid charge changes:', error);
-      });
-  }
-
-
-   // Function to load voltage point changes
-function loadVoltagePointChanges() {
-  fetch('/api/voltage-point-changes')
-    .then(response => response.json())
-    .then(data => {
-      const container = document.getElementById('voltagePointContainer');
-      if (data.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-4">No voltage point changes recorded yet.</p>';
-        return;
-      }
-      
-      // Show latest 3 changes
-      const latestChanges = data.slice(0, 3);
-      let html = '';
-      
-      latestChanges.forEach(change => {
-        // Use the current system state if the change record doesn't have it
-        const systemState = (change.system_state && Object.keys(change.system_state).length > 0) 
-          ? change.system_state 
-          : currentSystemState;
-        
-        html += `
-          <div class="mb-4 p-4 border border-gray-200 rounded-lg change-card relative">
-            <span class="badge px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-semibold">
-              ${new Date(change.timestamp).toLocaleDateString()}
-            </span>
-            <h3 class="font-medium text-gray-900 mb-1">${change.topic}</h3>
-            <div class="flex items-center justify-between text-sm">
-              <div class="text-gray-500">
-                <span class="font-medium">From:</span> ${formatValue(change.old_value)}
-              </div>
-              <i class="fas fa-arrow-right text-gray-400"></i>
-              <div class="text-indigo-600">
-                <span class="font-medium">To:</span> ${formatValue(change.new_value)}
-              </div>
-            </div>
-            <div class="mt-2 text-xs text-gray-500">
-              Battery: ${systemState?.battery_soc || currentSystemState?.battery_soc || 'N/A'}% | 
-              Grid V: ${systemState?.grid_voltage || currentSystemState?.grid_voltage || 'N/A'}V | 
-              Load: ${systemState?.load || currentSystemState?.load || 'N/A'}W
-            </div>
-          </div>
-        `;
-      });
-      
-      container.innerHTML = html;
-    })
-    .catch(error => {
-      console.error('Error loading voltage point changes:', error);
-    });
-}
-
-  // Function to load all recent changes
-  function loadAllRecentChanges() {
-    fetch('/api/learner/changes')
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById('recentChangesContainer');
-        if (data.length === 0) {
-          container.innerHTML = '<p class="text-gray-500 text-center py-4">No changes recorded yet.</p>';
-          return;
-        }
-        
-        // Show latest 5 changes
-        const latestChanges = data.slice(0, 5);
-        let html = `<div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Topic</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">`;
-        
-        latestChanges.forEach(change => {
-          const changeType = change.change_type || 'unknown';
-          const typeColor = 
-            changeType === 'grid_charge' ? 'purple' :
-            changeType === 'energy_pattern' ? 'blue' :
-            'gray';
-          
-          html += `
-            <tr id="change-${change.id}" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${formatDateTime(change.timestamp)}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-               ${change.topic}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <span class="text-gray-500">${formatValue(change.old_value)}</span>
-                <i class="fas fa-arrow-right mx-2 text-gray-400"></i>
-                <span class="font-medium text-${typeColor}-600">${formatValue(change.new_value)}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-${typeColor}-100 text-${typeColor}-800">
-                  ${formatChangeType(changeType)}
-                </span>
-              </td>
-            </tr>
-          `;
-        });
-        
-        html += `
-            </tbody>
-          </table>
-        </div>`;
-        
-        container.innerHTML = html;
-      })
-      .catch(error => {
-        console.error('Error loading changes:', error);
-      });
-  }
-
-  // Format functions
-  function formatTopic(topic) {
-    if (!topic) return 'Unknown';
-    
-    // Extract the relevant part after the prefix
-    const parts = topic.split('/');
-    return parts[parts.length - 1].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  }
-
-  function formatValue(value) {
-    if (value === undefined || value === null) return 'N/A';
-    if (typeof value === 'object') return JSON.stringify(value);
-    return value;
-  }
-
-  function formatDateTime(timestamp) {
-    if (!timestamp) return 'Unknown';
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  }
-
-  function formatChangeType(type) {
-    if (!type) return 'Other';
-    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  }
-});
+    // Simulate loading time (you can adjust this as needed)
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+      pageContent.style.display = 'block';
+      // Trigger a custom event to signal that the page is ready
+      document.dispatchEvent(new Event('pageReady'));
+    }, 1500); // 1.5 seconds loading time
+  });
 </script>
-
-
 
 </body>
 </html>
