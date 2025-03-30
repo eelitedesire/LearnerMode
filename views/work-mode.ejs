@@ -3,23 +3,778 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy System - Work Mode Settings</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .card {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    <title>Carbonoz SolarAutopilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+}
+:root {
+    --primary-color: #DEAF0B;
+    --bg-color: #f5f6fa;
+    --text-color: #2f3640;
+    --icon-color: #636e72;
+    --green: #4CAF50;
+    --red: #F44336;
+    --blue: #2196F3;
+    --amber: #FFC107;
+    --gray: #757575;
+   }
+   
+   body, html {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    
+   }
+    /* Sidebar styles */
+    .sidebar {
+        width: 280px;
+        height: 100vh;
+        background-color: white;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        transition: width 0.3s ease;
+    }
+   
+           .logo-container {
+               padding: 1.5rem;
+               border-bottom: 1px solid #e5e7eb;
+               display: flex;
+               align-items: center;
+               gap: 0.75rem;
+           }
+   
+           .logo-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+   }
+   
+   .logo-text {
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 18px;
+   }
+   
+   .logo-text .highlight {
+    color: var(--primary-color);
+    margin-left: 10px;
+   }
+   
+   
+   nav {
+    flex-grow: 1;
+   }
+   
+   nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+   }
+   nav li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 18px;
+   }
+   
+   nav li a{
+    text-decoration: none;
+    color: #2f3640;
+    font-weight: bold;
+   }
+   nav li:hover {
+    background-color: var(--bg-color);
+   }
+   
+   nav li i {
+    margin-right: 15px;
+    color: var(--icon-color);
+    font-size: 24px;
+   }
+   
+   .bottom-options {
+    padding: 20px;
+    border-top: 1px solid #dcdde1;
+   }
+   
+   .toggle-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 16px;
+   }
+   
+   .toggle-text {
+    margin-right: 10px;
+   }
+   
+   .toggle-switch {
+    width: 50px;
+    height: 25px;
+    background-color: #dcdde1;
+    border-radius: 12.5px;
+    position: relative;
+    transition: background-color 0.3s;
+   }
+   .toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+   }
+   
+   .toggle-switch.active {
+    background-color: var(--primary-color);
+   }
+   
+   .toggle-switch.active::before {
+    transform: translateX(25px);
+   }
+   
+   .sidebar.collapsed .logo-text,
+   .sidebar.collapsed .search,
+   .sidebar.collapsed nav li span,
+   .sidebar.collapsed .toggle-text {
+    display: none;
+   }
+   
+   .sidebar.collapsed .logo {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li {
+    justify-content: center;
+   }
+   
+   .sidebar.collapsed nav li i {
+    margin-right: 0;
+   }
+           /* Main content styles */
+           .main-content {
+               flex: 1;
+               margin-left: 280px;
+               padding: 2rem;
+           }
+   
+           .content-header {
+               margin-bottom: 2rem;
+           }
+   
+           .content-header h2 {
+               font-size: 1.875rem;
+               font-weight: 700;
+               color: #111827;
+           }
+   
+           .metrics-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+               gap: 1.5rem;
+               margin-bottom: 2rem;
+           }
+   
+           .metric-card {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .metric-title {
+               font-size: 0.875rem;
+               font-weight: 600;
+               color: #4b5563;
+               margin-bottom: 0.5rem;
+           }
+   
+           .metric-value {
+               font-size: 1.5rem;
+               font-weight: 700;
+               margin-bottom: 0.25rem;
+           }
+   
+           .metric-subtitle {
+               font-size: 0.875rem;
+               color: #6b7280;
+           }
+   
+           .chart-container {
+               background: white;
+               border-radius: 12px;
+               padding: 1.5rem;
+               margin-bottom: 2rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .chart-wrapper {
+               height: 400px;
+               margin-top: 1rem;
+           }
+   
+           .period-buttons {
+               display: flex;
+               gap: 0.75rem;
+               margin-bottom: 1rem;
+           }
+   
+           .period-btn {
+               padding: 0.5rem 1rem;
+               border: none;
+               background-color: #e5e7eb;
+               color: #4b5563;
+               border-radius: 6px;
+               cursor: pointer;
+               font-weight: 500;
+               transition: all 0.2s;
+           }
+   
+           .period-btn:hover {
+               background-color: #d1d5db;
+           }
+   
+           .period-btn.active {
+               background-color: #DEAF0B;
+               color: white;
+           }
+   
+           /* Toggle styles */
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .slider {
+               position: absolute;
+               cursor: pointer;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+               background-color: #e5e7eb;
+               transition: .4s;
+               border-radius: 34px;
+           }
+   
+           .slider:before {
+               position: absolute;
+               content: "";
+               height: 16px;
+               width: 16px;
+               left: 4px;
+               bottom: 4px;
+               background-color: white;
+               transition: .4s;
+               border-radius: 50%;
+           }
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           /* Updated and new styles */
+           .bottom-controls {
+               padding: 1.5rem;
+               border-top: 1px solid #e5e7eb;
+           }
+   
+           .control-item {
+               display: flex;
+               justify-content: space-between;
+               align-items: center;
+               margin-bottom: 1rem;
+           }
+   
+           .control-label {
+               font-size: 0.875rem;
+               color: #4b5563;
+           }
+   
+           .toggle {
+               position: relative;
+               display: inline-block;
+               width: 44px;
+               height: 24px;
+           }
+   
+           .toggle input {
+               opacity: 0;
+               width: 0;
+               height: 0;
+           }
+   
+           .sidebar {
+    width: 280px;
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    z-index: 10;
+   }
+   
+   .sidebar.collapsed {
+    width: 80px;
+   }
+   
+   .logo {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+   }
+   
+   
+           input:checked + .slider {
+               background-color: #DEAF0B;
+           }
+   
+           input:checked + .slider:before {
+               transform: translateX(20px);
+           }
+   
+           .total-emissions {
+               font-size: 1.25rem;
+               font-weight: 600;
+               margin-bottom: 1rem;
+               color: #374151;
+           }
+   
+           .summary-grid {
+               display: grid;
+               grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+               gap: 1rem;
+               margin-bottom: 2rem;
+           }
+   
+           .summary-item {
+               background-color: white;
+               border-radius: 8px;
+               padding: 1rem;
+               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+           }
+   
+           .summary-label {
+               font-size: 0.875rem;
+               color: #6b7280;
+               display: block;
+               margin-bottom: 0.5rem;
+           }
+   
+           .summary-value {
+               font-size: 1.25rem;
+               font-weight: 600;
+           }
+   
+       
+   
+           /* Responsive styles */
+           @media (max-width: 768px) {
+               .sidebar {
+                   width: 100%;
+                   height: auto;
+                   position: static;
+                   border-right: none;
+                   border-bottom: 1px solid #e5e7eb;
+               }
+   
+               .main-content {
+                   margin-left: 0;
+               }
+   
+               body.collapsed-sidebar .sidebar {
+                   display: none;
+               }
+   
+               body.collapsed-sidebar .main-content {
+                   margin-left: 0;
+               }
+   
+               .metrics-grid,
+               .summary-grid {
+                   grid-template-columns: 1fr;
+               }
+   
+               .period-buttons {
+                   flex-wrap: wrap;
+               }
+   
+               .period-btn {
+                   flex: 1 0 calc(50% - 0.375rem);
+                   margin-bottom: 0.75rem;
+               }
+           }
+
+/* loading css */
+
+.loading-overlay {
+ position: fixed;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: #f8f9fa;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ z-index: 9999;
+}
+
+.loading-spinner {
+ width: 60px;
+ height: 60px;
+ border: 5px solid #e0e0e0;
+ border-top: 5px solid #3498db;
+ border-radius: 50%;
+ animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
+}
+
+.dashboard-column {
+flex-basis: calc(33.33333% - 2px);
+margin-right: 2px;
+margin-bottom: 2px;
+}
+
+@media only screen and (max-width: 128em) {
+.dashboard-column {
+ flex-basis: calc(50% - 2px);
+}
+}
+
+@media only screen and (max-width: 62em) {
+.dashboard-column {
+ flex-basis: calc(100% - 2px);
+}
+}
+
+.dashboard-column .card {
+border: 0;
+}
+
+.dashboard-column .card .iframe-moving {
+display: block;
+height: 100%;
+min-height: 33em;
+position: relative;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-moving {
+ min-height: 107em;
+}
+}
+.dashboard-column .card .iframe-overview {
+display: block;
+height: 100%;
+min-height: 22em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-overview {
+ min-height: 18em;
+}
+}
+
+.dashboard-column .card .iframe-battery-power {
+display: block;
+height: 60%;
+min-height: 18em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-power {
+ min-height: 15em;
+}
+}
+
+.dashboard-column .card .iframe-battery-soc {
+display: block;
+height: 40%;
+min-height: 14em;
+width: 100%;
+}
+
+@media only screen and (max-width: 46em) {
+.dashboard-column .card .iframe-battery-soc {
+ min-height: 12em;
+}
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: rgba(24, 27, 31, 1);
+ color: #f5f6fa;
+}
+
+.dark-mode .main-content{
+    background-color: rgba(24, 27, 31, 1);
+    color: #f5f6fa;
+}
+
+.dark-mode .sidebar {
+    background-color: rgba(24, 27, 31, 1);
+}
+
+.dark-mode .sidebar .logo-icon {
+ color: #2f3640;
+}
+
+.dark-mode .sidebar .logo-text {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li:hover {
+ background-color: #383838;
+}
+
+.dark-mode .sidebar nav li a {
+ color: #f5f6fa;
+}
+
+.dark-mode .sidebar nav li i {
+ color: #dcdde1;
+}
+
+.dark-mode .toggle-sidebar,
+.dark-mode .toggle-dark-mode {
+ color: #f5f6fa;
+}
+
+.dark-mode .toggle-switch {
+    background-color: var(--primary-color);
+}
+
+.dark-mode .toggle-switch.active {
+ background-color: var(--primary-color);
+}
+
+.dark-mode header {
+    background-color: rgb(17, 18, 23);
+}
+
+.dark-mode .content-card {
+    background-color: rgba(24, 27, 31, 1);
+ color: #fff;
+}
+
+
+.dark-mode .loading-overlay{
+    background-color: rgba(24, 27, 31, 1);
+}
+
+/* Mobile Sidebar Improvements */
+@media (max-width: 768px) {
+    /* Sidebar base styles */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1000;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: none;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Improved hamburger button */
+    .mobile-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: none;
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 8px;
+    }
+
+    .mobile-toggle span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background-color: var(--text-color);
+        margin: 5px auto;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Improved nav items */
+    .sidebar nav ul {
+        padding: 1rem 0;
+    }
+
+    .sidebar nav li {
+        padding: 0.875rem 1.5rem;
+        margin: 0.25rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .sidebar nav li a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .sidebar nav li i {
+        font-size: 1.25rem;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .sidebar nav li:active {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Improved overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Dark mode adjustments */
+    .dark-mode .mobile-toggle {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dark-mode .mobile-toggle span {
+        background-color: #f5f6fa;
+    }
+
+    .dark-mode .sidebar nav li:active {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Ensure main content adjusts properly */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding-top: 4.5rem;
+        transition: margin-left 0.3s ease;
+    }
+
+    body.sidebar-open .main-content {
+        filter: blur(2px);
+        pointer-events: none;
+    }
+}
+
+
+  /* Main content styling */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2rem;
+  color: var(--text-color);
+  transition: margin-left 0.3s ease;
+}
+
+.card {
+         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             border-radius: 8px;
             border: none;
         }
         .card-header {
-            background-color: #f1f8ff;
+            background-color: #DEAF0B;
             border-bottom: 1px solid #e3f2fd;
             border-radius: 8px 8px 0 0 !important;
+            color: #fff;
+        }
+        .card-header button{
+            color: #fff;
         }
         .change-item {
             cursor: pointer;
@@ -37,11 +792,12 @@
             font-weight: 500;
         }
         .inverter-heading {
-            background-color: #e9ecef;
+            background-color: #DEAF0B;
             padding: 10px 15px;
             font-weight: 600;
             margin-top: 15px;
             border-radius: 5px;
+            color: #fff;
         }
         .modal-header {
             background-color: #f1f8ff;
@@ -55,7 +811,7 @@
             font-size: 1.1rem;
         }
         .edit-icon {
-            color: #007bff;
+            color: #28A745;
             opacity: 0.7;
         }
         .change-item:hover .edit-icon {
@@ -63,581 +819,933 @@
         }
         .nav-link.active {
             font-weight: bold;
-            color: #007bff !important;
+            color: #DEAF0B !important;
         }
-    </style>
+.btn-primaryy{
+  background: #DEAF0B;
+  color: #fff;
+}
+.btn-primaryy:hover{
+  background: #c29b0f;
+  color: #fff;
+}
+
+.btn-secondaryy{
+    background: #DC3545;
+    color: #fff;
+}
+
+.btn-secondaryy:hover{
+    background: #c83442;
+    color: #fff;
+}
+
+
+/* Enhanced responsive styles for main content */
+.main-content {
+  padding: 2rem;
+  transition: margin-left 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    padding: 1.5rem;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .card-header div {
+    margin-top: 0.75rem;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+    margin-left: 0 !important;
+  }
+  
+  .d-flex.flex-wrap.justify-content-center.gap-3 {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding: 0.5rem;
+    gap: 0.5rem !important;
+  }
+  
+  .d-flex.flex-wrap.justify-content-center.gap-3 .nav-link {
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .card-header h5 {
+    font-size: 1.1rem;
+  }
+  
+  .pattern-option {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .main-content {
+    padding: 0.75rem;
+  }
+  
+  .changes-list {
+    max-height: 300px;
+  }
+  
+  .card-header {
+    padding: 0.75rem;
+  }
+  
+  .card-header button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  
+  .card-body {
+    padding: 0.75rem;
+  }
+  
+  .inverter-heading {
+    font-size: 0.95rem;
+  }
+}
+
+/* Dark mode styles for main content */
+.dark-mode .main-content {
+  background-color: rgba(24, 27, 31, 1);
+  color: #f5f6fa;
+}
+
+.dark-mode .d-flex.flex-wrap.justify-content-center.gap-3 {
+  background-color: rgba(18, 21, 25, 0.8) !important;
+}
+
+.dark-mode .nav-link {
+  color: #dcdde1;
+}
+
+.dark-mode .nav-link.active {
+  color: var(--primary-color) !important;
+}
+
+.dark-mode .card {
+  background-color: rgba(32, 35, 41, 1);
+  border-color: rgba(52, 58, 64, 0.5);
+}
+
+.dark-mode .card-header {
+  background-color: rgba(32, 35, 41, 0.9);
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+.dark-mode .change-item {
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+.dark-mode .change-item:hover {
+  background-color: rgba(40, 44, 52, 1);
+}
+
+.dark-mode .alert-info {
+  background-color: rgba(0, 123, 255, 0.2);
+  color: #8ecaff;
+  border-color: rgba(0, 123, 255, 0.3);
+}
+
+.dark-mode .alert-warning {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffe083;
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.dark-mode .alert-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff8b96;
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.dark-mode .alert-success {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #8bd8a0;
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.dark-mode .inverter-heading {
+  background-color: rgba(222, 175, 11, 0.8);
+}
+
+.dark-mode .system-stat {
+  background-color: rgba(36, 40, 47, 1);
+}
+
+.dark-mode .pattern-card {
+  background-color: rgba(36, 40, 47, 1);
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+.dark-mode .pattern-card:hover {
+  background-color: rgba(44, 49, 58, 1);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dark-mode .pattern-card.active {
+  border-color: var(--primary-color);
+  background-color: rgba(48, 52, 63, 1);
+}
+
+.dark-mode .text-muted,
+.dark-mode .small.text-muted {
+  color: #adb5bd !important;
+}
+
+.dark-mode .modal-content {
+  background-color: rgba(32, 35, 41, 1);
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+.dark-mode .modal-header {
+  background-color: rgba(36, 40, 47, 1);
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+.dark-mode .table {
+  color: #f5f6fa;
+}
+
+.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(40, 44, 52, 0.5);
+}
+
+.dark-mode .form-select,
+.dark-mode .input-group-text {
+  background-color: rgba(36, 40, 47, 1);
+  border-color: rgba(52, 58, 64, 0.8);
+  color: #f5f6fa;
+}
+
+/* Loading overlay in dark mode */
+.dark-mode .loading-overlay {
+  background-color: rgba(24, 27, 31, 0.8);
+}
+
+.dark-mode .loading-spinner {
+  border-color: #333;
+  border-top-color: var(--primary-color);
+}
+
+/* Custom styles for better visualization in both modes */
+.pattern-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pattern-card .card-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pattern-card .card-text {
+  flex-grow: 1;
+}
+
+.changes-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.changes-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.changes-list::-webkit-scrollbar-thumb {
+  background-color: rgba(150, 150, 150, 0.5);
+  border-radius: 4px;
+}
+
+.dark-mode .changes-list::-webkit-scrollbar-thumb {
+  background-color: rgba(80, 80, 80, 0.5);
+}
+
+/* Responsive support for pattern cards */
+@media (min-width: 577px) and (max-width: 992px) {
+  .pattern-option {
+    min-width: 50%;
+  }
+}
+
+/* Better support for tables in dark mode */
+.dark-mode .table-responsive {
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+.dark-mode tbody, 
+.dark-mode td, 
+.dark-mode tfoot, 
+.dark-mode th, 
+.dark-mode thead, 
+.dark-mode tr {
+  border-color: rgba(52, 58, 64, 0.8);
+}
+
+/* Enhance focus states for dark mode */
+.dark-mode .form-select:focus,
+.dark-mode .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(222, 175, 11, 0.25);
+  background-color: rgba(40, 44, 52, 1);
+}
+
+/* Improve navigation tabs scrolling */
+.d-flex.flex-wrap.justify-content-center.gap-3::-webkit-scrollbar {
+  height: 4px;
+}
+
+.d-flex.flex-wrap.justify-content-center.gap-3::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.d-flex.flex-wrap.justify-content-center.gap-3::-webkit-scrollbar-thumb {
+  background-color: rgba(150, 150, 150, 0.5);
+  border-radius: 4px;
+}
+</style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="/"><i class="fas fa-solar-panel me-2"></i>Energy System Monitor</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/grid-charge"><i class="fas fa-plug me-1"></i>Grid Charge</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/energy-pattern"><i class="fas fa-battery-three-quarters me-1"></i>Energy Pattern</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/work-mode"><i class="fas fa-cogs me-1"></i>Work Mode</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/battery-charging"><i class="fas fa-charging-station me-1"></i>Battery Charging</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/voltage-point"><i class="fas fa-bolt me-1"></i>Voltage Points</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/rules"><i class="fas fa-tasks me-1"></i>Rules</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/learner"><i class="fas fa-brain me-1"></i>Learner</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
+      <!-- Add hamburger menu button -->
+      <button class="mobile-toggle" id="mobileToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
     <div class="container">
-        <!-- Alerts container -->
-        <div id="alerts-container"></div>
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-spinner"></div>
+          </div>
+          <div id="pageContent"> </div>
 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Changes</h5>
-                        <div>
-                            <button class="btn btn-primary" id="refresh-settings">
-                                <i class="fas fa-sync-alt me-1"></i> Refresh
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Click on any setting to modify its value. All inverters are displayed below.
-                        </div>
-                        
-                        <!-- Recent changes will be loaded here -->
-                        <div id="recent-changes-container">
-                            <p class="text-center py-5">
-                                <span class="spinner-border text-primary" role="status"></span>
-                                <br>
-                                <span class="mt-2 d-inline-block">Loading recent changes...</span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+          <div class="sidebar" id="sidebar">
+            <div class="logo">
+              <div class="logo-icon">
+                <img src="https://carbonoz.com/assets/images/image04.jpg?v=8b5d1d9b" width="45px" alt="">
+              </div>
+              <a href="https://carbonoz.com/" target="_blank" style="text-decoration: none;">
+                <span class="logo-text">CARBONOZ <span class="highlight">SolarAutopilot</span></span>
+              </a>
             </div>
-        </div>
-    </div>
-
-    <!-- Edit Setting Modal -->
-    <div class="modal fade" id="editSettingModal" tabindex="-1" aria-labelledby="editSettingModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editSettingModalLabel">Edit Setting</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editSettingForm">
-                        <input type="hidden" id="edit-inverter">
-                        <input type="hidden" id="edit-setting">
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-bold" id="setting-name-display">Setting</label>
-                            <p class="text-muted small" id="setting-inverter-display">Inverter</p>
-                        </div>
-                        
-                        <div class="mb-3" id="value-input-container">
-                            <!-- Will be dynamically populated based on setting type -->
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Current Value</label>
-                            <p class="form-control-plaintext" id="current-value-display">-</p>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="save-setting-btn">Save Changes</button>
-                </div>
+          
+            <nav>
+              <ul>
+                <li><a href="/"><i>🏠</i><span>Dashboard</span></a></li>
+                <li><a href="/chart"><i>📊</i><span>Charts</span></a></li>
+                <li><a href="/messages"><i>💬</i><span>Messages</span></a></li>
+                <li><a href="/settings"><i>⚙️</i><span>Settings</span></a></li>
+                <li><a href="/analytics"><i>📈</i><span>Analytics</span></a></li>
+                <li><a href="/learner"><i>🧠</i><span>Learner Mode</span></a></li>
+                <li><a href="/results"><i>🌱</i><span>Carbon Intensity</span></a></li>
+              </ul>
+            </nav>
+            
+            <div class="bottom-options">
+              <div class="toggle-dark-mode" id="toggleDarkMode">
+                <span class="toggle-text">Dark Mode</span>
+                <div class="toggle-switch" id="darkModeSwitch"></div>
+              </div>
             </div>
-        </div>
-    </div>
+          </div>
+          
+     
 
-    <!-- JavaScript Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    
-    <script>
-        // Global variables for settings metadata
-        const settingsMetadata = {
-            'work_mode': {
-                display: 'Work Mode',
-                type: 'select',
-                options: [
-                    { value: 'Battery first', label: 'Battery First' },
-                    { value: 'Grid first', label: 'Grid First' },
-                    { value: 'Solar first', label: 'Solar First' },
-                    { value: 'Solar + Battery', label: 'Solar + Battery' },
-                    { value: 'Solar + Grid', label: 'Solar + Grid' },
-                    { value: 'Zero export to CT', label: 'Zero Export to CT' }
-                ]
-            },
-            'remote_switch': {
-                display: 'Remote Switch',
-                type: 'select',
-                options: [
-                    { value: 'Enabled', label: 'Enabled' },
-                    { value: 'Disabled', label: 'Disabled' }
-                ]
-            },
-            'generator_charge': {
-                display: 'Generator Charge',
-                type: 'select',
-                options: [
-                    { value: 'Enabled', label: 'Enabled' },
-                    { value: 'Disabled', label: 'Disabled' }
-                ]
-            },
-            'force_generator_on': {
-                display: 'Force Generator On',
-                type: 'select',
-                options: [
-                    { value: 'Enabled', label: 'Enabled' },
-                    { value: 'Disabled', label: 'Disabled' }
-                ]
-            },
-            'solar_export_when_battery_full': {
-                display: 'Solar Export When Battery Full',
-                type: 'select',
-                options: [
-                    { value: 'Enabled', label: 'Enabled' },
-                    { value: 'Disabled', label: 'Disabled' }
-                ]
-            },
-            'max_sell_power': {
-                display: 'Maximum Sell Power',
-                type: 'number',
-                min: 0,
-                max: 15000,
-                step: 100,
-                unit: 'W'
-            },
-            'max_solar_power': {
-                display: 'Maximum Solar Power',
-                type: 'number',
-                min: 0,
-                max: 15000,
-                step: 100,
-                unit: 'W'
-            },
-            'grid_trickle_feed': {
-                display: 'Grid Trickle Feed',
-                type: 'number',
-                min: 0,
-                max: 100,
-                step: 1,
-                unit: '%'
-            },
-            'output_shutdown_voltage': {
-                display: 'Output Shutdown Voltage',
-                type: 'number',
-                min: 40,
-                max: 60,
-                step: 0.1,
-                unit: 'V'
-            },
-            'stop_battery_discharge_voltage': {
-                display: 'Stop Battery Discharge Voltage',
-                type: 'number',
-                min: 40,
-                max: 60,
-                step: 0.1,
-                unit: 'V'
-            },
-            'start_battery_discharge_voltage': {
-                display: 'Start Battery Discharge Voltage',
-                type: 'number',
-                min: 40,
-                max: 60,
-                step: 0.1,
-                unit: 'V'
-            },
-            'start_grid_charge_voltage': {
-                display: 'Start Grid Charge Voltage',
-                type: 'number',
-                min: 40,
-                max: 60,
-                step: 0.1,
-                unit: 'V'
-            },
-            'max_generator_charge_current': {
-                display: 'Max Generator Charge Current',
-                type: 'number',
-                min: 0,
-                max: 100,
-                step: 1,
-                unit: 'A'
-            }
-        };
+          <div class="main-content">
+            <div class="d-flex flex-wrap justify-content-center gap-3 p-2 bg-light rounded shadow-sm">
+                <a class="nav-link text-nowrap" href="/grid-charge">
+                    <a class="nav-link text-nowrap" href="/learner">
+                        <i class="fas fa-brain me-1" style="color: #6C757D;"></i>Learner
+                    </a>
+                    <i class="fas fa-plug me-1" style="color: #007BFF;"></i>Grid Charge
+                </a>
+                <a class="nav-link  text-nowrap" href="/energy-pattern">
+                    <i class="fas fa-battery-three-quarters me-1" style="color: #28A745;"></i>Energy Pattern
+                </a>
+                <a class="nav-link text-nowrap" href="/voltage-point">
+                    <i class="fas fa-bolt me-1" style="color: #DC3545;"></i>Voltage Points
+                </a>
+                <a class="nav-link active text-nowrap" href="/work-mode">
+                    <i class="fas fa-cogs me-1" style="color: #FFC107;"></i>Work Mode
+                </a>
+                <a class="nav-link text-nowrap" href="/battery-charging">
+                    <i class="fas fa-charging-station me-1" style="color: #17A2B8;"></i>Battery Charging
+                </a>
+
+                <a class="nav-link text-nowrap" href="/rules">
+                    <i class="fas fa-tasks me-1" style="color: #6610F2;"></i>Rules
+                </a>
+               
+            </div>
+            
+            <br>
+
+            <div class="container">
+                <!-- Alerts container -->
+                <div id="alerts-container"></div>
         
-        // Initialize the page
-        $(document).ready(function() {
-            // Load recent changes
-            loadRecentChanges();
-            
-            // Set up event listeners
-            setupEventListeners();
-            
-            // Initialize the edit modal
-            initializeEditModal();
-        });
-        
-        // Setup event listeners
-        function setupEventListeners() {
-            // Refresh button
-            $('#refresh-settings').click(function() {
-                loadRecentChanges();
-                showAlert('info', 'Recent changes refreshed');
-            });
-            
-            // Save setting button
-            $('#save-setting-btn').click(function() {
-                saveSetting();
-            });
-        }
-        
-        // Load recent changes
-        function loadRecentChanges() {
-            $.ajax({
-                url: '/api/work-mode-changes',
-                method: 'GET',
-                success: function(response) {
-                    displayRecentChanges(response);
-                },
-                error: function() {
-                    $('#recent-changes-container').html('<div class="alert alert-warning">Unable to load recent changes</div>');
-                }
-            });
-        }
-        
-        // Display recent changes grouped by inverter
-        function displayRecentChanges(changes) {
-            const container = $('#recent-changes-container');
-            
-            if (!changes || changes.length === 0) {
-                container.html('<div class="alert alert-warning">No recent changes recorded</div>');
-                return;
-            }
-            
-            // Group changes by inverter
-            const inverterChanges = {};
-            
-            changes.forEach(change => {
-                // Extract inverter from topic (e.g., "inverter_1/work_mode/state")
-                const topicParts = change.topic.split('/');
-                let inverter = "unknown";
-                
-                // Find the inverter_X part in the topic
-                for (const part of topicParts) {
-                    if (part.startsWith('inverter_')) {
-                        inverter = part;
-                        break;
-                    }
-                }
-                
-                // Initialize array for this inverter if it doesn't exist
-                if (!inverterChanges[inverter]) {
-                    inverterChanges[inverter] = [];
-                }
-                
-                // Add change to appropriate inverter array
-                inverterChanges[inverter].push(change);
-            });
-            
-            // Display changes grouped by inverter
-            let html = '';
-            
-            // Get all inverter keys and sort them naturally
-            const inverters = Object.keys(inverterChanges).sort((a, b) => {
-                const aNum = parseInt(a.replace('inverter_', ''));
-                const bNum = parseInt(b.replace('inverter_', ''));
-                return aNum - bNum;
-            });
-            
-            for (const inverter of inverters) {
-                // Get changes for this inverter and sort by timestamp (newest first)
-                const inverterData = inverterChanges[inverter]
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                // Create a lookup to eliminate duplicates (keep only most recent per setting)
-                const latestSettings = {};
-                
-                inverterData.forEach(change => {
-                    // Extract the setting name from the topic
-                    const settingName = extractSettingName(change.topic);
-                    
-                    // Only keep the most recent change for each setting
-                    if (!latestSettings[settingName] || 
-                        new Date(change.timestamp) > new Date(latestSettings[settingName].timestamp)) {
-                        latestSettings[settingName] = change;
-                    }
-                });
-                
-                // Format inverter name for display
-                const displayName = inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' ');
-                
-                html += `<div class="inverter-heading">${displayName}</div>`;
-                
-                // Convert to array and sort by setting name for consistent display
-                const settingsArray = Object.values(latestSettings)
-                    .sort((a, b) => {
-                        const aName = extractSettingName(a.topic);
-                        const bName = extractSettingName(b.topic);
-                        return aName.localeCompare(bName);
-                    });
-                
-                settingsArray.forEach(change => {
-                    const timestamp = moment(change.timestamp).format('MM/DD HH:mm');
-                    const settingName = extractSettingName(change.topic);
-                    const friendlyName = getSettingDisplayName(settingName);
-                    
-                    // Format the current value based on setting type
-                    const formattedValue = formatSettingValue(settingName, change.new_value);
-                    
-                    html += `
-                        <div class="change-item" data-inverter="${inverter}" data-setting="${settingName}" data-value="${change.new_value}">
-                            <div class="d-flex justify-content-between align-items-center">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Changes</h5>
                                 <div>
-                                    <div class="setting-title">${friendlyName}</div>
-                                    <div class="mt-1">
-                                        Current: <span class="change-value text-success">${formattedValue}</span>
-                                    </div>
+                                    <button class="btn" id="refresh-settings">
+                                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                                    </button>
                                 </div>
-                                <div class="d-flex align-items-center">
-                                    <span class="timestamp me-3">${timestamp}</span>
-                                    <i class="fas fa-edit edit-icon"></i>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Click on any setting to modify its value. All inverters are displayed below.
+                                </div>
+                                
+                                <!-- Recent changes will be loaded here -->
+                                <div id="recent-changes-container">
+                                    <p class="text-center py-5">
+                                        <span class="spinner-border text-primary" role="status"></span>
+                                        <br>
+                                        <span class="mt-2 d-inline-block">Loading recent changes...</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Edit Setting Modal -->
+            <div class="modal fade" id="editSettingModal" tabindex="-1" aria-labelledby="editSettingModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editSettingModalLabel">Edit Setting</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editSettingForm">
+                                <input type="hidden" id="edit-inverter">
+                                <input type="hidden" id="edit-setting">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" id="setting-name-display">Setting</label>
+                                    <p class="text-muted small" id="setting-inverter-display">Inverter</p>
+                                </div>
+                                
+                                <div class="mb-3" id="value-input-container">
+                                    <!-- Will be dynamically populated based on setting type -->
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Current Value</label>
+                                    <p class="form-control-plaintext" id="current-value-display">-</p>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondaryy" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primaryy" id="save-setting-btn">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+<!-- JavaScript Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+<script>
+    // Global variables for settings metadata
+    const settingsMetadata = {
+        'work_mode': {
+            display: 'Work Mode',
+            type: 'select',
+            options: [
+                { value: 'Battery first', label: 'Battery First' },
+                { value: 'Grid first', label: 'Grid First' },
+                { value: 'Solar first', label: 'Solar First' },
+                { value: 'Zero export to CT', label: 'Zero Export to CT' }
+            ]
+        },
+        'remote_switch': {
+            display: 'Remote Switch',
+            type: 'select',
+            options: [
+                { value: 'Enabled', label: 'Enabled' },
+                { value: 'Disabled', label: 'Disabled' }
+            ]
+        },
+        'generator_charge': {
+            display: 'Generator Charge',
+            type: 'select',
+            options: [
+                { value: 'Enabled', label: 'Enabled' },
+                { value: 'Disabled', label: 'Disabled' }
+            ]
+        },
+        'force_generator_on': {
+            display: 'Force Generator On',
+            type: 'select',
+            options: [
+                { value: 'Enabled', label: 'Enabled' },
+                { value: 'Disabled', label: 'Disabled' }
+            ]
+        },
+        'solar_export_when_battery_full': {
+            display: 'Solar Export When Battery Full',
+            type: 'select',
+            options: [
+                { value: 'Enabled', label: 'Enabled' },
+                { value: 'Disabled', label: 'Disabled' }
+            ]
+        },
+        'max_sell_power': {
+            display: 'Maximum Sell Power',
+            type: 'number',
+            min: 0,
+            max: 15000,
+            step: 100,
+            unit: 'W'
+        },
+        'max_solar_power': {
+            display: 'Maximum Solar Power',
+            type: 'number',
+            min: 0,
+            max: 15000,
+            step: 100,
+            unit: 'W'
+        },
+        'grid_trickle_feed': {
+            display: 'Grid Trickle Feed',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: '%'
+        },
+        'output_shutdown_voltage': {
+            display: 'Output Shutdown Voltage',
+            type: 'number',
+            min: 40,
+            max: 60,
+            step: 0.1,
+            unit: 'V'
+        },
+        'stop_battery_discharge_voltage': {
+            display: 'Stop Battery Discharge Voltage',
+            type: 'number',
+            min: 40,
+            max: 60,
+            step: 0.1,
+            unit: 'V'
+        },
+        'start_battery_discharge_voltage': {
+            display: 'Start Battery Discharge Voltage',
+            type: 'number',
+            min: 40,
+            max: 60,
+            step: 0.1,
+            unit: 'V'
+        },
+        'start_grid_charge_voltage': {
+            display: 'Start Grid Charge Voltage',
+            type: 'number',
+            min: 40,
+            max: 60,
+            step: 0.1,
+            unit: 'V'
+        },
+        'max_generator_charge_current': {
+            display: 'Max Generator Charge Current',
+            type: 'number',
+            min: 0,
+            max: 100,
+            step: 1,
+            unit: 'A'
+        }
+    };
+    
+    // Initialize the page
+    $(document).ready(function() {
+        // Load recent changes
+        loadRecentChanges();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Initialize the edit modal
+        initializeEditModal();
+    });
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Refresh button
+        $('#refresh-settings').click(function() {
+            loadRecentChanges();
+            showAlert('info', 'Recent changes refreshed');
+        });
+        
+        // Save setting button
+        $('#save-setting-btn').click(function() {
+            saveSetting();
+        });
+    }
+    
+    // Load recent changes
+    function loadRecentChanges() {
+        $.ajax({
+            url: '/api/work-mode-changes',
+            method: 'GET',
+            success: function(response) {
+                displayRecentChanges(response);
+            },
+            error: function() {
+                $('#recent-changes-container').html('<div class="alert alert-warning">Unable to load recent changes</div>');
             }
-            
-            container.html(html);
-            
-            // Add click event to change items
-            $('.change-item').click(function() {
-                const inverter = $(this).data('inverter');
-                const setting = $(this).data('setting');
-                const value = $(this).data('value');
-                openEditModal(inverter, setting, value);
-            });
+        });
+    }
+    
+    // Display recent changes grouped by inverter
+    function displayRecentChanges(changes) {
+        const container = $('#recent-changes-container');
+        
+        if (!changes || changes.length === 0) {
+            container.html('<div class="alert alert-warning">No recent changes recorded</div>');
+            return;
         }
         
-        // Extract setting name from topic
-        function extractSettingName(topic) {
-            // Try to extract the setting name from the topic path
-            // Examples: 
-            // - "inverter_1/work_mode/state" -> "work_mode"
-            // - "energy/inverter_1/max_sell_power/state" -> "max_sell_power"
+        // Group changes by inverter
+        const inverterChanges = {};
+        
+        changes.forEach(change => {
+            // Extract inverter from topic (e.g., "inverter_1/work_mode/state")
+            const topicParts = change.topic.split('/');
+            let inverter = "unknown";
             
-            const parts = topic.split('/');
-            
-            // Search for known setting names in the parts
-            for (const part of parts) {
-                if (settingsMetadata[part]) {
-                    return part;
+            // Find the inverter_X part in the topic
+            for (const part of topicParts) {
+                if (part.startsWith('inverter_')) {
+                    inverter = part;
+                    break;
                 }
             }
             
-            // If not found, use the second to last part (before "state" or "set")
-            if (parts.length >= 2) {
-                const secondToLast = parts[parts.length - 2];
-                return secondToLast;
+            // Initialize array for this inverter if it doesn't exist
+            if (!inverterChanges[inverter]) {
+                inverterChanges[inverter] = [];
             }
             
-            // Fallback
-            return parts[parts.length - 1];
+            // Add change to appropriate inverter array
+            inverterChanges[inverter].push(change);
+        });
+        
+        // Display changes grouped by inverter
+        let html = '';
+        
+        // Get all inverter keys and sort them naturally
+        const inverters = Object.keys(inverterChanges).sort((a, b) => {
+            const aNum = parseInt(a.replace('inverter_', ''));
+            const bNum = parseInt(b.replace('inverter_', ''));
+            return aNum - bNum;
+        });
+        
+        for (const inverter of inverters) {
+            // Get changes for this inverter and sort by timestamp (newest first)
+            const inverterData = inverterChanges[inverter]
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Create a lookup to eliminate duplicates (keep only most recent per setting)
+            const latestSettings = {};
+            
+            inverterData.forEach(change => {
+                // Extract the setting name from the topic
+                const settingName = extractSettingName(change.topic);
+                
+                // Only keep the most recent change for each setting
+                if (!latestSettings[settingName] || 
+                    new Date(change.timestamp) > new Date(latestSettings[settingName].timestamp)) {
+                    latestSettings[settingName] = change;
+                }
+            });
+            
+            // Format inverter name for display
+            const displayName = inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' ');
+            
+            html += `<div class="inverter-heading">${displayName}</div>`;
+            
+            // Convert to array and sort by setting name for consistent display
+            const settingsArray = Object.values(latestSettings)
+                .sort((a, b) => {
+                    const aName = extractSettingName(a.topic);
+                    const bName = extractSettingName(b.topic);
+                    return aName.localeCompare(bName);
+                });
+            
+            settingsArray.forEach(change => {
+                const timestamp = moment(change.timestamp).format('MM/DD HH:mm');
+                const settingName = extractSettingName(change.topic);
+                const friendlyName = getSettingDisplayName(settingName);
+                
+                // Format the current value based on setting type
+                const formattedValue = formatSettingValue(settingName, change.new_value);
+                
+                html += `
+                    <div class="change-item" data-inverter="${inverter}" data-setting="${settingName}" data-value="${change.new_value}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="setting-title">${friendlyName}</div>
+                                <div class="mt-1">
+                                    Current: <span class="change-value text-success">${formattedValue}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="timestamp me-3">${timestamp}</span>
+                                <i class="fas fa-edit edit-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
         }
         
-        // Get friendly display name for a setting
-        function getSettingDisplayName(settingName) {
-            if (settingsMetadata[settingName]) {
-                return settingsMetadata[settingName].display;
+        container.html(html);
+        
+        // Add click event to change items
+        $('.change-item').click(function() {
+            const inverter = $(this).data('inverter');
+            const setting = $(this).data('setting');
+            const value = $(this).data('value');
+            openEditModal(inverter, setting, value);
+        });
+    }
+    
+    // Extract setting name from topic
+    function extractSettingName(topic) {
+        // Try to extract the setting name from the topic path
+        // Examples: 
+        // - "inverter_1/work_mode/state" -> "work_mode"
+        // - "energy/inverter_1/max_sell_power/state" -> "max_sell_power"
+        
+        const parts = topic.split('/');
+        
+        // Search for known setting names in the parts
+        for (const part of parts) {
+            if (settingsMetadata[part]) {
+                return part;
             }
-            
-            // Fallback: convert snake_case to Title Case
-            return settingName
-                .split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ');
         }
         
-        // Format setting value for display
-        function formatSettingValue(settingName, value) {
-            const metadata = settingsMetadata[settingName];
-            
-            if (!metadata) {
-                return value;
-            }
-            
-            if (metadata.type === 'number' && metadata.unit) {
-                return `${value} ${metadata.unit}`;
-            }
-            
+        // If not found, use the second to last part (before "state" or "set")
+        if (parts.length >= 2) {
+            const secondToLast = parts[parts.length - 2];
+            return secondToLast;
+        }
+        
+        // Fallback
+        return parts[parts.length - 1];
+    }
+    
+    // Get friendly display name for a setting
+    function getSettingDisplayName(settingName) {
+        if (settingsMetadata[settingName]) {
+            return settingsMetadata[settingName].display;
+        }
+        
+        // Fallback: convert snake_case to Title Case
+        return settingName
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+    
+    // Format setting value for display
+    function formatSettingValue(settingName, value) {
+        const metadata = settingsMetadata[settingName];
+        
+        if (!metadata) {
             return value;
         }
         
-        // Initialize the edit modal
-        function initializeEditModal() {
-            // This sets up the modal but doesn't open it yet
-            const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
+        if (metadata.type === 'number' && metadata.unit) {
+            return `${value} ${metadata.unit}`;
         }
         
-        // Open the edit modal for a specific setting
-        function openEditModal(inverter, setting, currentValue) {
-            // Set hidden fields
-            $('#edit-inverter').val(inverter);
-            $('#edit-setting').val(setting);
-            
-            // Set display labels
-            $('#setting-name-display').text(getSettingDisplayName(setting));
-            $('#setting-inverter-display').text(inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' '));
-            $('#current-value-display').text(formatSettingValue(setting, currentValue));
-            
-            // Create the appropriate input element based on setting type
-            createInputElement(setting, currentValue);
-            
-            // Show the modal
-            const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
-            editModal.show();
-        }
+        return value;
+    }
+    
+    // Initialize the edit modal
+    function initializeEditModal() {
+        // This sets up the modal but doesn't open it yet
+        const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
+    }
+    
+    // Open the edit modal for a specific setting
+    function openEditModal(inverter, setting, currentValue) {
+        // Set hidden fields
+        $('#edit-inverter').val(inverter);
+        $('#edit-setting').val(setting);
         
-        // Create the appropriate input element for a setting
-        function createInputElement(setting, currentValue) {
-            const container = $('#value-input-container');
-            const metadata = settingsMetadata[setting] || { type: 'text' };
+        // Set display labels
+        $('#setting-name-display').text(getSettingDisplayName(setting));
+        $('#setting-inverter-display').text(inverter.replace('_', ' ').charAt(0).toUpperCase() + inverter.slice(1).replace('_', ' '));
+        $('#current-value-display').text(formatSettingValue(setting, currentValue));
+        
+        // Create the appropriate input element based on setting type
+        createInputElement(setting, currentValue);
+        
+        // Show the modal
+        const editModal = new bootstrap.Modal(document.getElementById('editSettingModal'));
+        editModal.show();
+    }
+    
+    // Create the appropriate input element for a setting
+    function createInputElement(setting, currentValue) {
+        const container = $('#value-input-container');
+        const metadata = settingsMetadata[setting] || { type: 'text' };
+        
+        let html = `<label for="edit-value" class="form-label">New Value</label>`;
+        
+        if (metadata.type === 'select') {
+            html += `<select class="form-select" id="edit-value">`;
             
-            let html = `<label for="edit-value" class="form-label">New Value</label>`;
-            
-            if (metadata.type === 'select') {
-                html += `<select class="form-select" id="edit-value">`;
-                
-                if (metadata.options) {
-                    metadata.options.forEach(option => {
-                        const selected = option.value == currentValue ? 'selected' : '';
-                        html += `<option value="${option.value}" ${selected}>${option.label}</option>`;
-                    });
-                } else {
-                    // Default options for boolean settings
-                    const enabledSelected = currentValue === 'Enabled' ? 'selected' : '';
-                    const disabledSelected = currentValue === 'Disabled' ? 'selected' : '';
-                    html += `
-                        <option value="Enabled" ${enabledSelected}>Enabled</option>
-                        <option value="Disabled" ${disabledSelected}>Disabled</option>
-                    `;
-                }
-                
-                html += `</select>`;
-            } else if (metadata.type === 'number') {
-                const min = metadata.min !== undefined ? `min="${metadata.min}"` : '';
-                const max = metadata.max !== undefined ? `max="${metadata.max}"` : '';
-                const step = metadata.step !== undefined ? `step="${metadata.step}"` : '';
-                const unit = metadata.unit ? metadata.unit : '';
-                
-                html += `
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="edit-value" value="${currentValue}" ${min} ${max} ${step}>
-                        ${unit ? `<span class="input-group-text">${unit}</span>` : ''}
-                    </div>
-                `;
+            if (metadata.options) {
+                metadata.options.forEach(option => {
+                    const selected = option.value == currentValue ? 'selected' : '';
+                    html += `<option value="${option.value}" ${selected}>${option.label}</option>`;
+                });
             } else {
-                // Default to text input
-                html += `<input type="text" class="form-control" id="edit-value" value="${currentValue}">`;
+                // Default options for boolean settings
+                const enabledSelected = currentValue === 'Enabled' ? 'selected' : '';
+                const disabledSelected = currentValue === 'Disabled' ? 'selected' : '';
+                html += `
+                    <option value="Enabled" ${enabledSelected}>Enabled</option>
+                    <option value="Disabled" ${disabledSelected}>Disabled</option>
+                `;
             }
             
-            container.html(html);
-        }
-        
-        // Save the setting
-        function saveSetting() {
-            const inverter = $('#edit-inverter').val();
-            const setting = $('#edit-setting').val();
-            const value = $('#edit-value').val();
+            html += `</select>`;
+        } else if (metadata.type === 'number') {
+            const min = metadata.min !== undefined ? `min="${metadata.min}"` : '';
+            const max = metadata.max !== undefined ? `max="${metadata.max}"` : '';
+            const step = metadata.step !== undefined ? `step="${metadata.step}"` : '';
+            const unit = metadata.unit ? metadata.unit : '';
             
-            // Validate input
-            if (!value) {
-                showAlert('warning', 'Please enter a value', true);
-                return;
-            }
-            
-            // Send to the server
-            $.ajax({
-                url: '/api/work-mode/set',
-                method: 'POST',
-                data: {
-                    inverter: inverter,
-                    setting: setting,
-                    value: value
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Hide the modal
-                        const editModal = bootstrap.Modal.getInstance(document.getElementById('editSettingModal'));
-                        editModal.hide();
-                        
-                        showAlert('success', `${getSettingDisplayName(setting)} updated successfully`);
-                        
-                        // Refresh the changes after a short delay
-                        setTimeout(loadRecentChanges, 1000);
-                    } else {
-                        showAlert('danger', `Failed to update setting: ${response.message || 'Unknown error'}`, true);
-                    }
-                },
-                error: function(error) {
-                    showAlert('danger', `Error updating setting: ${error.responseJSON?.error || 'Server error'}`, true);
-                }
-            });
-        }
-        
-        // Show alert message
-        function showAlert(type, message, inModal = false) {
-            const alertId = 'alert-' + Date.now();
-            const alertHtml = `
-                <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            html += `
+                <div class="input-group">
+                    <input type="number" class="form-control" id="edit-value" value="${currentValue}" ${min} ${max} ${step}>
+                    ${unit ? `<span class="input-group-text">${unit}</span>` : ''}
                 </div>
             `;
-            
-            if (inModal) {
-                // Insert at the top of the modal body
-                $('.modal-body').prepend(alertHtml);
-            } else {
-                // Insert at the top of the page
-                $('#alerts-container').append(alertHtml);
-            }
-            
-            // Auto-dismiss after 3 seconds
-            setTimeout(() => {
-                $(`#${alertId}`).alert('close');
-            }, 3000);
+        } else {
+            // Default to text input
+            html += `<input type="text" class="form-control" id="edit-value" value="${currentValue}">`;
         }
-    </script>
+        
+        container.html(html);
+    }
+    
+    // Save the setting
+    function saveSetting() {
+        const inverter = $('#edit-inverter').val();
+        const setting = $('#edit-setting').val();
+        const value = $('#edit-value').val();
+        
+        // Validate input
+        if (!value) {
+            showAlert('warning', 'Please enter a value', true);
+            return;
+        }
+        
+        // Send to the server
+        $.ajax({
+            url: '/api/work-mode/set',
+            method: 'POST',
+            data: {
+                inverter: inverter,
+                setting: setting,
+                value: value
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Hide the modal
+                    const editModal = bootstrap.Modal.getInstance(document.getElementById('editSettingModal'));
+                    editModal.hide();
+                    
+                    showAlert('success', `${getSettingDisplayName(setting)} updated successfully`);
+                    
+                    // Refresh the changes after a short delay
+                    setTimeout(loadRecentChanges, 1000);
+                } else {
+                    showAlert('danger', `Failed to update setting: ${response.message || 'Unknown error'}`, true);
+                }
+            },
+            error: function(error) {
+                showAlert('danger', `Error updating setting: ${error.responseJSON?.error || 'Server error'}`, true);
+            }
+        });
+    }
+    
+    // Show alert message
+    function showAlert(type, message, inModal = false) {
+        const alertId = 'alert-' + Date.now();
+        const alertHtml = `
+            <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        if (inModal) {
+            // Insert at the top of the modal body
+            $('.modal-body').prepend(alertHtml);
+        } else {
+            // Insert at the top of the page
+            $('#alerts-container').append(alertHtml);
+        }
+        
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            $(`#${alertId}`).alert('close');
+        }, 3000);
+    }
+</script>
+       
+      
+<script>
+       // loading js
+        
+   document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const pageContent = document.getElementById('pageContent');
+  
+    // Simulate loading time (you can adjust this as needed)
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+      pageContent.style.display = 'block';
+      // Trigger a custom event to signal that the page is ready
+      document.dispatchEvent(new Event('pageReady'));
+    }, 1500); // 1.5 seconds loading time
+  });
+</script>
+
 </body>
 </html>
