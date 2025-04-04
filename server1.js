@@ -2713,6 +2713,8 @@ app.get('/battery-charging', async (req, res) => {
     mqttClient.on('message', (topic, message) => {
       // Always handle the message for state tracking
       handleMqttMessage(topic, message)
+          // Always save messages to InfluxDB regardless of learner mode
+    saveMessageToInfluxDB(topic, message)
     })
   
     mqttClient.on('error', (err) => {
@@ -2729,43 +2731,39 @@ app.get('/battery-charging', async (req, res) => {
   }
   
   // Save MQTT message to InfluxDB with better error handling
-  async function saveMessageToInfluxDB(topic, message) {
-    try {
-      const parsedMessage = parseFloat(message.toString())
-  
-      if (isNaN(parsedMessage)) {
-        return
-      }
-  
-      const timestamp = new Date()
-      const dataPoint = {
-        measurement: 'state',
-        fields: { 
-          value: parsedMessage
-        },
-        tags: { 
-          topic: topic
-        },
-        timestamp
-      }
-  
-      await retry(
-        async () => {
-          await influx.writePoint(dataPoint, {
-            precision: 'ms',
-            retentionPolicy: 'system_state_policy'
-          })
-        },
-        {
-          retries: 5,
-          minTimeout: 1000,
-        }
-      )
-    } catch (err) {
-      console.error('Error saving message to InfluxDB:', err.message)
+async function saveMessageToInfluxDB(topic, message) {
+  try {
+    const parsedMessage = parseFloat(message.toString())
+
+    if (isNaN(parsedMessage)) {
+      return
     }
+
+    const timestamp = new Date().getTime()
+    const dataPoint = {
+      measurement: 'state',
+      fields: { value: parsedMessage },
+      tags: { topic: topic },
+      timestamp: timestamp * 1000000,
+    }
+
+    await retry(
+      async () => {
+        await influx.writePoints([dataPoint])
+      },
+      {
+        retries: 5,
+        minTimeout: 1000,
+      }
+    )
+  } catch (err) {
+    console.error(
+      'Error saving message to InfluxDB:',
+      err.response ? err.response.body : err.message
+    )
   }
-  
+}
+
   // Periodic rule evaluation (every minute)
   cron.schedule('* * * * *', () => {
     console.log('Running scheduled rule evaluation...')
