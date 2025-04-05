@@ -70,7 +70,7 @@ app.use('/api/', limiter)
 
 // InfluxDB configuration
 const influxConfig = {
-  host: '10.110.1.28',
+  host: '10.130.21.157',
   port: 8086,
   database:  'home_assistant',
   username:  'admin',
@@ -295,7 +295,7 @@ let previousSettings = {}
 let rules = []; // In-memory rules cache
 let ruleIdCounter = 1; // Simple counter for rule IDs
 
-// Load rules from InfluxDB or file
+// Enhanced loadRules function with more robust error handling
 async function loadRules() {
   try {
     if (dbConnected) {
@@ -311,14 +311,43 @@ async function loadRules() {
       if (results && results.length > 0) {
         // Transform InfluxDB results into rule objects
         rules = results.map(row => {
+          // Ensure rule_id exists and is valid
+          if (!row.rule_id) {
+            console.warn('Found rule without rule_id, generating a new one')
+            row.rule_id = `rule-${ruleIdCounter++}`
+          }
+          
+          // Safely handle JSON parsing with fallbacks
+          let conditions = []
+          let timeRestrictions = {}
+          let actions = []
+          
+          try {
+            conditions = JSON.parse(row.last_conditions || '[]')
+          } catch (e) {
+            console.error(`Error parsing conditions for rule ${row.rule_id}:`, e.message)
+          }
+          
+          try {
+            timeRestrictions = JSON.parse(row.last_timeRestrictions || '{}')
+          } catch (e) {
+            console.error(`Error parsing timeRestrictions for rule ${row.rule_id}:`, e.message)
+          }
+          
+          try {
+            actions = JSON.parse(row.last_actions || '[]')
+          } catch (e) {
+            console.error(`Error parsing actions for rule ${row.rule_id}:`, e.message)
+          }
+          
           return {
             id: row.rule_id,
-            name: row.last_name,
-            description: row.last_description,
-            active: row.last_active,
-            conditions: JSON.parse(row.last_conditions || '[]'),
-            timeRestrictions: JSON.parse(row.last_timeRestrictions || '{}'),
-            actions: JSON.parse(row.last_actions || '[]'),
+            name: row.last_name || 'Unnamed Rule',
+            description: row.last_description || '',
+            active: row.last_active !== undefined ? row.last_active : true,
+            conditions: conditions,
+            timeRestrictions: timeRestrictions,
+            actions: actions,
             triggerCount: row.last_triggerCount || 0,
             lastTriggered: null // Will be fetched separately
           }
@@ -344,7 +373,16 @@ async function loadRules() {
         console.log(`Loaded ${rules.length} rules from InfluxDB`)
         
         // Update the rule ID counter to be higher than any existing rule ID
-        const maxId = Math.max(...rules.map(r => parseInt(r.id.replace('rule-', ''))), 0)
+        const maxId = Math.max(...rules
+          .map(r => {
+            // Safely extract numeric part from rule ID
+            if (r.id && typeof r.id === 'string' && r.id.startsWith('rule-')) {
+              const numericPart = r.id.replace('rule-', '')
+              return !isNaN(numericPart) ? parseInt(numericPart) : 0
+            }
+            return 0
+          }), 0)
+        
         ruleIdCounter = maxId + 1
         
         return
@@ -357,17 +395,25 @@ async function loadRules() {
       rules = JSON.parse(fileData)
       console.log(`Loaded ${rules.length} rules from file`)
       
-      // Update the rule ID counter
-      const maxId = Math.max(...rules.map(r => parseInt(r.id.replace('rule-', ''))), 0)
+      // Update the rule ID counter safely
+      const maxId = Math.max(...rules
+        .filter(r => r.id && typeof r.id === 'string' && r.id.startsWith('rule-'))
+        .map(r => {
+          const numericPart = r.id.replace('rule-', '')
+          return !isNaN(numericPart) ? parseInt(numericPart) : 0
+        }), 0)
+      
       ruleIdCounter = maxId + 1
     } else {
-      console.log('No rules file found, creating default rules')
-      await createDefaultRules()
+      console.log('No rules file found, initializing with empty rules array')
+      rules = []
+      ruleIdCounter = 1
     }
   } catch (error) {
     console.error('Error loading rules:', error.message)
     // If both DB and file fail, initialize with empty array
     rules = []
+    ruleIdCounter = 1
   }
 }
 
@@ -872,95 +918,112 @@ function applyAction(action) {
       return true
     }
     
-    // Function to process all rules
-    async function processRules() {
-      // Skip if database is not connected
-      if (!dbConnected) return;
+  // 1. Process rules with better error handling
+async function processRules() {
+  // Skip if database is not connected
+  if (!dbConnected) return;
+  
+  try {
+    // Process all rules that are active
+    for (const rule of rules) {
+      if (!rule || !rule.active) continue;
       
-      try {
-        // Process all rules that are active
-        for (const rule of rules) {
-          if (!rule.active) continue;
-          
-          // Check time restrictions
-          if (rule.timeRestrictions && rule.timeRestrictions.enabled) {
-            const { days, startTime, endTime } = rule.timeRestrictions;
-            
-            // Check day of week restrictions
-            if (days && days.length > 0) {
-              const currentDay = moment().format('dddd').toLowerCase();
-              if (!days.includes(currentDay)) {
-                continue; // Skip this rule if not an allowed day
-              }
-            }
-            
-            // Check time range restrictions
-            if (startTime && endTime) {
-              if (!isWithinTimeRange(startTime, endTime)) {
-                continue; // Skip this rule if outside time range
-              }
-            }
-          }
-          
-          // Check if all conditions are met
-          const allConditionsMet = rule.conditions.length === 0 || 
-            rule.conditions.every(condition => evaluateCondition(condition));
-          
-          if (allConditionsMet) {
-            console.log(`Rule "${rule.name}" triggered: ${rule.description}`);
-            
-            // Only apply actions if learner mode is active
-            if (learnerModeActive) {
-              // Apply all actions
-              rule.actions.forEach(action => {
-                const actionApplied = applyAction(action);
-                if (!actionApplied) {
-                  console.warn(`Rule "${rule.name}" matched but actions weren't applied because learner mode is inactive`);
-                }
-              });
-              
-              // Update rule statistics
-              rule.lastTriggered = new Date();
-              rule.triggerCount = (rule.triggerCount || 0) + 1;
-              
-              // Save rule execution to InfluxDB
-              try {
-                await influx.writePoint({
-                  measurement: 'rule_executions',
-                  tags: {
-                    rule_id: rule.id
-                  },
-                  fields: {
-                    rule_name: rule.name,
-                    rule_description: rule.description || '',
-                    actions: JSON.stringify(rule.actions),
-                    battery_soc: currentSystemState.battery_soc,
-                    pv_power: currentSystemState.pv_power,
-                    load: currentSystemState.load,
-                    grid_voltage: currentSystemState.grid_voltage,
-                    grid_power: currentSystemState.grid_power
-                  },
-                  timestamp: new Date()
-                }, {
-                  precision: 'ms',
-                  retentionPolicy: 'rules_policy'
-                });
-                
-                // Update the rule in memory and save to file as backup
-                await saveRules();
-                
-              } catch (error) {
-                console.error(`Error logging rule execution to InfluxDB: ${error.message}`);
-              }
-            } else {
-              console.log(`Rule "${rule.name}" matched conditions but actions weren't applied because learner mode is inactive`);
-            }
+      // Check time restrictions
+      if (rule.timeRestrictions && rule.timeRestrictions.enabled) {
+        const { days, startTime, endTime } = rule.timeRestrictions;
+        
+        // Check day of week restrictions
+        if (days && days.length > 0) {
+          const currentDay = moment().format('dddd').toLowerCase();
+          if (!days.includes(currentDay)) {
+            continue; // Skip this rule if not an allowed day
           }
         }
-      } catch (error) {
-        console.error('Error processing rules:', error.message);
+        
+        // Check time range restrictions
+        if (startTime && endTime) {
+          if (!isWithinTimeRange(startTime, endTime)) {
+            continue; // Skip this rule if outside time range
+          }
+        }
+      }
+      
+      // Safely handle conditions - assume they're met if there's an issue
+      let allConditionsMet = true;
+      
+      if (rule.conditions && Array.isArray(rule.conditions) && rule.conditions.length > 0) {
+        allConditionsMet = rule.conditions.every(condition => {
+          try {
+            return evaluateCondition(condition);
+          } catch (error) {
+            console.error(`Error evaluating condition for rule "${rule.name}":`, error.message);
+            return false; // If we can't evaluate, assume the condition isn't met
+          }
+        });
+      }
+      
+      if (allConditionsMet) {
+        console.log(`Rule "${rule.name}" triggered: ${rule.description}`);
+        
+        // Only apply actions if learner mode is active
+        if (learnerModeActive) {
+          // Safely handle actions
+          if (rule.actions && Array.isArray(rule.actions)) {
+            for (const action of rule.actions) {
+              try {
+                const actionApplied = applyAction(action);
+                if (!actionApplied) {
+                  console.warn(`Rule "${rule.name}" action failed to apply`);
+                }
+              } catch (error) {
+                console.error(`Error applying action for rule "${rule.name}":`, error.message);
+              }
+            }
+          }
+          
+          // Update rule statistics
+          rule.lastTriggered = new Date();
+          rule.triggerCount = (rule.triggerCount || 0) + 1;
+          
+          // Save rule execution to InfluxDB
+          try {
+            await influx.writePoint({
+              measurement: 'rule_executions',
+              tags: {
+                rule_id: rule.id || `rule-unknown`
+              },
+              fields: {
+                rule_name: rule.name || 'Unknown Rule',
+                rule_description: rule.description || '',
+                actions: JSON.stringify(rule.actions || []),
+                battery_soc: currentSystemState.battery_soc || 0,
+                pv_power: currentSystemState.pv_power || 0,
+                load: currentSystemState.load || 0,
+                grid_voltage: currentSystemState.grid_voltage || 0,
+                grid_power: currentSystemState.grid_power || 0
+              },
+              timestamp: new Date()
+            }, {
+              precision: 'ms',
+              retentionPolicy: 'rules_policy'
+            });
+            
+            // Update the rule in memory and save to file as backup
+            await saveRules();
+            
+          } catch (error) {
+            console.error(`Error logging rule execution to InfluxDB: ${error.message}`);
+          }
+        } else {
+          console.log(`Rule "${rule.name}" matched conditions but actions weren't applied because learner mode is inactive`);
+        }
       }
     }
+  } catch (error) {
+    console.error('Error processing rules:', error.message);
+  }
+}
+
     
   // Function to handle battery charging setting changes
 async function handleBatteryChargingSettingChange(specificTopic, messageContent, settingType) {
@@ -2446,32 +2509,34 @@ app.get('/battery-charging', async (req, res) => {
         return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
       }
       
-      const ruleId = req.params.id
+      const ruleId = req.params.id;
+      
+      // Validate the rule ID format
+      if (!ruleId || typeof ruleId !== 'string') {
+        return res.status(400).json({ error: 'Invalid rule ID format' });
+      }
       
       // Find rule in memory
-      const ruleIndex = rules.findIndex(r => r.id === ruleId)
+      const ruleIndex = rules.findIndex(r => r && r.id === ruleId);
       if (ruleIndex === -1) {
-        return res.status(404).json({ error: 'Rule not found' })
+        return res.status(404).json({ error: 'Rule not found' });
       }
       
       // Remove from memory
-      const deletedRule = rules.splice(ruleIndex, 1)[0]
+      const deletedRule = rules.splice(ruleIndex, 1)[0];
       
       // Save to file as backup
-      await saveRules()
+      await saveRules();
       
-      // Note: InfluxDB doesn't support true deletion in the same way as MongoDB
-      // We can mark it as deleted by writing a new point with a "deleted" field
+      // Mark as deleted in InfluxDB
       await influx.writePoint({
         measurement: 'rules',
         tags: {
           rule_id: ruleId,
-          name: deletedRule.name.substring(0, 64)
-        },
-        fields: {name: deletedRule.name.substring(0, 64)
+          name: (deletedRule.name || 'Deleted Rule').substring(0, 64)
         },
         fields: {
-          name: deletedRule.name,
+          name: deletedRule.name || 'Deleted Rule',
           description: deletedRule.description || '',
           active: false,
           deleted: true,
@@ -2483,16 +2548,92 @@ app.get('/battery-charging', async (req, res) => {
       }, {
         precision: 'ms',
         retentionPolicy: 'rules_policy'
-      })
+      });
       
-      console.log(`Rule "${deletedRule.name}" deleted successfully`)
+      console.log(`Rule "${deletedRule.name}" deleted successfully`);
       
-      res.json({ message: 'Rule deleted successfully' })
+      res.json({ message: 'Rule deleted successfully' });
     } catch (error) {
-      console.error('Error deleting rule:', error)
-      res.status(500).json({ error: error.message })
+      console.error('Error deleting rule:', error);
+      res.status(500).json({ error: error.message });
     }
-  })
+  });
+  
+  // rules update 
+
+  app.put('/api/rules/:id', async (req, res) => {
+    try {
+      if (!dbConnected) {
+        return res.status(503).json({ error: 'Database not connected', status: 'disconnected' })
+      }
+      
+      const ruleId = req.params.id;
+      
+      // Validate rule ID
+      if (!ruleId || typeof ruleId !== 'string') {
+        return res.status(400).json({ error: 'Invalid rule ID format' });
+      }
+      
+      const { name, description, active, conditions, timeRestrictions, actions } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: 'Rule name is required' })
+      }
+      
+      if (!actions || actions.length === 0) {
+        return res.status(400).json({ error: 'At least one action is required' })
+      }
+      
+      // Find rule in memory
+      const ruleIndex = rules.findIndex(r => r && r.id === ruleId);
+      if (ruleIndex === -1) {
+        return res.status(404).json({ error: 'Rule not found' })
+      }
+      
+      // Update the rule in InfluxDB
+      await influx.writePoint({
+        measurement: 'rules',
+        tags: {
+          rule_id: ruleId,
+          name: name.substring(0, 64) // Keep tag size reasonable
+        },
+        fields: {
+          name: name,
+          description: description || '',
+          active: active !== undefined ? active : true,
+          conditions: JSON.stringify(conditions || []),
+          actions: JSON.stringify(actions || []),
+          timeRestrictions: JSON.stringify(timeRestrictions || {}),
+          triggerCount: rules[ruleIndex].triggerCount || 0
+        },
+        timestamp: new Date()
+      }, {
+        precision: 'ms',
+        retentionPolicy: 'rules_policy'
+      });
+      
+      // Update in-memory rule
+      rules[ruleIndex] = {
+        ...rules[ruleIndex],
+        name,
+        description: description || '',
+        active: active !== undefined ? active : true,
+        conditions: conditions || [],
+        timeRestrictions: timeRestrictions || {},
+        actions: actions || []
+      };
+      
+      // Save to file as backup
+      await saveRules();
+      
+      console.log(`Rule "${name}" updated successfully`);
+      
+      res.json(rules[ruleIndex]);
+    } catch (error) {
+      console.error('Error updating rule:', error);
+      res.status(400).json({ error: error.message });
+    }
+  });
   
   // Get a specific rule
   app.get('/api/rules/:id', async (req, res) => {
