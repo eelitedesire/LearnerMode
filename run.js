@@ -1045,6 +1045,532 @@ async function createDefaultRules() {
     }
   }
 
+  // Function to create extended set of automation rules
+async function createExtendedAutomationRules() {
+  if (!dbConnected) return;
+  
+  try {
+    // Check if this user already has extended rules
+    const count = await Rule.countDocuments({ 
+      user_id: USER_ID,
+      name: { $regex: 'Extended' } 
+    });
+    
+    if (count === 0) {
+      console.log('Creating extended automation rules for user:', USER_ID);
+      
+      // ===== Power Point Rules Based on Battery SOC =====
+      const powerPointRule = new Rule({
+        name: 'Extended - Power Point Rules by Battery SOC',
+        description: 'Adjusts Power Point 2 based on battery state of charge ranges',
+        active: true,
+        conditions: [],  // No additional conditions - we'll use nested conditions in the rule logic
+        actions: [],  // We'll define four separate rules instead of complex nested logic
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // Create separate rules for each SOC range for power point 2
+      const powerPoint2Rule1 = new Rule({
+        name: 'Power Point 2 - SOC 0-25%',
+        description: 'Set Power Point 2 to 0W when battery SOC is 0-25%',
+        active: true,
+        conditions: [{
+          parameter: 'battery_soc',
+          operator: 'lte',
+          value: 25
+        }],
+        actions: [{
+          setting: 'voltage_point_2', // Using voltage_point for power points
+          value: '0',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const powerPoint2Rule2 = new Rule({
+        name: 'Power Point 2 - SOC 26-50%',
+        description: 'Set Power Point 2 to 1000W when battery SOC is 26-50%',
+        active: true,
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 25
+          },
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 50
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_2',
+          value: '1000',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const powerPoint2Rule3 = new Rule({
+        name: 'Power Point 2 - SOC 51-70%',
+        description: 'Set Power Point 2 to 1500W when battery SOC is 51-70%',
+        active: true,
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 50
+          },
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 70
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_2',
+          value: '1500',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const powerPoint2Rule4 = new Rule({
+        name: 'Power Point 2 - SOC 71-100%',
+        description: 'Set Power Point 2 to 2000W when battery SOC is 71-100%',
+        active: true,
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 70
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_2',
+          value: '2000',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Morning Energy Pattern Rules (00:05 to 12:00) =====
+      const morningEnergyPatternLowSoc = new Rule({
+        name: 'Extended - Morning Energy Pattern (Low SOC)',
+        description: 'Set energy pattern to Battery First from 00:05-12:00 when SOC is 0-35%',
+        active: true,
+        timeRestrictions: {
+          startTime: '00:05',
+          endTime: '12:00',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 35
+          }
+        ],
+        actions: [{
+          setting: 'energy_pattern',
+          value: 'Battery first',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const morningEnergyPatternHighSoc = new Rule({
+        name: 'Extended - Morning Energy Pattern (High SOC)',
+        description: 'Set energy pattern to Load First from 00:05-12:00 when SOC is 41-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '00:05',
+          endTime: '12:00',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gte',
+            value: 41
+          }
+        ],
+        actions: [{
+          setting: 'energy_pattern',
+          value: 'Load first',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Afternoon Energy Pattern Rules (12:00 to 17:00) =====
+      const afternoonEnergyPatternLowSoc = new Rule({
+        name: 'Extended - Afternoon Energy Pattern (Low SOC)',
+        description: 'Set energy pattern to Battery First from 12:00-17:00 when SOC is 0-79%',
+        active: true,
+        timeRestrictions: {
+          startTime: '12:00',
+          endTime: '17:00',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lt',
+            value: 80
+          }
+        ],
+        actions: [{
+          setting: 'energy_pattern',
+          value: 'Battery first',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const afternoonEnergyPatternHighSoc = new Rule({
+        name: 'Extended - Afternoon Energy Pattern (High SOC)',
+        description: 'Set energy pattern to Load First from 12:00-17:00 when SOC is 80-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '12:00',
+          endTime: '17:00',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gte',
+            value: 80
+          }
+        ],
+        actions: [{
+          setting: 'energy_pattern',
+          value: 'Load first',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Evening Energy Pattern Rules (17:01 to 23:55) =====
+      const eveningEnergyPatternLowSoc = new Rule({
+        name: 'Extended - Evening Energy Pattern (Low SOC)',
+        description: 'Set energy pattern to Battery First from 17:01-23:55 when SOC is 1-40%',
+        active: true,
+        timeRestrictions: {
+          startTime: '17:01',
+          endTime: '23:55',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 40
+          },
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 0
+          }
+        ],
+        actions: [{
+          setting: 'energy_pattern',
+          value: 'Battery first',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const eveningEnergyPatternHighSoc = new Rule({
+        name: 'Extended - Evening Energy Pattern (High SOC)',
+        description: 'Set energy pattern to Load First from 17:01-23:55 when SOC is 41-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '17:01',
+          endTime: '23:55',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gte',
+            value: 41
+          }
+        ],
+        actions: [{
+          setting: 'energy_pattern',
+          value: 'Load first',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Afternoon Grid Charge Point 1 Rules (13:00 to 17:00) =====
+      const afternoonGridChargePoint1LowSoc = new Rule({
+        name: 'Extended - Afternoon Grid Charge Point 1 (Low SOC)',
+        description: 'Enable Grid Charge Point 1 from 13:00-17:00 when SOC is 0-80%',
+        active: true,
+        timeRestrictions: {
+          startTime: '13:00',
+          endTime: '17:00',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 80
+          }
+        ],
+        actions: [{
+          setting: 'grid_charge', // Replace with the correct setting for grid charge point 1
+          value: 'Enabled',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const afternoonGridChargePoint1HighSoc = new Rule({
+        name: 'Extended - Afternoon Grid Charge Point 1 (High SOC)',
+        description: 'Disable Grid Charge Point 1 from 13:00-17:00 when SOC is 81-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '13:00',
+          endTime: '17:00',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 80
+          }
+        ],
+        actions: [{
+          setting: 'grid_charge',
+          value: 'Disabled',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Evening Grid Charge Point 1 Rules (17:01 to 23:55) =====
+      const eveningGridChargePoint1LowSoc = new Rule({
+        name: 'Extended - Evening Grid Charge Point 1 (Low SOC)',
+        description: 'Enable Grid Charge Point 1 from 17:01-23:55 when SOC is 0-80%',
+        active: true,
+        timeRestrictions: {
+          startTime: '17:01',
+          endTime: '23:55',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 80
+          }
+        ],
+        actions: [{
+          setting: 'grid_charge',
+          value: 'Enabled',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const eveningGridChargePoint1HighSoc = new Rule({
+        name: 'Extended - Evening Grid Charge Point 1 (High SOC)',
+        description: 'Disable Grid Charge Point 1 from 17:01-23:55 when SOC is 81-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '17:01',
+          endTime: '23:55',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 80
+          }
+        ],
+        actions: [{
+          setting: 'grid_charge',
+          value: 'Disabled',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Early Morning Grid Charge Point 2 Rules (00:05 to 08:55) =====
+      const earlyMorningGridChargePoint2LowSoc = new Rule({
+        name: 'Extended - Early Morning Grid Charge Point 2 (Low SOC)',
+        description: 'Enable Grid Charge Point 2 from 00:05-08:55 when SOC is 0-40%',
+        active: true,
+        timeRestrictions: {
+          startTime: '00:05',
+          endTime: '08:55',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lte',
+            value: 40
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_1', // Using voltage_point_1 for grid charge point 2
+          value: '1',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const earlyMorningGridChargePoint2HighSoc = new Rule({
+        name: 'Extended - Early Morning Grid Charge Point 2 (High SOC)',
+        description: 'Disable Grid Charge Point 2 from 00:05-08:55 when SOC is 41-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '00:05',
+          endTime: '08:55',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gt',
+            value: 40
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_1',
+          value: '0',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Morning Grid Charge Point 2 Rules (09:00 to 12:59) =====
+      const morningGridChargePoint2LowSoc = new Rule({
+        name: 'Extended - Morning Grid Charge Point 2 (Low SOC)',
+        description: 'Enable Grid Charge Point 2 from 09:00-12:59 when SOC is 0-74%',
+        active: true,
+        timeRestrictions: {
+          startTime: '09:00',
+          endTime: '12:59',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'lt',
+            value: 75
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_1',
+          value: '1',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      const morningGridChargePoint2HighSoc = new Rule({
+        name: 'Extended - Morning Grid Charge Point 2 (High SOC)',
+        description: 'Disable Grid Charge Point 2 from 09:00-12:59 when SOC is 75-100%',
+        active: true,
+        timeRestrictions: {
+          startTime: '09:00',
+          endTime: '12:59',
+          enabled: true
+        },
+        conditions: [
+          {
+            parameter: 'battery_soc',
+            operator: 'gte',
+            value: 75
+          }
+        ],
+        actions: [{
+          setting: 'voltage_point_1',
+          value: '0',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // ===== Timer Disabling Rule =====
+      const disableTimerEarlyMorning = new Rule({
+        name: 'Extended - Disable Timer Early Morning',
+        description: 'Disable Use Timer from 00:00 to 06:00',
+        active: true,
+        timeRestrictions: {
+          startTime: '00:00',
+          endTime: '06:00',
+          enabled: true
+        },
+        conditions: [],
+        actions: [{
+          setting: 'work_mode_timer',
+          value: 'Disabled',
+          inverter: 'all'
+        }],
+        user_id: USER_ID,
+        mqtt_username: mqttConfig.username
+      });
+      
+      // Save all the extended rules
+      await Promise.all([
+        powerPoint2Rule1.save(),
+        powerPoint2Rule2.save(),
+        powerPoint2Rule3.save(),
+        powerPoint2Rule4.save(),
+        morningEnergyPatternLowSoc.save(),
+        morningEnergyPatternHighSoc.save(),
+        afternoonEnergyPatternLowSoc.save(),
+        afternoonEnergyPatternHighSoc.save(),
+        eveningEnergyPatternLowSoc.save(),
+        eveningEnergyPatternHighSoc.save(),
+        afternoonGridChargePoint1LowSoc.save(),
+        afternoonGridChargePoint1HighSoc.save(),
+        eveningGridChargePoint1LowSoc.save(),
+        eveningGridChargePoint1HighSoc.save(),
+        earlyMorningGridChargePoint2LowSoc.save(),
+        earlyMorningGridChargePoint2HighSoc.save(),
+        morningGridChargePoint2LowSoc.save(),
+        morningGridChargePoint2HighSoc.save(),
+        disableTimerEarlyMorning.save()
+      ]);
+      
+      console.log(`Extended automation rules created for user: ${USER_ID}`);
+    }
+  } catch (error) {
+    console.error('Error creating extended automation rules:', error.message);
+  }
+}
+
 
 // ================ API ROUTES ================
 
@@ -2505,14 +3031,28 @@ async function initializeConnections() {
     
     // Create default rules if connected to DB
     if (dbConnected) {
-      await createDefaultRules()
-      // Remove this line:
-      // await createDefaultBatteryAndWorkModeRules() 
+      // Replace the original createDefaultRules() call with our enhanced initialization
+      await initializeAutomationRules()
     }
   } catch (err) {
     console.error('Initial database connection failed:', err)
     // Continue app startup even if DB fails initially
     setTimeout(retryDatabaseConnection, 10000)
+  }
+}
+
+// Function that integrates both default and extended rules
+async function initializeAutomationRules() {
+  try {
+    // First create the basic default rules
+    await createDefaultRules();
+    
+    // Then create the extended advanced rules
+    await createExtendedAutomationRules();
+    
+    console.log('All automation rules initialized successfully');
+  } catch (error) {
+    console.error('Error initializing automation rules:', error.message);
   }
 }
 
