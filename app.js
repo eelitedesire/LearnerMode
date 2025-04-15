@@ -467,50 +467,45 @@ async function countRules(userId) {
 async function batchUpdateRules(rules) {
   if (!dbConnected || rules.length === 0) return;
   
-  // Check if a transaction is already in progress
-  if (transactionInProgress) {
-    console.warn('Transaction already in progress, queueing rule updates');
-    setTimeout(() => batchUpdateRules(rules), 100);
-    return;
-  }
-  
-  try {
-    // Set transaction flag
-    transactionInProgress = true;
-    
-    // Begin a transaction
-    await db.run('BEGIN TRANSACTION');
-    
-    for (const rule of rules) {
-      // Update in SQLite
-      await db.run(`
-        UPDATE rules 
-        SET last_triggered = ?,
-            trigger_count = ?
-        WHERE id = ? AND user_id = ?
-      `, [
-        rule.lastTriggered.toISOString(),
-        rule.triggerCount,
-        rule.id,
-        rule.user_id
-      ]);
-    }
-    
-    // Commit the transaction
-    await db.run('COMMIT');
-  } catch (error) {
-    // Rollback on error
+  // Use the mutex pattern for transaction control
+  return executeWithDbMutex(async () => {
     try {
-      await db.run('ROLLBACK');
-    } catch (rollbackError) {
-      console.error('Error rolling back transaction:', rollbackError.message);
+      // Begin a transaction
+      await db.run('BEGIN TRANSACTION');
+      
+      for (const rule of rules) {
+        // Update in SQLite
+        await db.run(`
+          UPDATE rules 
+          SET last_triggered = ?,
+              trigger_count = ?
+          WHERE id = ? AND user_id = ?
+        `, [
+          rule.lastTriggered.toISOString(),
+          rule.triggerCount,
+          rule.id,
+          rule.user_id
+        ]);
+      }
+      
+      // Commit the transaction
+      await db.run('COMMIT');
+      return true;
+    } catch (error) {
+      // Rollback on error
+      try {
+        await db.run('ROLLBACK');
+      } catch (rollbackError) {
+        // Only log the error if it's not "no transaction is active"
+        if (!rollbackError.message.includes('no transaction is active')) {
+          console.error('Error rolling back transaction:', rollbackError.message);
+        }
+      }
+      
+      console.error('Error batch updating rules in SQLite:', error.message);
+      return false;
     }
-    
-    console.error('Error batch updating rules in SQLite:', error.message);
-  } finally {
-    // Always reset the transaction flag when done
-    transactionInProgress = false;
-  }
+  });
 }
 
 // Function to save a rule to SQLite
@@ -1111,65 +1106,60 @@ let transactionInProgress = false;
 async function batchSaveSettingsChanges(changes) {
   if (!dbConnected || changes.length === 0) return;
   
-  // Check if a transaction is already in progress
-  if (transactionInProgress) {
-    // Removed the console.warn message here
-    setTimeout(() => batchSaveSettingsChanges(changes), 100);
-    return;
-  }
-  
-  try {
-    // Set transaction flag
-    transactionInProgress = true;
-    
-    // Begin a transaction
-    await db.run('BEGIN TRANSACTION');
-    
-    for (const change of changes) {
-      // Convert system_state object to JSON string
-      const systemStateJson = JSON.stringify(change.system_state || {});
-      
-      // Convert values to strings for SQLite
-      const oldValueStr = typeof change.old_value === 'object' ? 
-        JSON.stringify(change.old_value) : 
-        String(change.old_value || '');
-      
-      const newValueStr = typeof change.new_value === 'object' ? 
-        JSON.stringify(change.new_value) : 
-        String(change.new_value || '');
-      
-      // Insert into SQLite
-      await db.run(`
-        INSERT INTO settings_changes 
-        (timestamp, topic, old_value, new_value, system_state, change_type, user_id, mqtt_username)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        change.timestamp.toISOString(),
-        change.topic,
-        oldValueStr,
-        newValueStr,
-        systemStateJson,
-        change.change_type,
-        change.user_id,
-        change.mqtt_username
-      ]);
-    }
-    
-    // Commit the transaction
-    await db.run('COMMIT');
-  } catch (error) {
-    // Rollback on error
+  // Use the mutex pattern for transaction control
+  return executeWithDbMutex(async () => {
     try {
-      await db.run('ROLLBACK');
-    } catch (rollbackError) {
-      console.error('Error rolling back transaction:', rollbackError.message);
+      // Begin a transaction
+      await db.run('BEGIN TRANSACTION');
+      
+      for (const change of changes) {
+        // Convert system_state object to JSON string
+        const systemStateJson = JSON.stringify(change.system_state || {});
+        
+        // Convert values to strings for SQLite
+        const oldValueStr = typeof change.old_value === 'object' ? 
+          JSON.stringify(change.old_value) : 
+          String(change.old_value || '');
+        
+        const newValueStr = typeof change.new_value === 'object' ? 
+          JSON.stringify(change.new_value) : 
+          String(change.new_value || '');
+        
+        // Insert into SQLite
+        await db.run(`
+          INSERT INTO settings_changes 
+          (timestamp, topic, old_value, new_value, system_state, change_type, user_id, mqtt_username)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          change.timestamp.toISOString(),
+          change.topic,
+          oldValueStr,
+          newValueStr,
+          systemStateJson,
+          change.change_type,
+          change.user_id,
+          change.mqtt_username
+        ]);
+      }
+      
+      // Commit the transaction
+      await db.run('COMMIT');
+      return true;
+    } catch (error) {
+      // Rollback on error
+      try {
+        await db.run('ROLLBACK');
+      } catch (rollbackError) {
+        // Only log the error if it's not "no transaction is active"
+        if (!rollbackError.message.includes('no transaction is active')) {
+          console.error('Error rolling back transaction:', rollbackError.message);
+        }
+      }
+      
+      console.error('Error batch saving settings changes to SQLite:', error.message);
+      return false;
     }
-    
-    console.error('Error batch saving settings changes to SQLite:', error.message);
-  } finally {
-    // Always reset the transaction flag when done
-    transactionInProgress = false;
-  }
+  });
 }
 
 // 3. Create a debounced version of processRules to avoid excessive processing
@@ -1340,49 +1330,6 @@ function evaluateCondition(condition) {
       return currentValue <= value;
     default:
       return false;
-  }
-}
-
-
-// 5. Add batch update function for rules
-async function batchUpdateRules(rules) {
-  if (!dbConnected || rules.length === 0) return;
-  
-  try {
-    // Begin a transaction
-    await db.run('BEGIN TRANSACTION');
-    
-    for (const rule of rules) {
-      // Convert JSON objects to strings
-      const conditionsJson = JSON.stringify(rule.conditions || []);
-      const timeRestrictionsJson = JSON.stringify(rule.timeRestrictions || {});
-      const actionsJson = JSON.stringify(rule.actions || []);
-      
-      // Update in SQLite
-      await db.run(`
-        UPDATE rules 
-        SET last_triggered = ?,
-            trigger_count = ?
-        WHERE id = ? AND user_id = ?
-      `, [
-        rule.lastTriggered.toISOString(),
-        rule.triggerCount,
-        rule.id,
-        rule.user_id
-      ]);
-    }
-    
-    // Commit the transaction
-    await db.run('COMMIT');
-  } catch (error) {
-    // Rollback on error
-    try {
-      await db.run('ROLLBACK');
-    } catch (rollbackError) {
-      console.error('Error rolling back transaction:', rollbackError.message);
-    }
-    
-    console.error('Error batch updating rules in SQLite:', error.message);
   }
 }
 
@@ -3356,7 +3303,8 @@ app.get('/grid-charge', async (req, res) => {
       active: learnerModeActive,
       changes_count: changesCount,
       db_connected: dbConnected,
-      user_id: USER_ID // Pass user ID to template
+      user_id: USER_ID,
+      mqtt_topic_prefix: options.mqtt_topic_prefix || 'energy' // Pass the MQTT topic prefix
     });
   } catch (error) {
     console.error('Error rendering grid-charge page:', error);
@@ -3447,7 +3395,8 @@ app.get('/voltage-point', async (req, res) => {
       active: learnerModeActive,
       changes_count: changesCount,
       db_connected: dbConnected,
-      user_id: USER_ID // Pass user ID to template
+      user_id: USER_ID, // Pass user ID to template
+      mqtt_topic_prefix: options.mqtt_topic_prefix || 'energy' // Add this line to pass MQTT topic prefix
     });
   } catch (error) {
     console.error('Error rendering voltage-point page:', error);
